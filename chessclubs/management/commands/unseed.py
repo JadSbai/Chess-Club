@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
+from chessclubs.models import User
 
 class Command(BaseCommand):
-    """The database seeder."""
-
     def handle(self, *args, **options):
-        print("TODO: The database seeder will be added here...")
+        User.objects.filter(is_staff=False, is_superuser=False).delete()

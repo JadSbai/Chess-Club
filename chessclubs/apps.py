@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ChessclubConfig(AppConfig):
+class MicroblogsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'chessclub'
+    name = 'chessclubs'
