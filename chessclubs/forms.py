@@ -1,7 +1,7 @@
 """Forms for the chessclubs app."""
 from django import forms
 from django.core.validators import RegexValidator
-from .models import User, Post
+from .models import User
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -86,19 +86,3 @@ class SignUpForm(forms.ModelForm):
             password=self.cleaned_data.get('new_password'),
         )
         return user
-
-
-class PostForm(forms.ModelForm):
-    """Form to ask user for post text.
-
-    The post author must be by the post creator.
-    """
-
-    class Meta:
-        """Form options."""
-
-        model = Post
-        fields = ['text']
-        widgets = {
-            'text': forms.Textarea()
-        }

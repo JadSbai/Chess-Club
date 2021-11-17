@@ -5,8 +5,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
 
+
 class User(AbstractUser):
-    """User model used for authentication and microblog authoring."""
+    """User model used for authentication and chess-club authoring."""
 
     username = models.CharField(
         max_length=30,
@@ -20,9 +21,8 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
     bio = models.CharField(max_length=520, blank=True)
-    followers = models.ManyToManyField(
-        'self', symmetrical=False, related_name='followees'
-    )
+    chessExperience = models.CharField(max_length=50, blank=True)
+    personalStatement = models.CharField(max_length=1500, blank=True)
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
@@ -37,46 +37,3 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         return self.gravatar(size=60)
 
-    def toggle_follow(self, followee):
-        """Toggles whether self follows the given followee."""
-
-        if followee==self:
-            return
-        if self.is_following(followee):
-            self._unfollow(followee)
-        else:
-            self._follow(followee)
-
-    def _follow(self, user):
-        user.followers.add(self)
-
-    def _unfollow(self, user):
-        user.followers.remove(self)
-
-    def is_following(self, user):
-        """Returns whether self follows the given user."""
-
-        return user in self.followees.all()
-
-    def follower_count(self):
-        """Returns the number of followers of self."""
-
-        return self.followers.count()
-
-    def followee_count(self):
-        """Returns the number of followees of self."""
-
-        return self.followees.count()
-
-
-class Post(models.Model):
-    """Posts by users in their chessclubs."""
-
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.CharField(max_length=280)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        """Model options."""
-
-        ordering = ['-created_at']

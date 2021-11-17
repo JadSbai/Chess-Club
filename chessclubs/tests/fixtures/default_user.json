@@ -1,6 +1,6 @@
 [
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 1,
     "fields": {
       "first_name": "John",

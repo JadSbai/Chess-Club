@@ -1,6 +1,6 @@
 [
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 2,
     "fields": {
       "first_name": "Jane",
@@ -13,7 +13,7 @@
     }
   },
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 3,
     "fields": {
       "first_name": "Petra",
@@ -26,7 +26,7 @@
     }
   },
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 4,
     "fields": {
       "first_name": "Peter",
