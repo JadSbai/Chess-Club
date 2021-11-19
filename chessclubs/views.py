@@ -81,6 +81,7 @@ def change_profile(request):
 
 @login_prohibited
 def sign_up(request):
+    """When a new user signs up, he becomes an applicant"""
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
