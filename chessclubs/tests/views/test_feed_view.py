@@ -14,14 +14,14 @@ class FeedViewTestCase(TestCase):
     ]
 
     def setUp(self):
-        self.user = User.objects.get(username='@johndoe')
-        self.url = reverse('feed')
+        self.user = User.objects.get(email='johndoe@example.org')
+        self.url = reverse('my_profile')
 
     def test_feed_url(self):
-        self.assertEqual(self.url,'/feed/')
+        self.assertEqual(self.url, '/my_profile/')
 
     def test_get_feed(self):
-        self.client.login(username=self.user.username, password='Password123')
+        self.client.login(email=self.user.email, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'my_profile.html')

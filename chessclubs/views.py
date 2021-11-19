@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
-from .groups import members
+from .groups import members, officers
 from .models import User
 
 @login_required
@@ -21,9 +21,9 @@ def log_in(request):
         form = LogInForm(request.POST)
         next = request.POST.get('next') or ''
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
                 redirect_url = next or 'my_profile'
@@ -80,6 +80,7 @@ def sign_up(request):
             user = form.save()
             login(request, user)
             members.user_set.add(user)
+            officers.user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -94,8 +95,9 @@ def show_user(request, user_id):
     except ObjectDoesNotExist:
         return redirect('user_list')
     else:
+        is_officer = request.user.groups.filter(name='officers').exists()
         return render(request, 'show_user.html',
-            {'user': user}
+            {'user': user, 'isOfficer': is_officer}
         )
 
 @login_required
