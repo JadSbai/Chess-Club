@@ -5,9 +5,10 @@
     "fields": {
       "first_name": "John",
       "last_name": "Doe",
-      "username": "@johndoe",
       "email": "johndoe@example.org",
       "bio": "Hello, I'm John Doe.",
+      "chess_experience": "Expert",
+      "personal_statement": "I'm the best of the best",
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
