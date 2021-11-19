@@ -6,7 +6,11 @@ from libgravatar import Gravatar
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, first_name, last_name, bio, chess_experience, personal_statement, password=None, is_admin=False, is_staff=False, is_active=True):
+    """User manager used for creation of users"""
+
+    def create_user(self, email, first_name, last_name, bio, chess_experience, personal_statement, password=None,
+                    is_admin=False, is_staff=False, is_active=True):
+        """Create a user according to User model"""
         if not email:
             raise ValueError("User must have an email")
         if not password:
@@ -36,6 +40,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password):
+        """Create a super user with email and password only"""
         if not email:
             raise ValueError("User must have an email")
         if not password:
@@ -44,10 +49,10 @@ class UserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email)
         )
+        user.is_staff = True
+        user.is_superuser = True
+        user.is_active = True
         user.set_password(password)
-        user.admin = True
-        user.staff = True
-        user.active = True
         user.save(using=self._db)
         return user
 
@@ -77,9 +82,12 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         return self.gravatar(size=60)
 
+
+
     objects = UserManager()
 
     class Meta:
+        # All permissions associated with the User Model
         permissions = [
             ("access_members_list", "Can access the list of members"),
             ("show_public_info", "Can access a member's public info"),
@@ -89,6 +97,12 @@ class User(AbstractUser):
             ("transfer_ownership", "Can transfer ownership to an officer"),
         ]
 
-
-
-
+    def status(self):
+        if self.groups.filter(name="applicants").exists():
+            return "applicant"
+        if self.groups.filter(name="members").exists():
+            return "member"
+        if self.groups.filter(name="officers").exists():
+            return "officer"
+        else:
+            return "owner"

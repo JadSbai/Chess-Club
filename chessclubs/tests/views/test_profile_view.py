@@ -20,8 +20,9 @@ class ProfileViewTest(TestCase):
         self.form_input = {
             'first_name': 'John2',
             'last_name': 'Doe2',
-            'email': 'johndoe2@example.org',
             'bio': 'New bio',
+            'chess_experience': 'Intermediate',
+            'personal_statement': 'I am the best',
         }
 
     def test_profile_url(self):
@@ -43,7 +44,7 @@ class ProfileViewTest(TestCase):
 
     def test_unsuccesful_profile_update(self):
         self.client.login(email=self.user.email, password='Password123')
-        self.form_input['email'] = 'Bad_email'
+        self.form_input['chess_experience'] = ''
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input)
         after_count = User.objects.count()
@@ -56,26 +57,10 @@ class ProfileViewTest(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'John')
         self.assertEqual(self.user.last_name, 'Doe')
-        self.assertEqual(self.user.email, 'johndoe@example.org')
         self.assertEqual(self.user.bio, "Hello, I'm John Doe.")
+        self.assertEqual(self.user.chess_experience, "Expert")
+        self.assertEqual(self.user.personal_statement, "I'm the best of the best")
 
-    def test_unsuccessful_profile_update_due_to_duplicate_email(self):
-        self.client.login(email=self.user.email, password='Password123')
-        self.form_input['email'] = 'janedoe@example.org'
-        before_count = User.objects.count()
-        response = self.client.post(self.url, self.form_input)
-        after_count = User.objects.count()
-        self.assertEqual(after_count, before_count)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'change_profile.html')
-        form = response.context['form']
-        self.assertTrue(isinstance(form, UserForm))
-        self.assertTrue(form.is_bound)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.first_name, 'John')
-        self.assertEqual(self.user.last_name, 'Doe')
-        self.assertEqual(self.user.email, 'johndoe@example.org')
-        self.assertEqual(self.user.bio, "Hello, I'm John Doe.")
 
     def test_succesful_profile_update(self):
         self.client.login(email=self.user.email, password='Password123')
@@ -92,8 +77,9 @@ class ProfileViewTest(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'John2')
         self.assertEqual(self.user.last_name, 'Doe2')
-        self.assertEqual(self.user.email, 'johndoe2@example.org')
         self.assertEqual(self.user.bio, 'New bio')
+        self.assertEqual(self.user.chess_experience, 'Intermediate')
+        self.assertEqual(self.user.personal_statement, 'I am the best')
 
     def test_post_profile_redirects_when_not_logged_in(self):
         redirect_url = reverse_with_next('log_in', self.url)

@@ -19,12 +19,12 @@ class SignUpViewTestCase(TestCase, LogInTester):
             'email': 'janedoe@example.org',
             'bio': 'My bio',
             'new_password': 'Password123',
-            'password_confirmation': 'Password123'
+            'password_confirmation': 'Password123',
         }
         self.user = User.objects.get(email='johndoe@example.org')
 
     def test_sign_up_url(self):
-        self.assertEqual(self.url,'/sign_up/')
+        self.assertEqual(self.url, '/sign_up/')
 
     def test_get_sign_up(self):
         response = self.client.get(self.url)
@@ -54,7 +54,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertTrue(form.is_bound)
         self.assertFalse(self._is_logged_in())
 
-    def test_succesful_sign_up(self):
+    def test_successful_sign_up(self):
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = User.objects.count()

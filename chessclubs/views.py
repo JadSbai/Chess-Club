@@ -7,13 +7,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
-from .groups import members, officers
+from .groups import members, officers, applicants
 from .models import User
+
 
 @login_required
 def my_profile(request):
     current_user = request.user
     return render(request, 'my_profile.html', {'user': current_user})
+
 
 @login_prohibited
 def log_in(request):
@@ -34,13 +36,16 @@ def log_in(request):
     form = LogInForm()
     return render(request, 'log_in.html', {'form': form, 'next': next})
 
+
 def log_out(request):
     logout(request)
     return redirect('home')
 
+
 @login_prohibited
 def home(request):
     return render(request, 'home.html')
+
 
 @login_required
 def password(request):
@@ -59,6 +64,7 @@ def password(request):
     form = PasswordForm()
     return render(request, 'password.html', {'form': form})
 
+
 @login_required
 def change_profile(request):
     current_user = request.user
@@ -72,6 +78,7 @@ def change_profile(request):
         form = UserForm(instance=current_user)
     return render(request, 'change_profile.html', {'form': form})
 
+
 @login_prohibited
 def sign_up(request):
     if request.method == 'POST':
@@ -79,8 +86,9 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            members.user_set.add(user)
-            officers.user_set.add(user)
+            applicants.user_set.add(user)
+            # members.user_set.add(user)
+            # officers.user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -97,8 +105,9 @@ def show_user(request, user_id):
     else:
         is_officer = request.user.groups.filter(name='officers').exists()
         return render(request, 'show_user.html',
-            {'user': user, 'isOfficer': is_officer}
-        )
+                      {'user': user, 'isOfficer': is_officer}
+                      )
+
 
 @login_required
 @permission_required('chessclubs.access_members_list')
