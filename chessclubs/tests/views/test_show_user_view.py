@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
-from chessclubs.models import User, Post
-from chessclubs.tests.helpers import create_posts, reverse_with_next
+from chessclubs.models import User
+from chessclubs.tests.helpers import reverse_with_next
 
 class ShowUserTest(TestCase):
 
@@ -51,15 +51,3 @@ class ShowUserTest(TestCase):
         redirect_url = reverse_with_next('log_in', self.url)
         response = self.client.get(self.url)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-
-    def test_show_user_displays_posts_belonging_to_the_shown_user_only(self):
-        self.client.login(username=self.user.username, password='Password123')
-        other_user = User.objects.get(username='@janedoe')
-        create_posts(other_user, 100, 103)
-        create_posts(self.user, 200, 203)
-        url = reverse('show_user', kwargs={'user_id': other_user.id})
-        response = self.client.get(url)
-        for count in range(100, 103):
-            self.assertContains(response, f'Post__{count}')
-        for count in range(200, 203):
-            self.assertNotContains(response, f'Post__{count}')

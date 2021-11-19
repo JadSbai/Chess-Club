@@ -49,7 +49,7 @@ class LogInViewTestCase(TestCase, LogInTester):
         response = self.client.get(self.url, follow=True)
         redirect_url = reverse('feed')
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'feed.html')
+        self.assertTemplateUsed(response, 'my_profile.html')
 
     def test_unsuccesful_log_in(self):
         form_input = { 'username': '@johndoe', 'password': 'WrongPassword123' }
@@ -96,7 +96,7 @@ class LogInViewTestCase(TestCase, LogInTester):
         self.assertTrue(self._is_logged_in())
         response_url = reverse('feed')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'feed.html')
+        self.assertTemplateUsed(response, 'my_profile.html')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
 
@@ -116,7 +116,7 @@ class LogInViewTestCase(TestCase, LogInTester):
         response = self.client.post(self.url, form_input, follow=True)
         redirect_url = reverse('feed')
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'feed.html')
+        self.assertTemplateUsed(response, 'my_profile.html')
 
     def test_post_log_in_with_incorrect_credentials_and_redirect(self):
         redirect_url = reverse('user_list')
