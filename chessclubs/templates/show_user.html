@@ -14,11 +14,11 @@
     <div>
       {% if is_owner %}
         {% if is_targert_user_member %}
-          <a href="{% url 'promote' user.id %}"  class="btn btn-primary">Promote </a>
+          <a href="{% url 'promote' user.id %}"  class="btn btn-outline-success">Promote </a>
           {%endif%}
         {% if is_targert_user_officer %}
-      <a href="{% url 'demote' user.id %}"  class="btn btn-primary">Demote </a>
-        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-primary">Transfer ownership </a>
+        <a href="{% url 'demote' user.id %}"  class="btn btn-outline-success">Demote </a>
+        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-outline-success">Transfer ownership </a>
         {% endif%}
       {%endif%}
     </div>
