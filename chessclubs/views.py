@@ -114,7 +114,6 @@ def promote(request, user_id):
     officers.user_set.add(target_user)
     is_officer = target_user.groups.filter(name='officers').exists()
     print(is_officer)
-    #user.groups.add(officers)
     return redirect('show_user', user_id)
 
 def demote(request, user_id):
