@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, Permission
 applicants, created = Group.objects.get_or_create(name="applicants")
 members, created2 = Group.objects.get_or_create(name="members")
 officers, created3 = Group.objects.get_or_create(name="officers")
+owner, created4 = Group.objects.get_or_create(name="owner")
 
 membersList = Permission.objects.get(codename='access_members_list')
 public = Permission.objects.get(codename='show_public_info')
@@ -17,3 +18,4 @@ owner_permissions = officers_permissions + [promote, demote, transfer_ownership]
 
 members.permissions.set(members_permissions)
 officers.permissions.set(officers_permissions)
+owner.permissions.set(owner_permissions)

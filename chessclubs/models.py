@@ -89,6 +89,12 @@ class User(AbstractUser):
             ("transfer_ownership", "Can transfer ownership to an officer"),
         ]
 
-
-
-
+    def status(self):
+        if self.groups.filter(name="applicants").exists():
+            return "applicant"
+        if self.groups.filter(name="members").exists():
+            return "member"
+        if self.groups.filter(name="officers").exists():
+            return "officer"
+        else:
+            return "owner"
