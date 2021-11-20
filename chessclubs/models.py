@@ -16,6 +16,7 @@ class User(AbstractUser):
             message='Username must consist of @ followed by at least three alphanumericals'
         )]
     )
+    USERNAME_FIELD='email'
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
@@ -23,6 +24,7 @@ class User(AbstractUser):
     followers = models.ManyToManyField(
         'self', symmetrical=False, related_name='followees'
     )
+    REQUIRED_FIELDS=[]
 
     def full_name(self):
         return f'{self.first_name} {self.last_name}'

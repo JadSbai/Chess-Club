@@ -35,9 +35,11 @@ def log_in(request):
         form = LogInForm(request.POST)
         next = request.POST.get('next') or ''
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            print(password)
+            user = authenticate(email=email, password=password)
+
             if user is not None:
                 login(request, user)
                 redirect_url = next or 'feed'
