@@ -10,10 +10,10 @@ class HomeViewTestCase(TestCase):
 
     def setUp(self):
         self.url = reverse('home')
-        self.user = User.objects.get(username='@johndoe')
+        self.user = User.objects.get(email='johndoe@example.org')
 
     def test_home_url(self):
-        self.assertEqual(self.url,'/')
+        self.assertEqual(self.url, '/')
 
     def test_get_home(self):
         response = self.client.get(self.url)
@@ -21,8 +21,8 @@ class HomeViewTestCase(TestCase):
         self.assertTemplateUsed(response, 'home.html')
 
     def test_get_home_redirects_when_logged_in(self):
-        self.client.login(username=self.user.username, password="Password123")
+        self.client.login(email=self.user.email, password="Password123")
         response = self.client.get(self.url, follow=True)
-        redirect_url = reverse('feed')
+        redirect_url = reverse('my_profile')
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'feed.html')
+        self.assertTemplateUsed(response, 'my_profile.html')
