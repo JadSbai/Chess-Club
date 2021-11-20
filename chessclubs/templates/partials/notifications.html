@@ -1,3 +1,4 @@
+
 {% load notifications_tags %}
 <body>
 <ul class="navbar-nav mb-2 mb-lg-0">
@@ -7,9 +8,12 @@
       </a>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown">
         {% for notification in  user.notifications.unread%}
-	  <div>
-	    Message from <b>{{ notification.actor }}</b>
-	    <button class="dropdown-item" type="button" onclick={{ notification.mark_as_read}}>{{ notification.description }}</button>
+	  <div class="container fluid">
+{#      <div>#}
+{#          <p>Message from: </p>#}
+{#          <b>{{ notification.actor }}</b>#}
+{#      </div>#}
+	    <a class="dropdown-item" href="{% url 'mark_as_read' notification.slug%}" type="button">{{ notification.description}}</a>
 		</div>
 		<div class="dropdown-divider"></div>
 	{% endfor %}
