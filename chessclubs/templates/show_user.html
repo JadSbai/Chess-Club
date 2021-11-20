@@ -1,13 +1,27 @@
+
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container">
-  <div class="row content">
-    <div class="col-xs-12 col-lg-6 col-xl-4">
-      {% include 'partials/user_profile.html' with following=following followable=followable %}
+<div class="container fluid">
+  <div class="container d-flex justify-content-center">
+      {% include 'partials/user_profile.html'%}
     </div>
-    <div class="col-xs-12 col-lg-6 col-xl-8">
-      {% include 'partials/posts_as_table.html' with posts=posts %}
+    {% if is_officer or is_owner %}
+    <div class="container mb-5 d-flex justify-content-center">
+      {% include 'partials/show_user_private_info.html'%}
     </div>
-  </div>
+    {%endif%}
+    <div class="container d-flex justify-content-left">
+    <div class="container-fluid content">
+      {% if is_owner %}
+        {% if is_target_user_member %}
+          <a href="{% url 'promote' user.id %}"  class="btn btn-outline-success">Promote</a>
+          {%endif%}
+        {% if is_target_user_officer %}
+        <a href="{% url 'demote' user.id %}"  class="btn btn-outline-danger">Demote </a>
+        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-outline-info">Transfer ownership </a>
+        {% endif%}
+      {%endif%}
+    </div>
+</div>
 </div>
 {% endblock %}

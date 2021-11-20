@@ -13,21 +13,28 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from chessclubs import views
+import notifications.urls
+from django.conf.urls import url
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    path('feed/', views.feed, name='feed'),
-    path('follow_toggle/<int:user_id>', views.follow_toggle, name='follow_toggle'),
+    path('my_profile/', views.my_profile, name='my_profile'),
     path('log_in/', views.log_in, name='log_in'),
     path('log_out/', views.log_out, name='log_out'),
-    path('new_post/', views.new_post, name='new_post'),
     path('password/', views.password, name='password'),
-    path('profile/', views.profile, name='profile'),
+    path('change_profile/', views.change_profile, name='change_profile'),
     path('sign_up/', views.sign_up, name='sign_up'),
     path('user/<int:user_id>', views.show_user, name='show_user'),
+    path('promote/<int:user_id>', views.promote, name='promote'),
+    path('demote/<int:user_id>', views.demote, name='demote'),
+    path('transfer_ownership/<int:user_id>', views.transfer_ownership, name='transfer_ownership'),
     path('users/', views.user_list, name='user_list'),
+    path(r'mark-as-read/(<slug>[-\w]+)/', views.mark_as_read, name='mark_as_read'),
+    url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
