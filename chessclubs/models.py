@@ -20,6 +20,8 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False)
     bio = models.CharField(max_length=520, blank=True)
+    chessExperience = models.CharField(max_length= 50, blank = True)
+    personalStatement = models.CharField(max_length = 1500, blank = True)
     followers = models.ManyToManyField(
         'self', symmetrical=False, related_name='followees'
     )

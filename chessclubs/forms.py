@@ -16,8 +16,8 @@ class UserForm(forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'bio']
-        widgets = { 'bio': forms.Textarea() }
+        fields = ['first_name', 'last_name', 'username', 'email', 'bio','chessExperience','personalStatement']
+        widgets = { 'bio': forms.Textarea(attrs={"rows":5, "cols":20}), 'personalStatement' : forms.Textarea(attrs={"rows":5, "cols":20})}
 
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
@@ -50,7 +50,7 @@ class SignUpForm(forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'username', 'email', 'bio']
+        fields = ['first_name', 'last_name', 'username', 'email', 'bio','chessExperience','personalStatement']
         widgets = { 'bio': forms.Textarea() }
 
     new_password = forms.CharField(
@@ -84,6 +84,8 @@ class SignUpForm(forms.ModelForm):
             email=self.cleaned_data.get('email'),
             bio=self.cleaned_data.get('bio'),
             password=self.cleaned_data.get('new_password'),
+            chessExperience=self.cleaned_data.get('chessExperience'),
+            personalStatement = self.cleaned_data.get('personalStatement')
         )
         return user
 
