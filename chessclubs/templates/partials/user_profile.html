@@ -1,14 +1,22 @@
-<div class="row content">
-  <div class="col-12">
-    <img src="{{ user.gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle profile-image" >
+<div class="container-fluid content">
+  <div class="container d-flex justify-content-center">
+    <img src="{{ user.gravatar }}" alt="Gravatar of {{ user.full_name }}" class="rounded-circle profile-image" />
+  </div>
+      <div class="container d-flex justify-content-center mb-5">
     <div class="profile-text">
       <h3 class="profile-title">{{ user.full_name }}</h3>
-      <p class="profile-username">{{ user.username }}</p>
-        <p class="profile-bio">{{ user.bio}}</p>
     </div>
   </div>
-</div>
-<div class="row content">
-  <div class="col-12">
-  </div>
+        <div class="container mt-3 border border-light py-3" style="border-width: 2px">
+        Status: {{ user.status}}
+    </div>
+    <div class="container mt-3 border border-light py-3" style="border-width: 2px">
+        Bio: {{ user.bio }}
+    </div>
+        <div class="container mt-3 mb-3 border border-light py-3" style="border-width: 2px">
+        Chess Experience: {{ user.chess_experience }}
+    </div>
+        <div class="container mt-3 border border-light py-3" style="border-width: 2px">
+        Personal Statement: {{ user.personal_statement}}
+    </div>
 </div>

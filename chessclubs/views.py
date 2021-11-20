@@ -4,16 +4,20 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
-from .groups import members, officers, owner
+from .groups import members, officers, applicants, owner
 from .models import User
+from notifications.signals import notify
+
 
 @login_required
 def my_profile(request):
     current_user = request.user
     return render(request, 'my_profile.html', {'user': current_user})
+
 
 @login_prohibited
 def log_in(request):
@@ -21,9 +25,9 @@ def log_in(request):
         form = LogInForm(request.POST)
         next = request.POST.get('next') or ''
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+            user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
                 redirect_url = next or 'my_profile'
@@ -34,13 +38,16 @@ def log_in(request):
     form = LogInForm()
     return render(request, 'log_in.html', {'form': form, 'next': next})
 
+
 def log_out(request):
     logout(request)
     return redirect('home')
 
+
 @login_prohibited
 def home(request):
     return render(request, 'home.html')
+
 
 @login_required
 def password(request):
@@ -59,9 +66,11 @@ def password(request):
     form = PasswordForm()
     return render(request, 'password.html', {'form': form})
 
+
 @login_required
 def change_profile(request):
     current_user = request.user
+    print(request.user.is_superuser)
     if request.method == 'POST':
         form = UserForm(instance=current_user, data=request.POST)
         if form.is_valid():
@@ -72,13 +81,18 @@ def change_profile(request):
         form = UserForm(instance=current_user)
     return render(request, 'change_profile.html', {'form': form})
 
+
 @login_prohibited
 def sign_up(request):
+    """When a new user signs up, he becomes an applicant"""
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
+
+            owner.user_set.add(user)
+    
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -107,7 +121,6 @@ def user_list(request):
     users = User.objects.all()
     return render(request, 'user_list.html', {'users': users})
 
-
 def promote(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
@@ -129,3 +142,9 @@ def transfer_ownership(request, user_id):
     request.user.groups.clear()
     officers.user_set.add(request.user)
     return redirect('show_user', user_id)
+  
+def notify_status_change(request):
+    sender = User.objects.get(email=request.user.email)
+    receiver = sender
+    notify.send(sender, recipient=receiver, verb='Message', description="You have been notified")
+    return redirect('show_user', sender.id)

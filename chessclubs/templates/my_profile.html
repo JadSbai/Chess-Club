@@ -1,13 +1,11 @@
-{% extends 'base_content.html' %}
+{% extends 'base_content.html'%}
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-xs-12 col-lg-6 col-xl-4">
+<div class="container d-flex justify-content-center">
       {% include 'partials/user_profile.html'%}
-    </div>
-    <div class="col-xs-12 col-lg-6 col-xl-8">
-      <h1>My Profile</h1>
-    </div>
-  </div>
 </div>
+    <div>
+    <a href='{% url 'notify' %}' class="btn btn-lg btn-primary">
+              Notify
+    </a>
+    </div>
 {% endblock %}

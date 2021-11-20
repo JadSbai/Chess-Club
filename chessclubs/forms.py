@@ -6,8 +6,7 @@ from .models import User
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
-
-    username = forms.CharField(label="Email")
+    email = forms.CharField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
 
@@ -18,8 +17,8 @@ class UserForm(forms.ModelForm):
         """Form options."""
 
         model = User
-        fields = ['first_name', 'last_name', 'email', 'bio']
-        widgets = {'bio': forms.Textarea()}
+        fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
+        widgets = {'bio': forms.Textarea(), 'chess_experience': forms.Textarea(), 'personal_statement': forms.Textarea()}
 
 
 class PasswordForm(forms.Form):
