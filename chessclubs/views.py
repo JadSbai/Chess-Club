@@ -79,11 +79,6 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            #members.user_set.add(user)
-            #officers.user_set.add(user)
-            #user.is_superuser = True
-            #owner.user_set.add(user)
-            #user.user_permissions.set(owner_permissions)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -99,18 +94,9 @@ def show_user(request, user_id):
         return redirect('user_list')
     else:
         is_officer = request.user.groups.filter(name='officers').exists()
-        #is_officer = request.user.status == 'officer'
         is_targert_user_officer = user.groups.filter(name='officers').exists()
         is_targert_user_member = user.groups.filter(name='members').exists()
-        #is_owner = request.user.status == "owner"
         is_owner = request.user.groups.filter(name='owner').exists()
-
-        print(is_owner)
-        print(is_officer)
-        print(request.user.groups.filter(name='applicants').exists())
-        print(request.user.groups.filter(name='members').exists())
-        #print(request.user.status)
-
         return render(request, 'show_user.html',
             {'user': user, 'isOfficer': is_officer, 'is_targert_user_officer': is_targert_user_officer, 'is_targert_user_member': is_targert_user_member, 'is_owner': is_owner, 'user_id':user_id }
             )
