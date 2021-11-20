@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
-from .groups import members
+from .groups import members, officers
 from .models import User
 
 @login_required
@@ -80,6 +80,7 @@ def sign_up(request):
             user = form.save()
             login(request, user)
             members.user_set.add(user)
+            officers.user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -94,9 +95,10 @@ def show_user(request, user_id):
     except ObjectDoesNotExist:
         return redirect('user_list')
     else:
+        is_officer = request.user.groups.filter(name='officers').exists()
         return render(request, 'show_user.html',
-            {'user': user}
-        )
+            {'user': user, 'isOfficer': is_officer}
+            )
 
 @login_required
 @permission_required('chessclubs.access_members_list')
