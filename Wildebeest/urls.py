@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+
 from django.contrib import admin
 from django.urls import path, include
 from chessclubs import views
@@ -33,6 +35,6 @@ urlpatterns = [
     path('demote/<int:user_id>', views.demote, name='demote'),
     path('transfer_ownership/<int:user_id>', views.transfer_ownership, name='transfer_ownership'),
     path('users/', views.user_list, name='user_list'),
-    path('notify/', views.notify_status_change, name='notify'),
+    path(r'^mark-as-read/(?P<slug>\d+)/$', views.mark_as_read, name='mark_as_read'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]

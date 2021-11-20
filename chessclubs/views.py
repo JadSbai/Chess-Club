@@ -4,8 +4,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
+from notifications.models import Notification
+from notifications.utils import slug2id
+
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
 from .groups import members, officers, applicants, owner
@@ -16,7 +18,8 @@ from notifications.signals import notify
 @login_required
 def my_profile(request):
     current_user = request.user
-    return render(request, 'my_profile.html', {'user': current_user})
+    permissions = current_user.user_permissions.all()
+    return render(request, 'my_profile.html', {'user': current_user, 'permissions': permissions})
 
 
 @login_prohibited
@@ -90,9 +93,7 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-
             owner.user_set.add(user)
-    
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -108,43 +109,55 @@ def show_user(request, user_id):
         return redirect('user_list')
     else:
         is_officer = request.user.groups.filter(name='officers').exists()
-        is_targert_user_officer = user.groups.filter(name='officers').exists()
-        is_targert_user_member = user.groups.filter(name='members').exists()
+        is_target_user_officer = user.groups.filter(name='officers').exists()
+        is_target_user_member = user.groups.filter(name='members').exists()
         is_owner = request.user.groups.filter(name='owner').exists()
         return render(request, 'show_user.html',
-            {'user': user, 'isOfficer': is_officer, 'is_targert_user_officer': is_targert_user_officer, 'is_targert_user_member': is_targert_user_member, 'is_owner': is_owner, 'user_id':user_id }
-            )
+                      {'user': user, 'is_officer': is_officer, 'is_target_user_officer': is_target_user_officer,
+                       'is_target_user_member': is_target_user_member, 'is_owner': is_owner, 'user_id': user_id}
+                      )
+
 
 @login_required
 @permission_required('chessclubs.access_members_list')
 def user_list(request):
     users = User.objects.all()
-    return render(request, 'user_list.html', {'users': users})
+    current_user = request.user
+    return render(request, 'user_list.html', {'users': users, 'current_user': current_user})
 
+
+@permission_required('chessclubs.promote')
 def promote(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
     officers.user_set.add(target_user)
-    is_officer = target_user.groups.filter(name='officers').exists()
-    print(is_officer)
+    notify.send(request.user, recipient=target_user, verb='Message', description="You have been promoted to Officer")
     return redirect('show_user', user_id)
 
+
+@permission_required('chessclubs.demote')
 def demote(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
     members.user_set.add(target_user)
+    notify.send(request.user, recipient=target_user, verb='Message', description="You have been demoted to Member")
     return redirect('show_user', user_id)
 
+
+@permission_required('chessclubs.transfer_ownership')
 def transfer_ownership(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
     owner.user_set.add(target_user)
     request.user.groups.clear()
     officers.user_set.add(request.user)
+    notify.send(request.user, recipient=target_user, verb='Message', description="You have been transfered the ownership of the club")
     return redirect('show_user', user_id)
-  
-def notify_status_change(request):
-    sender = User.objects.get(email=request.user.email)
-    receiver = sender
-    notify.send(sender, recipient=receiver, verb='Message', description="You have been notified")
-    return redirect('show_user', sender.id)
+
+@login_required
+def mark_as_read(request, slug=None):
+    notification_id = slug2id(slug)
+    notification = get_object_or_404(
+        Notification, recipient=request.user, id=notification_id)
+    notification.mark_as_read()
+    return redirect('my_profile')
