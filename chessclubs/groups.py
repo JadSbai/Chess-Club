@@ -19,4 +19,3 @@ owner_permissions = officers_permissions + [promote, demote, transfer_ownership]
 members.permissions.set(members_permissions)
 officers.permissions.set(officers_permissions)
 owner.permissions.set(owner_permissions)
-

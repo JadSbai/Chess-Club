@@ -90,8 +90,9 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+
             owner.user_set.add(user)
-            print(user.groups.filter(name="owner").exists())
+    
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -106,12 +107,13 @@ def show_user(request, user_id):
     except ObjectDoesNotExist:
         return redirect('user_list')
     else:
-
         is_officer = request.user.groups.filter(name='officers').exists()
+        is_targert_user_officer = user.groups.filter(name='officers').exists()
+        is_targert_user_member = user.groups.filter(name='members').exists()
+        is_owner = request.user.groups.filter(name='owner').exists()
         return render(request, 'show_user.html',
-                      {'user': user, 'isOfficer': is_officer}
-                      )
-
+            {'user': user, 'isOfficer': is_officer, 'is_targert_user_officer': is_targert_user_officer, 'is_targert_user_member': is_targert_user_member, 'is_owner': is_owner, 'user_id':user_id }
+            )
 
 @login_required
 @permission_required('chessclubs.access_members_list')
@@ -119,9 +121,30 @@ def user_list(request):
     users = User.objects.all()
     return render(request, 'user_list.html', {'users': users})
 
+def promote(request, user_id):
+    target_user = User.objects.get(id=user_id)
+    target_user.groups.clear()
+    officers.user_set.add(target_user)
+    is_officer = target_user.groups.filter(name='officers').exists()
+    print(is_officer)
+    return redirect('show_user', user_id)
+
+def demote(request, user_id):
+    target_user = User.objects.get(id=user_id)
+    target_user.groups.clear()
+    members.user_set.add(target_user)
+    return redirect('show_user', user_id)
+
+def transfer_ownership(request, user_id):
+    target_user = User.objects.get(id=user_id)
+    target_user.groups.clear()
+    owner.user_set.add(target_user)
+    request.user.groups.clear()
+    officers.user_set.add(request.user)
+    return redirect('show_user', user_id)
+  
 def notify_status_change(request):
     sender = User.objects.get(email=request.user.email)
     receiver = sender
     notify.send(sender, recipient=receiver, verb='Message', description="You have been notified")
     return redirect('show_user', sender.id)
-

@@ -1,9 +1,26 @@
+
 {% extends 'base_content.html' %}
 {% block content %}
 <div class="container">
   <div class="row content">
     <div class="col-xs-12 col-lg-6 col-xl-4">
       {% include 'partials/user_profile.html'%}
+    </div>
+    <div>
+      {% if isOfficer or is_owner %}
+      {% include 'partials/show_user_private_info.html'%}
+      {%endif%}
+    </div>
+    <div>
+      {% if is_owner %}
+        {% if is_targert_user_member %}
+          <a href="{% url 'promote' user.id %}"  class="btn btn-outline-success">Promote </a>
+          {%endif%}
+        {% if is_targert_user_officer %}
+        <a href="{% url 'demote' user.id %}"  class="btn btn-outline-success">Demote </a>
+        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-outline-success">Transfer ownership </a>
+        {% endif%}
+      {%endif%}
     </div>
   </div>
 </div>
