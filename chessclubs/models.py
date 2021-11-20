@@ -99,11 +99,15 @@ class User(AbstractUser):
         ]
 
     def status(self):
+        if self.groups.filter(name="denied_applicants").exists():
+            return "denied_applicant"
         if self.groups.filter(name="applicants").exists():
             return "applicant"
         if self.groups.filter(name="members").exists():
             return "member"
         if self.groups.filter(name="officers").exists():
             return "officer"
-        else:
+        if self.groups.filter(name="owner").exists():
             return "owner"
+        else:
+            return "undefined"

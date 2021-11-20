@@ -35,6 +35,6 @@ urlpatterns = [
     path('demote/<int:user_id>', views.demote, name='demote'),
     path('transfer_ownership/<int:user_id>', views.transfer_ownership, name='transfer_ownership'),
     path('users/', views.user_list, name='user_list'),
-    path(r'^mark-as-read/(?P<slug>\d+)/$', views.mark_as_read, name='mark_as_read'),
+    path(r'mark-as-read/(<slug>[-\w]+)/', views.mark_as_read, name='mark_as_read'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
