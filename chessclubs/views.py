@@ -4,11 +4,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
-from .groups import members, officers, applicants
+from .groups import members, officers, applicants, owner
 from .models import User
+from notifications.signals import notify
 
 
 @login_required
@@ -68,6 +70,7 @@ def password(request):
 @login_required
 def change_profile(request):
     current_user = request.user
+    print(request.user.is_superuser)
     if request.method == 'POST':
         form = UserForm(instance=current_user, data=request.POST)
         if form.is_valid():
@@ -87,9 +90,8 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            applicants.user_set.add(user)
-            # members.user_set.add(user)
-            # officers.user_set.add(user)
+            owner.user_set.add(user)
+            print(user.groups.filter(name="owner").exists())
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -104,6 +106,7 @@ def show_user(request, user_id):
     except ObjectDoesNotExist:
         return redirect('user_list')
     else:
+
         is_officer = request.user.groups.filter(name='officers').exists()
         return render(request, 'show_user.html',
                       {'user': user, 'isOfficer': is_officer}
@@ -115,3 +118,10 @@ def show_user(request, user_id):
 def user_list(request):
     users = User.objects.all()
     return render(request, 'user_list.html', {'users': users})
+
+def notify_status_change(request):
+    sender = User.objects.get(email=request.user.email)
+    receiver = sender
+    notify.send(sender, recipient=receiver, verb='Message', description="You have been notified")
+    return redirect('show_user', sender.id)
+
