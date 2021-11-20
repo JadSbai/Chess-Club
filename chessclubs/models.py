@@ -69,6 +69,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Required fields for when creating a superuser (other than USERNAME_FIELD and password that are always required)
 
+
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
 
