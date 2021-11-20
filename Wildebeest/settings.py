@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'chessclubs',
     'widget_tweaks',
+    'notifications',
 ]
 
 MIDDLEWARE = [

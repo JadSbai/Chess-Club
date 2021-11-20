@@ -14,8 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from chessclubs import views
+import notifications.urls
+from django.conf.urls import url
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +30,6 @@ urlpatterns = [
     path('sign_up/', views.sign_up, name='sign_up'),
     path('user/<int:user_id>', views.show_user, name='show_user'),
     path('users/', views.user_list, name='user_list'),
+    path('notify/', views.notify_status_change, name='notify'),
+    url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
