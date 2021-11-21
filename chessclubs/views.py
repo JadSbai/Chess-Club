@@ -93,7 +93,7 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            owner.user_set.add(user)
+            applicants.user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()

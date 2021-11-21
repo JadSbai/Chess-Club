@@ -1,0 +1,25 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1>Applicants</h1>
+    <br>
+    {% if count == 0 %}
+        <p>There is currently no application</p>
+    {% endif %}
+      <table class="table">
+        {% for applicant in applicants%}
+          <tr>
+            <td>
+              <img src="{{ applicant.mini_gravatar }}" alt="Gravatar of {{ applicant.full_name }}" class="rounded-circle" >
+            </td>
+              <td><a href="{% url 'show_user' applicant.id %}">{{ applicant.full_name }}</a></td>
+            <td>{{ applicant.status }}</td>
+          </tr>
+        {% endfor%}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
