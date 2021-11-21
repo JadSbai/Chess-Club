@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'chessclubs',
     'widget_tweaks',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -139,7 +140,7 @@ AUTH_USER_MODEL = 'chessclubs.User'
 LOGIN_URL = 'log_in'
 
 # URL where @login_prohibited redirects to
-REDIRECT_URL_WHEN_LOGGED_IN = 'feed'
+REDIRECT_URL_WHEN_LOGGED_IN = 'my_profile'
 
 # Message level tags should use Bootstrap terms
 MESSAGE_TAGS = {
