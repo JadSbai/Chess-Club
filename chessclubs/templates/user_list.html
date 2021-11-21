@@ -7,7 +7,7 @@
     <br>
       <table class="table">
         {% for user in users %}
-            {% if user.status != "applicant" and not user.is_superuser%}
+            {% if user.status != "applicant" and not user.is_superuser and user.status != "denied_applicants"%}
           <tr>
             <td>
               <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.full_name }}" class="rounded-circle" >

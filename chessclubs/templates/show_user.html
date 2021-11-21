@@ -10,8 +10,7 @@
       {% include 'partials/show_user_private_info.html'%}
     </div>
     {%endif%}
-    <div class="container d-flex justify-content-left">
-    <div class="container-fluid content">
+    <div class="container d-flex justify-content-center">
       {% if is_owner %}
         {% if is_target_user_member %}
             <div class="mx-3">
@@ -19,8 +18,12 @@
             </div>
           {%endif%}
         {% if is_target_user_officer %}
-        <a href="{% url 'demote' user.id %}"  class="btn btn-outline-danger">Demote </a>
-        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-outline-info">Transfer ownership </a>
+            <div class = "mx-3">
+        <a href="{% url 'demote' user.id %}"  class="btn btn-outline-danger ">Demote </a>
+            </div>
+            <div class="mx-3">
+        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-outline-info ">Transfer ownership </a>
+            </div>
         {% endif%}
       {%endif%}
     {% if is_officer %}

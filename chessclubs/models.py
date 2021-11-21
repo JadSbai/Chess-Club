@@ -83,8 +83,6 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         return self.gravatar(size=60)
 
-
-
     objects = UserManager()
 
     class Meta:
@@ -96,6 +94,7 @@ class User(AbstractUser):
             ("promote", "Can promote members"),
             ("demote", "Can demote officers"),
             ("transfer_ownership", "Can transfer ownership to an officer"),
+            ("manage_applications", "Can manage applications")
         ]
 
     def status(self):
