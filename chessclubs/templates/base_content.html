@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block body %}
-  {% include 'partials/navbar.html' with user=user%}
+  {% include 'partials/navbar.html' with request=request%}
   {% include 'partials/messages.html' %}
   {% block content %}
   {% endblock %}

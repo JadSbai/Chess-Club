@@ -1,6 +1,6 @@
 <div class="collapse navbar-collapse" id="navbarSupportedContent">
   <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-      {% if user.status != "applicant" %}
+      {% if request.user.status != "applicant" and request.user.status != "denied_applicants"%}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'user_list' %}">Members</a>
     </li>
@@ -8,6 +8,11 @@
     <li class="nav-item">
       <a class="nav-link" href="{% url 'my_profile' %}">My Profile</a>
     </li>
+        {% if request.user.status == "officer" and request.user.status != "owner" %}
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'view_applications' %}">Applications</a>
+    </li>
+        {% endif %}
   </ul>
 {% include 'partials/notifications.html' with user=user%}
   <ul class="navbar-nav mb-2 mb-lg-0">

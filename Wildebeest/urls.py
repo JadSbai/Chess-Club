@@ -36,5 +36,10 @@ urlpatterns = [
     path('transfer_ownership/<int:user_id>', views.transfer_ownership, name='transfer_ownership'),
     path('users/', views.user_list, name='user_list'),
     path(r'mark-as-read/(<slug>[-\w]+)/', views.mark_as_read, name='mark_as_read'),
+    path('accept/<int:user_id>', views.accept, name='accept'),
+    path('deny/<int:user_id>', views.deny, name='deny'),
+    path('acknowledged/', views.acknowledged, name='acknowledged'),
+    path('view_applications/', views.view_applications, name='view_applications'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
+
 ]

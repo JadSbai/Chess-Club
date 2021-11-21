@@ -83,8 +83,6 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         return self.gravatar(size=60)
 
-
-
     objects = UserManager()
 
     class Meta:
@@ -96,6 +94,7 @@ class User(AbstractUser):
             ("promote", "Can promote members"),
             ("demote", "Can demote officers"),
             ("transfer_ownership", "Can transfer ownership to an officer"),
+            ("manage_applications", "Can manage applications")
         ]
 
     def status(self):
@@ -103,11 +102,13 @@ class User(AbstractUser):
             return "denied_applicant"
         if self.groups.filter(name="applicants").exists():
             return "applicant"
-        if self.groups.filter(name="members").exists():
+        elif self.groups.filter(name="members").exists():
             return "member"
-        if self.groups.filter(name="officers").exists():
+        elif self.groups.filter(name="officers").exists():
             return "officer"
-        if self.groups.filter(name="owner").exists():
+        elif self.groups.filter(name="owner").exists():
             return "owner"
+        elif self.groups.filter(name="denied_applicants").exists():
+            return "denied_applicants"
         else:
             return "undefined"
