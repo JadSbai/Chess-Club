@@ -3,13 +3,11 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1 class="mb-5">Apply</h1>
-      <form action="{% url 'sign_up' %}" method="post">
+      <h1>Edit profile</h1>
+      <form action="{% url 'change_profile' %}" method="post" class="mt-5">
         {% csrf_token %}
         {% include 'partials/bootstrap_form.html' with form=form %}
-          <div class="container d-flex justify-content-center">
-        <input type="submit" value="Apply" class="btn btn-primary mb-5">
-          </div>
+        <input type="submit" value="Update" class="btn btn-primary mb-5">
       </form>
     </div>
   </div>

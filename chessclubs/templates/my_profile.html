@@ -1,0 +1,15 @@
+{% extends 'base_content.html'%}
+{% block content %}
+    <div class="container d-flex justify-content-center">
+      {% include 'partials/user_profile.html'%}
+        </div>
+    <div class="container d-flex justify-content-center">
+    {% include 'partials/show_user_private_info.html'%}
+        </div>
+
+    {% if user.status == "denied_applicants" %}
+    <div class="container d-flex justify-content-center">
+        <a href="{% url 'acknowledged' %}"  class="btn btn-outline-info">Acknowledged</a>
+    </div>
+    {% endif %}
+{% endblock %}

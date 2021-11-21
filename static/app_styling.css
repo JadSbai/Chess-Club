@@ -16,7 +16,7 @@
 }
 
 #cover-image {
-  background: url('images/chicken-cover.jpg') no-repeat center center fixed;
+  background: url('images/chess-1.jpeg') no-repeat center center fixed;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   background-size: cover;
@@ -38,14 +38,16 @@
  */
 h1.cover-heading {
   font-size: 4rem;
+  color: white;
 }
 
 p.cover-text {
   font-size: 1.7rem;
+  color: white;
 }
 
 .cover-card {
-  background-color: rgba(245, 245, 245, 0.6);
+  background-color: rgba(200, 220, 260, 0.6);
   max-width: 30rem;
   padding-top: 30px;
   padding-left: 50px;
@@ -96,7 +98,6 @@ ul.errorlist {
 
 .profile-text {
   overflow:hidden;
-  padding-left:20px
 }
 
 h3.profile-title {
@@ -122,23 +123,6 @@ h3.profile-title {
 .profile-statistics-item {
   display: block;
   padding-right: 50px;
-}
-
-/*
- * Post
- */
-.post-author {
-  margin-bottom: 0px;
-
-}
-
-.post-author-fullname {
-  font-weight: bold;
-}
-
-.post-author-user-details {
-  margin-left: 10px;
-  color: #777777;
 }
 
 /*
