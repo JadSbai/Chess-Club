@@ -7,12 +7,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
-
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
 from .helpers import login_prohibited
-from .groups import members, officers, applicants, owner, denied_applicants
 from .models import User
 from notifications.signals import notify
+from chessclubs.groups import groups
 
 
 @login_required
@@ -93,7 +92,7 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            applicants.user_set.add(user)
+            groups["owner"].user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -130,7 +129,7 @@ def user_list(request):
 def promote(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
-    officers.user_set.add(target_user)
+    groups["officers"].user_set.add(target_user)
     notify.send(request.user, recipient=target_user, verb='Message', description="You have been promoted to Officer")
     return redirect('show_user', user_id)
 
@@ -139,7 +138,7 @@ def promote(request, user_id):
 def demote(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
-    members.user_set.add(target_user)
+    groups["members"].user_set.add(target_user)
     notify.send(request.user, recipient=target_user, verb='Message', description="You have been demoted to Member")
     return redirect('show_user', user_id)
 
@@ -148,9 +147,9 @@ def demote(request, user_id):
 def transfer_ownership(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
-    owner.user_set.add(target_user)
+    groups["owner"].user_set.add(target_user)
     request.user.groups.clear()
-    officers.user_set.add(request.user)
+    groups["officers"].user_set.add(request.user)
     notify.send(request.user, recipient=target_user, verb='Message', description="You have been transfered the ownership of the club")
     return redirect('show_user', user_id)
 

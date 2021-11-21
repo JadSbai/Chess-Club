@@ -98,6 +98,8 @@ class User(AbstractUser):
         ]
 
     def status(self):
+        if self.groups.filter(name="denied_applicants").exists():
+            return "denied_applicant"
         if self.groups.filter(name="applicants").exists():
             return "applicant"
         elif self.groups.filter(name="members").exists():
@@ -108,5 +110,7 @@ class User(AbstractUser):
             return "owner"
         elif self.groups.filter(name="denied_applicants").exists():
             return "denied_applicants"
+        if self.groups.filter(name="owner").exists():
+            return "owner"
         else:
             return "undefined"
