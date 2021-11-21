@@ -16,7 +16,6 @@ def create_groups():
     denied_applicants, created5 = Group.objects.get_or_create(name="denied_applicants")
     groups["denied_applicants"] = denied_applicants
 
-
 def assign_permissions():
     """Get the permissions from the User model's Meta class and assign them to the groups"""
     members_list = Permission.objects.get(codename='access_members_list')

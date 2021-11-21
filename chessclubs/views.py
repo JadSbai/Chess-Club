@@ -160,3 +160,39 @@ def mark_as_read(request, slug=None):
         Notification, recipient=request.user, id=notification_id)
     notification.mark_as_read()
     return redirect('my_profile')
+
+@login_required
+@permission_required('chessclubs.manage_applications')
+def view_applications(request):
+    users = User.objects.all()
+    applications = []
+    for user in users:
+        if user.groups.filter(name="applicants").exists():
+            applications.append(user)
+
+    count = len(applications)
+    return render(request, 'applicants_list.html', {'applicants': applications, 'count': count})
+
+@login_required
+@permission_required('chessclubs.manage_applications')
+def accept(request, user_id):
+    target_user = User.objects.get(id=user_id)
+    target_user.groups.clear()
+    members.user_set.add(target_user)
+    notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been acccepted")
+    return redirect('view_applications')
+
+@login_required
+@permission_required('chessclubs.manage_applications')
+def deny(request, user_id):
+    target_user = User.objects.get(id=user_id)
+    target_user.groups.clear()
+    denied_applicants.user_set.add(target_user)
+    notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been denied")
+    return redirect('view_applications')
+
+@login_required
+def acknowledged(request):
+    request.user.delete()
+    logout(request)
+    return redirect('home')
