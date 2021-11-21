@@ -12,10 +12,11 @@ private = Permission.objects.get(codename='show_private_info')
 promote = Permission.objects.get(codename='promote')
 demote = Permission.objects.get(codename='demote')
 transfer_ownership = Permission.objects.get(codename='transfer_ownership')
+manage_applications = Permission.objects.get(codename='manage_applications')
 
 members_permissions = [public, membersList]
-officers_permissions = members_permissions + [private]
-owner_permissions = officers_permissions + [promote, demote, transfer_ownership]
+officers_permissions = members_permissions + [private, manage_applications]
+owner_permissions = [promote, demote, transfer_ownership, public, membersList, private]
 
 members.permissions.set(members_permissions)
 officers.permissions.set(officers_permissions)
