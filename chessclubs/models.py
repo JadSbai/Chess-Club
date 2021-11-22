@@ -87,7 +87,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     class Meta:
-        # All permissions associated with the User Model
+        """" All permissions associated with the User Model"""
         permissions = [
             ("access_members_list", "Can access the list of members"),
             ("show_public_info", "Can access a member's public info"),
@@ -99,8 +99,6 @@ class User(AbstractUser):
         ]
 
     def status(self):
-        if self.groups.filter(name="denied_applicants").exists():
-            return "denied_applicant"
         if self.groups.filter(name="applicants").exists():
             return "applicant"
         elif self.groups.filter(name="members").exists():
