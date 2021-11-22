@@ -4,16 +4,23 @@
   <div class="row">
     <div class="col-12">
       <h1>Users</h1>
+    <br>
       <table class="table">
         {% for user in users %}
+            {% if user.status != "applicant" and not user.is_superuser and user.status != "denied_applicants"%}
           <tr>
             <td>
-              <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+              <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.full_name }}" class="rounded-circle" >
             </td>
-            <td>{{ user.full_name }}</td>
-            <td><a href="{% url 'show_user' user.id %}">{{ user.username }}</a></td>
+              {% if user == current_user %}
+                  <td><p>You</p></td>
+              {% else %}
+                  <td><a href="{% url 'show_user' user.id %}">{{ user.full_name }}</a></td>
+              {% endif %}
+            <td>{{ user.status }}</td>
           </tr>
-        {% endfor %}
+            {% endif %}
+        {% endfor%}
       </table>
     </div>
   </div>

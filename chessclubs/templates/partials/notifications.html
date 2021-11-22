@@ -1,0 +1,23 @@
+
+{% load notifications_tags %}
+<body>
+<ul class="navbar-nav mb-2 mb-lg-0">
+    <li class="nav-item dropdown">
+      <a class="nav-link" href="#" id="user-notifications-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="bi-bell">{% live_notify_badge badge_class="badge" %}</span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown">
+        {% for notification in  user.notifications.unread%}
+	  <div class="container fluid">
+{#      <div>#}
+{#          <p>Message from: </p>#}
+{#          <b>{{ notification.actor }}</b>#}
+{#      </div>#}
+	    <a class="dropdown-item" href="{% url 'mark_as_read' notification.slug%}" type="button">{{ notification.description}}</a>
+		</div>
+		<div class="dropdown-divider"></div>
+	{% endfor %}
+      </ul>
+    </li>
+  </ul>
+</body>

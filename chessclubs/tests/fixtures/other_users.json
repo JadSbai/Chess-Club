@@ -1,39 +1,42 @@
 [
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 2,
     "fields": {
       "first_name": "Jane",
       "last_name": "Doe",
-      "username": "@janedoe",
       "email": "janedoe@example.org",
       "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Expert",
+      "personal_statement": "I'm the best of the best",
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
   },
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 3,
     "fields": {
       "first_name": "Petra",
       "last_name": "Pickles",
-      "username": "@petrapickles",
       "email": "petrapickles@example.org",
       "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm the worst of the worst",
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
   },
   {
-    "model": "microblogs.user",
+    "model": "chessclubs.user",
     "pk": 4,
     "fields": {
       "first_name": "Peter",
       "last_name": "Pickles",
-      "username": "@peterpickles",
       "email": "peterpickles@example.org",
       "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm the worst of the worst",
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
