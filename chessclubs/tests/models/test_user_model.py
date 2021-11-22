@@ -127,12 +127,12 @@ class UserModelTestCase(TestCase):
         self.user.personal_statement = second_user.personal_statement
         self._assert_user_is_valid()
 
-    def test_personal_statement_may_contain_1500_characters(self):
-        self.user.personal_statement = 'x' * 1500
+    def test_personal_statement_may_contain_500_characters(self):
+        self.user.personal_statement = 'x' * 500
         self._assert_user_is_valid()
 
-    def test_personal_statement_must_not_contain_more_than_1500_characters(self):
-        self.user.personal_statement = 'x' * 1501
+    def test_personal_statement_must_not_contain_more_than_500_characters(self):
+        self.user.personal_statement = 'x' * 501
         self._assert_user_is_invalid()
 
     def _assert_user_is_valid(self):
