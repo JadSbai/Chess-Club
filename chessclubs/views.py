@@ -1,4 +1,4 @@
-  """Views of the chessclubs app."""
+"""Views of the chessclubs app."""
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, permission_required
@@ -87,13 +87,12 @@ def change_profile(request):
 
 @login_prohibited
 def sign_up(request):
-    """When a new user signs up, he becomes an applicant"""
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            applicants.user_set.add(user)
+            owner.user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -197,3 +196,6 @@ def acknowledged(request):
     request.user.delete()
     logout(request)
     return redirect('home')
+
+def page_not_found_view(request, exception):
+    return render(request, '404.html', status=404)

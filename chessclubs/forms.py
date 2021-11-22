@@ -3,6 +3,13 @@ from django import forms
 from django.core.validators import RegexValidator
 from .models import User
 
+EXPERIENCE_CHOICES = [
+    ('Novice', 'Novice'),
+    ('Beginner', 'Beginner'),
+    ('Intermediate', 'Intermediate'),
+    ('Advanced', 'Advanced'),
+    ('Expert', 'Expert'),
+    ]
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -46,14 +53,16 @@ class PasswordForm(forms.Form):
 
 
 class SignUpForm(forms.ModelForm):
-    """Form enabling unregistered users to sign up."""
+    """Form enabling site visitors to sign up."""
 
     class Meta:
-        """Form options."""
-
         model = User
-        fields = ['first_name', 'last_name', 'email', 'bio']
-        widgets = {'bio': forms.Textarea()}
+        fields = ['first_name', 'last_name', 'email', 'bio', 'chess_experience', 'personal_statement']
+        widgets = {
+            'bio': forms.Textarea(),
+            'personal_statement' : forms.Textarea(),
+            'chess_experience' : forms.Select(choices = EXPERIENCE_CHOICES),
+        }
 
     new_password = forms.CharField(
         label='Password',
@@ -61,8 +70,8 @@ class SignUpForm(forms.ModelForm):
         validators=[RegexValidator(
             regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
             message='Password must contain an uppercase character, a lowercase '
-                    'character and a number'
-        )]
+                    'character and a number.'
+        )],
     )
     password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
 
@@ -85,7 +94,7 @@ class SignUpForm(forms.ModelForm):
             email=self.cleaned_data.get('email'),
             bio=self.cleaned_data.get('bio'),
             password=self.cleaned_data.get('new_password'),
-            chess_experience= "Beginner",
-            personal_statement="Youhou"
+            chess_experience=self.cleaned_data.get('chess_experience'),
+            personal_statement=self.cleaned_data.get('personal_statement')
         )
         return user
