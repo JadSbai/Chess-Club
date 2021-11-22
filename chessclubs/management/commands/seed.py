@@ -5,7 +5,7 @@ from faker import Faker
 from django.contrib.auth.models import Group
 import random
 from chessclubs.models import UserManager, User
-from chessclubs.groups import members, officers, applicants, owner, denied_applicants
+from chessclubs.groups import groups
 
 class Command(BaseCommand):
     PASSWORD = "Password123"
@@ -24,9 +24,9 @@ class Command(BaseCommand):
             except IntegrityError:
                 continue
         try:
-            self._create_specific_user('Jebediah', 'Kerman', 'jeb@example.org', members)
-            self._create_specific_user('Valentina', 'Kerman', 'val@example.org', officers)
-            self._create_specific_user('Billie', 'Kerman', 'billie@example.org', owner)
+            self._create_specific_user('Jebediah', 'Kerman', 'jeb@example.org', groups["members"])
+            self._create_specific_user('Valentina', 'Kerman', 'val@example.org', groups["officers"])
+            self._create_specific_user('Billie', 'Kerman', 'billie@example.org', groups["owner"])
         except IntegrityError:
             pass
         print(f'User seeding complete.')
