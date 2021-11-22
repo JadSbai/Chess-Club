@@ -86,7 +86,6 @@ def change_profile(request):
 
 @login_prohibited
 def sign_up(request):
-    """When a new user signs up, he becomes an applicant"""
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
@@ -205,3 +204,6 @@ def acknowledged(request):
     request.user.delete()
     logout(request)
     return redirect('home')
+
+def page_not_found_view(request, exception):
+    return render(request, '404.html', status=404)
