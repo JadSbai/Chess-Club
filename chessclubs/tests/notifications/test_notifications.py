@@ -8,7 +8,7 @@ from notifications.models import Notification
 from notifications.utils import slug2id
 
 
-class UserModelTestCase(TestCase):
+class NotificationTestCase(TestCase):
     """Unit tests for the User model."""
 
     fixtures = [
@@ -18,18 +18,19 @@ class UserModelTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.get(email='johndoe@example.org')
+        self.user2 = User.objects.get(email='janedoe@example.org')
 
     def test_sending_notification(self):
-        count_before = self.user.notifications.unread().size()
-        notify.send(self.user, recipient=self.user, verb="test")
-        count_after = self.user.notifications.unread().size()
+        count_before = len(self.user2.notifications.unread())
+        notify.send(self.user, recipient=self.user2, verb='Message', description="Test")
+        count_after = len(self.user2.notifications.unread())
         self.assertEqual(count_before+1, count_after)
 
 
     def test_reading_notification(self):
-        notify.send(self, recipient=self.user, verb="test")
-        self.user.notifications.unread().mark_all_as_read()
-        count = self.user.notifications.unread().size()
+        notify.send(self.user, recipient=self.user2, verb='Message', description="Test")
+        self.user2.notifications.unread().mark_all_as_read()
+        count = len(self.user2.notifications.unread())
         self.assertEqual(count, 0)
 
 
