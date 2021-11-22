@@ -23,7 +23,8 @@ def assign_permissions():
     members_permissions = [members_list, public]
     groups["members"].permissions.set(members_permissions)
     private = Permission.objects.get(codename='show_private_info')
-    officers_permissions = [members_list, public, private]
+    manage_applications = Permission.objects.get(codename='manage_applications')
+    officers_permissions = [members_list, public, private, manage_applications]
     groups["officers"].permissions.set(officers_permissions)
     promote = Permission.objects.get(codename='promote')
     demote = Permission.objects.get(codename='demote')

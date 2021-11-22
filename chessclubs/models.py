@@ -86,7 +86,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     class Meta:
-        # All permissions associated with the User Model
+        """" All permissions associated with the User Model"""
         permissions = [
             ("access_members_list", "Can access the list of members"),
             ("show_public_info", "Can access a member's public info"),
