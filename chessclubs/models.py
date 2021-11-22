@@ -77,6 +77,7 @@ class User(AbstractUser):
         """Return a URL to the user's gravatar."""
         gravatar_object = Gravatar(self.email)
         gravatar_url = gravatar_object.get_image(size=size, default='mp')
+        print(gravatar_url)
         return gravatar_url
 
     def mini_gravatar(self):
@@ -108,7 +109,5 @@ class User(AbstractUser):
             return "owner"
         elif self.groups.filter(name="denied_applicants").exists():
             return "denied_applicants"
-        elif self.groups.filter(name="owner").exists():
-            return "owner"
         else:
             return "undefined"
