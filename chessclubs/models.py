@@ -77,6 +77,7 @@ class User(AbstractUser):
         """Return a URL to the user's gravatar."""
         gravatar_object = Gravatar(self.email)
         gravatar_url = gravatar_object.get_image(size=size, default='mp')
+        print(gravatar_url)
         return gravatar_url
 
     def mini_gravatar(self):
@@ -86,7 +87,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     class Meta:
-        # All permissions associated with the User Model
+        """" All permissions associated with the User Model"""
         permissions = [
             ("access_members_list", "Can access the list of members"),
             ("show_public_info", "Can access a member's public info"),
