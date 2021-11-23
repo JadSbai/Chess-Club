@@ -94,19 +94,23 @@ class User(AbstractUser):
             ("promote", "Can promote members"),
             ("demote", "Can demote officers"),
             ("transfer_ownership", "Can transfer ownership to an officer"),
-            ("manage_applications", "Can manage applications")
+            ("manage_applications", "Can manage applications"),
+            ("access_club_info", "Can access a club's public info"),
+            ("access_club_owner_public_info", "Can access a club owner public info"),
         ]
 
     def status(self):
-        if self.groups.filter(name="applicants").exists():
+        if self.groups.filter(name="authenticated_non_member_users").exists():
+            return "authenticated_non_member_user"
+        elif self.groups.filter(name="applicants").exists():
             return "applicant"
+        elif self.groups.filter(name="denied_applicants").exists():
+            return "denied_applicants"
         elif self.groups.filter(name="members").exists():
             return "member"
         elif self.groups.filter(name="officers").exists():
             return "officer"
         elif self.groups.filter(name="owner").exists():
             return "owner"
-        elif self.groups.filter(name="denied_applicants").exists():
-            return "denied_applicants"
         else:
-            return "undefined"
+            return "anonymous"
