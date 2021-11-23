@@ -29,7 +29,7 @@ def assign_permissions():
     promote = Permission.objects.get(codename='promote')
     demote = Permission.objects.get(codename='demote')
     transfer_ownership = Permission.objects.get(codename='transfer_ownership')
-    owner_permissions = [members_list, public, private, promote, demote, transfer_ownership]
+    owner_permissions = [members_list, public, private, promote, demote, transfer_ownership, manage_applications]
     groups["owner"].permissions.set(owner_permissions)
 
 

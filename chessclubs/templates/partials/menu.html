@@ -8,7 +8,7 @@
     <li class="nav-item">
       <a class="nav-link" href="{% url 'my_profile' %}">My Profile</a>
     </li>
-        {% if request.user.status == "officer" and request.user.status != "owner" %}
+        {% if request.user.status == "officer" or request.user.status == "owner" %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'view_applications' %}">Applications</a>
     </li>
