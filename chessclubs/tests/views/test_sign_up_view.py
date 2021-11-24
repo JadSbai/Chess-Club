@@ -5,6 +5,7 @@ from django.urls import reverse
 from chessclubs.forms import SignUpForm
 from chessclubs.models import User
 from chessclubs.tests.helpers import LogInTester
+from chessclubs.groups import set_up_app_groups
 
 class SignUpViewTestCase(TestCase, LogInTester):
     """Tests of the sign up view."""
@@ -13,11 +14,14 @@ class SignUpViewTestCase(TestCase, LogInTester):
 
     def setUp(self):
         self.url = reverse('sign_up')
+        self.groups = set_up_app_groups()
         self.form_input = {
             'first_name': 'Jane',
             'last_name': 'Doe',
             'email': 'janedoe@example.org',
             'bio': 'My bio',
+            'chess_experience': 'Expert',
+            'personal_statement': 'I am the best of the best',
             'new_password': 'Password123',
             'password_confirmation': 'Password123',
         }
@@ -57,6 +61,10 @@ class SignUpViewTestCase(TestCase, LogInTester):
     def test_successful_sign_up(self):
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
+        new_user = User.objects.get(email=self.form_input['email'])
+        self.assertFalse(new_user is None)
+        new_user_status = new_user.status()
+        self.assertEqual(new_user_status, "authenticated_non_member_user")
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
         response_url = reverse('my_profile')
@@ -67,6 +75,8 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.email, 'janedoe@example.org')
         self.assertEqual(user.bio, 'My bio')
+        self.assertEqual(user.chess_experience, 'Expert')
+        self.assertEqual(user.personal_statement, 'I am the best of the best')
         is_password_correct = check_password('Password123', user.password)
         self.assertTrue(is_password_correct)
         self.assertTrue(self._is_logged_in())
