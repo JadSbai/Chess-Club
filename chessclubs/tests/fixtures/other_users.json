@@ -8,7 +8,7 @@
       "email": "janedoe@example.org",
       "bio": "The quick brown fox jumps over the lazy dog.",
       "chess_experience": "Expert",
-      "personal_statement": "I'm the best of the best",
+      "personal_statement": "I am the best of the best",
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }

@@ -90,8 +90,8 @@ def sign_up(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            groups["authenticated_non_member_users"].user_set.add(user)
             login(request, user)
-            groups["applicants"].user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -185,7 +185,7 @@ def accept(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
     groups["members"].user_set.add(target_user)
-    notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been acccepted")
+    notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been accepted")
     return redirect('view_applications')
 
 
