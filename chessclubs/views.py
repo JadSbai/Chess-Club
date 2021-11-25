@@ -72,7 +72,6 @@ def password(request):
 @login_required
 def change_profile(request):
     current_user = request.user
-    print(request.user.is_superuser)
     if request.method == 'POST':
         form = UserForm(instance=current_user, data=request.POST)
         if form.is_valid():

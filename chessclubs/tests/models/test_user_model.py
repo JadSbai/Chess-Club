@@ -14,8 +14,6 @@ class UserModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(email='johndoe@example.org')
 
-
-
     def test_valid_user(self):
         self._assert_user_is_valid()
 
@@ -103,18 +101,18 @@ class UserModelTestCase(TestCase):
         self.user.bio = 'x' * 521
         self._assert_user_is_invalid()
 
-    def test_chess_experience_must_not_be_blank(self):
-        self.user.chess_experience = ''
-        self._assert_user_is_invalid()
-
-    def test_chess_experience_need_not_be_unique(self):
-        second_user = User.objects.get(email='janedoe@example.org')
-        self.user.chess_experience = second_user.chess_experience
-        self._assert_user_is_valid()
-
-    def test_chess_experience_may_contain_50_characters(self):
-        self.user.chess_experience = 'x' * 50
-        self._assert_user_is_valid()
+    # def test_chess_experience_must_not_be_blank(self):
+    #     self.user.chess_experience = ''
+    #     self._assert_user_is_invalid()
+    #
+    # def test_chess_experience_need_not_be_unique(self):
+    #     second_user = User.objects.get(email='janedoe@example.org')
+    #     self.user.chess_experience = second_user.chess_experience
+    #     self._assert_user_is_valid()
+    #
+    # def test_chess_experience_may_contain_50_characters(self):
+    #     self.user.chess_experience = 'x' * 50
+    #     self._assert_user_is_valid()
 
     def test_chess_experience_must_not_contain_more_than_50_characters(self):
         self.user.chess_experience = 'x' * 51
@@ -136,6 +134,14 @@ class UserModelTestCase(TestCase):
     def test_personal_statement_must_not_contain_more_than_500_characters(self):
         self.user.personal_statement = 'x' * 501
         self._assert_user_is_invalid()
+
+    def test_chess_experience_must_not_be_anything_other_than_given_choices(self):
+        self.user.chess_experience = 'Nonexisting'
+        self._assert_user_is_invalid()
+
+    def test_chess_experience_must_be_from_given_choices(self):
+        self.user.chess_experience = 'Novice'
+        self._assert_user_is_valid()
 
     def _assert_user_is_valid(self):
         try:
