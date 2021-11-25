@@ -13,13 +13,11 @@ from .models import User
 from notifications.signals import notify
 from chessclubs.groups import groups
 
-
 @login_required
 def my_profile(request):
     current_user = request.user
     permissions = current_user.user_permissions.all()
     return render(request, 'my_profile.html', {'user': current_user, 'permissions': permissions})
-
 
 @login_prohibited
 def log_in(request):
@@ -40,16 +38,13 @@ def log_in(request):
     form = LogInForm()
     return render(request, 'log_in.html', {'form': form, 'next': next})
 
-
 def log_out(request):
     logout(request)
     return redirect('home')
 
-
 @login_prohibited
 def home(request):
     return render(request, 'home.html')
-
 
 @login_required
 def password(request):
@@ -68,7 +63,6 @@ def password(request):
     form = PasswordForm()
     return render(request, 'password.html', {'form': form})
 
-
 @login_required
 def change_profile(request):
     current_user = request.user
@@ -81,7 +75,6 @@ def change_profile(request):
     else:
         form = UserForm(instance=current_user)
     return render(request, 'change_profile.html', {'form': form})
-
 
 @login_prohibited
 def sign_up(request):
@@ -96,6 +89,10 @@ def sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
+"""TODO"""
+@login_required
+def show_club(request):
+    return render(request, 'show_club.html')
 
 @login_required
 @permission_required('chessclubs.show_public_info')
@@ -114,14 +111,12 @@ def show_user(request, user_id):
                        'is_target_user_member': is_target_user_member, 'is_owner': is_owner, 'user_id': user_id}
                       )
 
-
 @login_required
 @permission_required('chessclubs.access_members_list')
 def user_list(request):
     users = User.objects.all()
     current_user = request.user
     return render(request, 'user_list.html', {'users': users, 'current_user': current_user})
-
 
 @login_required
 @permission_required('chessclubs.promote')
@@ -131,7 +126,6 @@ def promote(request, user_id):
     groups["officers"].user_set.add(target_user)
     notify.send(request.user, recipient=target_user, verb='Message', description="You have been promoted to Officer")
     return redirect('show_user', user_id)
-
 
 @login_required
 @permission_required('chessclubs.demote')
@@ -155,7 +149,6 @@ def transfer_ownership(request, user_id):
                 description="You have been transfered the ownership of the club")
     return redirect('show_user', user_id)
 
-
 @login_required
 def mark_as_read(request, slug=None):
     notification_id = slug2id(slug)
@@ -163,7 +156,6 @@ def mark_as_read(request, slug=None):
         Notification, recipient=request.user, id=notification_id)
     notification.mark_as_read()
     return redirect('my_profile')
-
 
 @login_required
 @permission_required('chessclubs.manage_applications')
@@ -177,7 +169,6 @@ def view_applications(request):
     count = len(applications)
     return render(request, 'applicants_list.html', {'applicants': applications, 'count': count})
 
-
 @login_required
 @permission_required('chessclubs.manage_applications')
 def accept(request, user_id):
@@ -187,7 +178,6 @@ def accept(request, user_id):
     notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been accepted")
     return redirect('view_applications')
 
-
 @login_required
 @permission_required('chessclubs.manage_applications')
 def deny(request, user_id):
@@ -196,7 +186,6 @@ def deny(request, user_id):
     groups["denied_applicants"].user_set.add(target_user)
     notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been denied")
     return redirect('view_applications')
-
 
 @login_required
 def acknowledged(request):
