@@ -123,7 +123,7 @@ class User(AbstractUser):
 
 
 class Club(models.Model):
-    name = models.CharField(max_length=50, blank=False)
+    name = models.CharField(max_length=50, blank=False, unique=True, null=False)
     location = models.CharField(max_length=50, blank=False)
     description = models.CharField(max_length=520, blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -152,4 +152,3 @@ class Club(models.Model):
             self.remove_member(user)
         else:
             self.add_member(user)
-
