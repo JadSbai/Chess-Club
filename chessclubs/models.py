@@ -114,3 +114,9 @@ class User(AbstractUser):
             return "owner"
         else:
             return "anonymous"
+
+class Club(models.Model):
+    name = models.CharField(max_length=50, blank=False)
+    location = models.CharField(max_length=50, blank=False)
+    description = models.CharField(max_length=520, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
