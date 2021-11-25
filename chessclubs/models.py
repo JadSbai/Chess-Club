@@ -69,9 +69,15 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Required fields for when creating a superuser (other than USERNAME_FIELD and password that are always required)
 
-
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def clubs_count(self):
+        """returns the number of clubs the user is in"""
+        return self.clubs.count()
+
+    def get_all_clubs(self):
+        return self.clubs.all()
 
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
@@ -115,8 +121,35 @@ class User(AbstractUser):
         else:
             return "anonymous"
 
+
 class Club(models.Model):
     name = models.CharField(max_length=50, blank=False)
     location = models.CharField(max_length=50, blank=False)
     description = models.CharField(max_length=520, blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    members = models.ManyToManyField(User, related_name="clubs")
+
+    def is_member(self, user):
+        """returns whether user is a member of a certain group"""
+        return user in self.members.all()
+
+    def member_count(self):
+        """returns the number is members in the club"""
+        return self.members.count()
+
+    def get_members(self):
+        """returns a querySet of all members"""
+        return self.members.all()
+
+    def add_member(self, user):
+        self.members.add(user)
+
+    def remove_member(self, user):
+        self.members.remove(user)
+
+    def toggle_membership(self, user):
+        if self.is_member(user):
+            self.remove_member(user)
+        else:
+            self.add_member(user)
+

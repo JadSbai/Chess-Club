@@ -108,17 +108,14 @@ class ClubForm(forms.ModelForm):
             'description': forms.Textarea(),
 
         }
-
-
-
     def save(self):
         """Create a new club."""
 
         super().save(commit=False)
-        club_created = Club.objects.create_user(
+        club_created = Club.objects.create(
             name=self.cleaned_data.get('name'),
             description=self.cleaned_data.get('description'),
             location=self.cleaned_data.get('location'),
-
         )
+
         return club_created
