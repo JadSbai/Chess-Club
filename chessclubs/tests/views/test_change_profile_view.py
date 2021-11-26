@@ -59,7 +59,7 @@ class ProfileViewTest(TestCase):
         self.assertEqual(self.user.last_name, 'Doe')
         self.assertEqual(self.user.bio, "Hello, I'm John Doe.")
         self.assertEqual(self.user.chess_experience, "Expert")
-        self.assertEqual(self.user.personal_statement, "I'm the best of the best")
+        self.assertEqual(self.user.personal_statement, "I have a whiteboard")
 
 
     def test_succesful_profile_update(self):

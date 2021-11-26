@@ -14,6 +14,8 @@ class UserModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(email='johndoe@example.org')
 
+
+
     def test_valid_user(self):
         self._assert_user_is_valid()
 

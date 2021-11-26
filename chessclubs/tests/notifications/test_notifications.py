@@ -17,20 +17,19 @@ class NotificationTestCase(TestCase):
     ]
 
     def setUp(self):
-        self.user = User.objects.get(email='johndoe@example.org')
-        self.user2 = User.objects.get(email='janedoe@example.org')
+        self.sender = User.objects.get(email='johndoe@example.org')
+        self.recipient = User.objects.get(email='janedoe@example.org')
 
     def test_sending_notification(self):
-        count_before = len(self.user2.notifications.unread())
-        notify.send(self.user, recipient=self.user2, verb='Message', description="Test")
-        count_after = len(self.user2.notifications.unread())
+        count_before = len(self.recipient.notifications.unread())
+        notify.send(self.sender, recipient=self.recipient, verb='Message', description="Test")
+        count_after = len(self.recipient.notifications.unread())
         self.assertEqual(count_before+1, count_after)
 
-
     def test_reading_notification(self):
-        notify.send(self.user, recipient=self.user2, verb='Message', description="Test")
-        self.user2.notifications.unread().mark_all_as_read()
-        count = len(self.user2.notifications.unread())
+        notify.send(self.sender, recipient=self.recipient, verb='Message', description="Test")
+        self.recipient.notifications.unread().mark_all_as_read()
+        count = len(self.recipient.notifications.unread())
         self.assertEqual(count, 0)
 
 

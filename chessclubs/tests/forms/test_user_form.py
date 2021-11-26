@@ -49,5 +49,5 @@ class UserFormTestCase(TestCase):
         self.assertEqual(user.email, 'johndoe@example.org')
         self.assertEqual(user.bio, 'My bio')
         self.assertEqual(user.chess_experience, 'Intermediate')
-        self.assertEqual(user.personal_statement, 'I have a whiteboard')
+        self.assertEqual(user.personal_statement, 'I am the best')
 

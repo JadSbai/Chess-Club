@@ -14,7 +14,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-
 from django.contrib import admin
 from django.urls import path, include
 from chessclubs import views
@@ -40,6 +39,7 @@ urlpatterns = [
     path('deny/<int:user_id>', views.deny, name='deny'),
     path('acknowledged/', views.acknowledged, name='acknowledged'),
     path('view_applications/', views.view_applications, name='view_applications'),
+    path('create_club/', views.create_club, name='create_club'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
 handler404 = "chessclubs.views.page_not_found_view"

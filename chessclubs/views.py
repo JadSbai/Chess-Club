@@ -7,9 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
-from .forms import LogInForm, PasswordForm, UserForm, SignUpForm
+from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm
 from .helpers import login_prohibited
-from .models import User
+from .models import User, Club
 from notifications.signals import notify
 from chessclubs.groups import groups
 
@@ -72,7 +72,6 @@ def password(request):
 @login_required
 def change_profile(request):
     current_user = request.user
-    print(request.user.is_superuser)
     if request.method == 'POST':
         form = UserForm(instance=current_user, data=request.POST)
         if form.is_valid():
@@ -90,8 +89,8 @@ def sign_up(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
+            groups["authenticated_non_member_users"].user_set.add(user)
             login(request, user)
-            groups["applicants"].user_set.add(user)
             return redirect('my_profile')
     else:
         form = SignUpForm()
@@ -185,7 +184,7 @@ def accept(request, user_id):
     target_user = User.objects.get(id=user_id)
     target_user.groups.clear()
     groups["members"].user_set.add(target_user)
-    notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been acccepted")
+    notify.send(request.user, recipient=target_user, verb='Message', description="Your application has been accepted")
     return redirect('view_applications')
 
 
@@ -200,10 +199,35 @@ def deny(request, user_id):
 
 
 @login_required
+@permission_required('chessclubs.acknowledge_denial')
 def acknowledged(request):
-    request.user.delete()
+    # Remove user from the club's denied applicants group and put him back into non_member group of this specific club
+    request.user.groups.clear()
+    groups["authenticated_non_member_users"].user_set.add(request.user)
     logout(request)
     return redirect('home')
 
+
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
+
+
+@login_required
+def create_club(request):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            current_user = request.user
+            form = ClubForm(request.POST)
+            if form.is_valid():
+                location = form.cleaned_data.get('location')
+                name = form.cleaned_data.get('name')
+                description = form.cleaned_data.get('description')
+                club = Club.objects.create(owner=current_user, location=location, name=name, description=description)
+                return redirect('my_profile')
+            else:
+                return render(request, 'create_club.html', {'form': form})
+        else:
+            return redirect('log_in')
+    else:
+        form = ClubForm()
+        return render(request, 'create_club.html', {'form': form})

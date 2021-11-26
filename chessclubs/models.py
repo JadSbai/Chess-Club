@@ -69,9 +69,15 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Required fields for when creating a superuser (other than USERNAME_FIELD and password that are always required)
 
-
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
+
+    def clubs_count(self):
+        """returns the number of clubs the user is in"""
+        return self.clubs.count()
+
+    def get_all_clubs(self):
+        return self.clubs.all()
 
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
@@ -94,19 +100,56 @@ class User(AbstractUser):
             ("promote", "Can promote members"),
             ("demote", "Can demote officers"),
             ("transfer_ownership", "Can transfer ownership to an officer"),
-            ("manage_applications", "Can manage applications")
+            ("manage_applications", "Can manage applications"),
+            ("access_club_info", "Can access a club's public info"),
+            ("access_club_owner_public_info", "Can access a club owner public info"),
+            ("acknowledge_denial", "Can acknowledge denial of application"),
         ]
 
     def status(self):
-        if self.groups.filter(name="applicants").exists():
+        if self.groups.filter(name="authenticated_non_member_users").exists():
+            return "authenticated_non_member_user"
+        elif self.groups.filter(name="applicants").exists():
             return "applicant"
+        elif self.groups.filter(name="denied_applicants").exists():
+            return "denied_applicant"
         elif self.groups.filter(name="members").exists():
             return "member"
         elif self.groups.filter(name="officers").exists():
             return "officer"
         elif self.groups.filter(name="owner").exists():
             return "owner"
-        elif self.groups.filter(name="denied_applicants").exists():
-            return "denied_applicants"
         else:
-            return "undefined"
+            return "anonymous"
+
+
+class Club(models.Model):
+    name = models.CharField(max_length=50, blank=False, unique=True, null=False)
+    location = models.CharField(max_length=50, blank=False)
+    description = models.CharField(max_length=520, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    members = models.ManyToManyField(User, related_name="clubs")
+
+    def is_member(self, user):
+        """returns whether user is a member of a certain group"""
+        return user in self.members.all()
+
+    def member_count(self):
+        """returns the number is members in the club"""
+        return self.members.count()
+
+    def get_members(self):
+        """returns a querySet of all members"""
+        return self.members.all()
+
+    def add_member(self, user):
+        self.members.add(user)
+
+    def remove_member(self, user):
+        self.members.remove(user)
+
+    def toggle_membership(self, user):
+        if self.is_member(user):
+            self.remove_member(user)
+        else:
+            self.add_member(user)

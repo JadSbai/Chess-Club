@@ -37,3 +37,7 @@ class GroupTester:
     def make_owner(self, user):
         user.groups.clear()
         user.groups.add(self.groups["owner"])
+
+    def make_authenticated_non_member(self, user):
+        user.groups.clear()
+        user.groups.add(self.groups["authenticated_non_member_users"])

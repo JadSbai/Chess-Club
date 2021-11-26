@@ -12,11 +12,12 @@ class SignUpFormTestCase(TestCase):
         self.form_input = {
             'first_name': 'Jane',
             'last_name': 'Doe',
-            'username': '@janedoe',
             'email': 'janedoe@example.org',
             'bio': 'My bio',
             'new_password': 'Password123',
-            'password_confirmation': 'Password123'
+            'password_confirmation': 'Password123',
+            'chess_experience': 'Expert',
+            'personal_statement': 'I am the best of the best',
         }
 
     def test_valid_sign_up_form(self):
@@ -27,7 +28,6 @@ class SignUpFormTestCase(TestCase):
         form = SignUpForm()
         self.assertIn('first_name', form.fields)
         self.assertIn('last_name', form.fields)
-        self.assertIn('username', form.fields)
         self.assertIn('email', form.fields)
         email_field = form.fields['email']
         self.assertTrue(isinstance(email_field, forms.EmailField))
@@ -40,7 +40,7 @@ class SignUpFormTestCase(TestCase):
         self.assertTrue(isinstance(password_confirmation_widget, forms.PasswordInput))
 
     def test_form_uses_model_validation(self):
-        self.form_input['username'] = 'badusername'
+        self.form_input['email'] = 'bademail'
         form = SignUpForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
@@ -73,10 +73,11 @@ class SignUpFormTestCase(TestCase):
         form.save()
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
-        user = User.objects.get(username='@janedoe')
+        user = User.objects.get(email='janedoe@example.org')
         self.assertEqual(user.first_name, 'Jane')
         self.assertEqual(user.last_name, 'Doe')
-        self.assertEqual(user.email, 'janedoe@example.org')
         self.assertEqual(user.bio, 'My bio')
+        self.assertEqual(user.chess_experience, 'Expert')
+        self.assertEqual(user.personal_statement, 'I am the best of the best')
         is_password_correct = check_password('Password123', user.password)
         self.assertTrue(is_password_correct)
