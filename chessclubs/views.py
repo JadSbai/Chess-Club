@@ -199,8 +199,11 @@ def deny(request, user_id):
 
 
 @login_required
+@permission_required('chessclubs.acknowledge_denial')
 def acknowledged(request):
-    request.user.delete()
+    # Remove user from the club's denied applicants group and put him back into non_member group of this specific club
+    request.user.groups.clear()
+    groups["authenticated_non_member_users"].user_set.add(request.user)
     logout(request)
     return redirect('home')
 

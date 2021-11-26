@@ -35,10 +35,11 @@ def assign_permissions():
     promote = Permission.objects.get(codename='promote')
     demote = Permission.objects.get(codename='demote')
     transfer_ownership = Permission.objects.get(codename='transfer_ownership')
+    acknowledge_denial = Permission.objects.get(codename='acknowledge_denial')
     # Create sets of permissions
     logged_in_non_members_permissions = [access_club_info, access_club_owner_info]
     applicants_permissions = [access_club_info, access_club_owner_info]
-    denied_applicants_permissions = [access_club_info, access_club_owner_info]
+    denied_applicants_permissions = [access_club_info, access_club_owner_info, acknowledge_denial]
     members_permissions = [members_list, public, access_club_owner_info, access_club_info]
     officers_permissions = [members_list, public, private, manage_applications, access_club_owner_info, access_club_info]
     owner_permissions = [members_list, public, private, promote, demote, transfer_ownership, access_club_owner_info, access_club_info, manage_applications]

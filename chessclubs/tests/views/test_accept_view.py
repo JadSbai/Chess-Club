@@ -23,10 +23,14 @@ class AcceptViewTestCase(TestCase):
         self.group_tester.make_officer(self.officer)
         self.url = reverse('accept', kwargs={'user_id': self.applicant.id})
 
+    def test_accept_url(self):
+        self.assertEqual(self.url, '/accept/% s' % self.applicant.id)
+
     def test_accept_and_become_member(self):
         before_status = self.applicant.status()
         self.assertEqual(before_status, "applicant")
         self.client.get(self.url)
+        self.assertEqual(self.applicant.status(), "member")
         self.assertTrue(self.applicant.groups.filter(name="members").exists())
         self.assertFalse(self.applicant.groups.filter(name="applicants").exists())
 
