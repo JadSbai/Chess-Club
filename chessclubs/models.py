@@ -97,6 +97,7 @@ class User(AbstractUser):
             ("manage_applications", "Can manage applications"),
             ("access_club_info", "Can access a club's public info"),
             ("access_club_owner_public_info", "Can access a club owner public info"),
+            ("acknowledge_denial", "Can acknowledge denial of application"),
         ]
 
     def status(self):
@@ -105,7 +106,7 @@ class User(AbstractUser):
         elif self.groups.filter(name="applicants").exists():
             return "applicant"
         elif self.groups.filter(name="denied_applicants").exists():
-            return "denied_applicants"
+            return "denied_applicant"
         elif self.groups.filter(name="members").exists():
             return "member"
         elif self.groups.filter(name="officers").exists():
