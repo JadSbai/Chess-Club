@@ -91,8 +91,14 @@ def sign_up(request):
 
 """TODO"""
 @login_required
-def show_club(request):
-    return render(request, 'show_club.html')
+def show_club(request, club_id):
+    try:
+        club = Club.objects.get(id=club_id)
+        club_owner = club.owner
+        is_member = club.is_member(request.user)
+    except ObjectDoesNotExist:
+        return redirect('user_list') # change to club list when it is created
+    return render(request, 'show_club.html', {'club' : club, 'club_id' : club_id, 'club_owner': club_owner, 'is_member': is_member})
 
 @login_required
 @permission_required('chessclubs.show_public_info')
@@ -193,10 +199,8 @@ def acknowledged(request):
     logout(request)
     return redirect('home')
 
-
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
-
 
 @login_required
 def create_club(request):
@@ -209,7 +213,8 @@ def create_club(request):
                 name = form.cleaned_data.get('name')
                 description = form.cleaned_data.get('description')
                 club = Club.objects.create(owner=current_user, location=location, name=name, description=description)
-                return redirect('my_profile')
+                club.add_member(current_user)
+                return redirect(f'/club/{club.id}')
             else:
                 return render(request, 'create_club.html', {'form': form})
         else:
