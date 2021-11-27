@@ -20,6 +20,11 @@ def my_profile(request):
     permissions = current_user.user_permissions.all()
     return render(request, 'my_profile.html', {'user': current_user, 'permissions': permissions})
 
+@login_required
+def landing_page(request):
+    current_user = request.user
+    users = User.objects.all()
+    return render(request, 'landing_page.html')
 
 @login_prohibited
 def log_in(request):
@@ -32,7 +37,7 @@ def log_in(request):
             user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
-                redirect_url = next or 'my_profile'
+                redirect_url = next or 'landing_page'
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     else:
