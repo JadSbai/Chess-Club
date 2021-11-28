@@ -26,7 +26,7 @@
             </div>
         {% endif%}
       {%endif%}
-    {% if current_user_status == "officer" %}
+    {% if current_user_status == "officer" or current_user_status == "owner"%}
         {% if target_user_status == "applicant" %}
             <div class = "mx-3">
           <a href="{% url 'accept' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-success">Accept</a>

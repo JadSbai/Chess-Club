@@ -30,7 +30,7 @@ def log_in(request):
             user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
-                redirect_url = next or 'my_profile'
+                redirect_url = next or 'landing_page'
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     else:
@@ -90,7 +90,7 @@ def sign_up(request):
             for club in Club.objects.all():
                 club.add_to_logged_in_non_members_group(user)
             login(request, user)
-            return redirect('my_profile')
+            return redirect('landing_page')
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
@@ -242,6 +242,10 @@ def acknowledged(request, club_name):
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
 
+def landing_page(request):
+    current_user = request.user
+    clubs = Club.objects.all()
+    return render(request, 'landing_page.html',  {'clubs': clubs, 'current_user': current_user} )
 
 @login_required
 def create_club(request):
@@ -251,7 +255,7 @@ def create_club(request):
             form = ClubForm(request.POST)
             if form.is_valid():
                 club = form.save(current_user)
-                return redirect('my_profile')
+                return redirect('landing_page')
             else:
                 return render(request, 'create_club.html', {'form': form})
         else:
@@ -260,13 +264,13 @@ def create_club(request):
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
 
-
+# This view is temporary, it will be replaced by Duna's implementation for the list of clubs (landing page)
 @login_required
 def clubs_list(request):
     clubs = Club.objects.all()
     return render(request, 'partials/clubs_list.html', {'clubs': clubs})
 
-
+# This view is temporary, it will be replaced by Duna's implementation for the show club 
 @login_required
 @club_permission_required(perm='chessclubs.access_club_info')
 def show_club(request, club_name):

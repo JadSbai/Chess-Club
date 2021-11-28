@@ -6,13 +6,24 @@
     <div class="container d-flex justify-content-center">
     {% include 'partials/show_user_private_info.html' with target_user=user%}
         </div>
-
-     <p>
-        <a href='{% url 'clubs_list' %}' class="btn btn-lg btn-primary">
-          Clubs
-        </a>
-     </p>
+<!-- This part of Iyen's code will be put in the applications view for applicants instead of here -->
+<!--     {% if user.status == "applicant" %}
+        <div class="container d-flex justify-content-center">
+            <div class="my-5">
+                <p style="color:sandybrown;"><strong>Notice: </strong>Your application is now under review</p>
+            </div>
+        </div>
+    {% endif %}
+    {% if user.status == "denied_applicants" %}
     <div class="container d-flex justify-content-center">
-        <a class="btn btn-outline-info" href="{% url 'create_club' %}">Create club</a>
+        <div class="my-3">
+            <a href="{% url 'acknowledged' %}"  class="btn btn-outline-info">Acknowledged</a>
+        </div>
     </div>
+        <div class="container d-flex justify-content-center">
+            <div class="my-1">
+                <p style="color:red;"> <strong>Notice: </strong>Your application has been denied</p>
+            </div>
+        </div>
+    {% endif %} -->
 {% endblock %}
