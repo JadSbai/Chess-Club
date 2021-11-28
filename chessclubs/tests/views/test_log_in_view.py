@@ -3,23 +3,23 @@ from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.forms import LogInForm
-from chessclubs.models import User
-from chessclubs.tests.helpers import LogInTester, reverse_with_next
-from django.contrib.auth.models import Permission
+from chessclubs.models import User, Club
+from chessclubs.tests.helpers import LogInTester, reverse_with_next, ClubGroupTester
 
 class LogInViewTestCase(TestCase, LogInTester):
     """Tests of the log in view."""
 
-    fixtures = ['chessclubs/tests/fixtures/default_user.json']
+    fixtures = ['chessclubs/tests/fixtures/default_user.json',
+                'chessclubs/tests/fixtures/default_club.json']
 
     def setUp(self):
         self.url = reverse('log_in')
         self.user = User.objects.get(email='johndoe@example.org')
-        self.user.user_permissions.add(Permission.objects.get(codename='access_members_list'))
-        self.user.user_permissions.add(Permission.objects.get(codename='show_public_info'))
+        self.club = Club.objects.get(name="Test_Club")
+        self.group_tester = ClubGroupTester(self.club)
 
     def test_log_in_url(self):
-        self.assertEqual(self.url,'/log_in/')
+        self.assertEqual(self.url, '/log_in/')
 
     def test_get_log_in(self):
         response = self.client.get(self.url)
@@ -34,7 +34,7 @@ class LogInViewTestCase(TestCase, LogInTester):
         self.assertEqual(len(messages_list), 0)
 
     def test_get_log_in_with_redirect(self):
-        destination_url = reverse('user_list')
+        destination_url = reverse('user_list', kwargs={'club_name': self.club.name})
         self.url = reverse_with_next('log_in', destination_url)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
@@ -104,8 +104,8 @@ class LogInViewTestCase(TestCase, LogInTester):
         self.assertEqual(len(messages_list), 0)
 
     def test_successful_log_in_with_redirect(self):
-        redirect_url = reverse('user_list')
-        form_input = { 'email': 'johndoe@example.org', 'password': 'Password123', 'next': redirect_url}
+        redirect_url = reverse('user_list', kwargs={'club_name': self.club.name})
+        form_input = {'email': 'johndoe@example.org', 'password': 'Password123', 'next': redirect_url}
         response = self.client.post(self.url, form_input, follow=True)
         self.assertTrue(self.user.is_authenticated)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
@@ -122,7 +122,7 @@ class LogInViewTestCase(TestCase, LogInTester):
         self.assertTemplateUsed(response, 'my_profile.html')
 
     def test_post_log_in_with_incorrect_credentials_and_redirect(self):
-        redirect_url = reverse('user_list')
+        redirect_url = reverse('user_list', kwargs={'club_name': self.club.name})
         form_input = {'email': 'johndoe@example.org', 'password': 'WrongPassword123', 'next': redirect_url}
         response = self.client.post(self.url, form_input)
         next = response.context['next']

@@ -15,7 +15,7 @@
               {% if user == current_user %}
                   <td><p>You</p></td>
               {% else %}
-                  <td><a href="{% url 'show_user' user.id %}">{{ user.full_name }}</a></td>
+                  <td><a href="{% url 'show_user' user_id=user.id club_name=club.name %}">{{ user.full_name }}</a></td>
               {% endif %}
             <td>{{ user.status }}</td>
           </tr>

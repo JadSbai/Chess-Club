@@ -9,7 +9,8 @@ EXPERIENCE_CHOICES = [
     ('Intermediate', 'Intermediate'),
     ('Advanced', 'Advanced'),
     ('Expert', 'Expert'),
-    ]
+]
+
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -25,7 +26,10 @@ class UserForm(forms.ModelForm):
 
         model = User
         fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
-        widgets = {'bio': forms.Textarea(attrs={"rows":5, "cols":20}), 'chess_experience': forms.Textarea(attrs={"rows":5, "cols":20}), 'personal_statement': forms.Textarea()}
+        widgets = {'bio': forms.Textarea(attrs={"rows": 5, "cols": 20}),
+                   'chess_experience': forms.Textarea(attrs={"rows": 5, "cols": 20}),
+                   'personal_statement': forms.Textarea()}
+
 
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
@@ -60,8 +64,8 @@ class SignUpForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'bio', 'chess_experience', 'personal_statement']
         widgets = {
             'bio': forms.Textarea(),
-            'personal_statement' : forms.Textarea(),
-            'chess_experience' : forms.Select(choices = EXPERIENCE_CHOICES),
+            'personal_statement': forms.Textarea(),
+            'chess_experience': forms.Select(choices=EXPERIENCE_CHOICES),
         }
 
     new_password = forms.CharField(
@@ -99,8 +103,10 @@ class SignUpForm(forms.ModelForm):
         )
         return user
 
+
 class ClubForm(forms.ModelForm):
     """Form enabling users to create clubs."""
+
     class Meta:
         model = Club
         fields = ['name', 'description', 'location']
@@ -108,14 +114,16 @@ class ClubForm(forms.ModelForm):
             'description': forms.Textarea(),
 
         }
-    def save(self):
-        """Create a new club."""
 
+    def save(self, owner):
+        """Create a new club."""
         super().save(commit=False)
         club_created = Club.objects.create(
             name=self.cleaned_data.get('name'),
             description=self.cleaned_data.get('description'),
             location=self.cleaned_data.get('location'),
+            owner=owner
         )
-
+        club_created.members.add(owner)
+        club_created.assign_club_groups_permissions()
         return club_created

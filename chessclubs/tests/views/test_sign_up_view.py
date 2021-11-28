@@ -3,18 +3,18 @@ from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.forms import SignUpForm
-from chessclubs.models import User
-from chessclubs.tests.helpers import LogInTester
-from chessclubs.groups import set_up_app_groups
+from chessclubs.models import User, Club
+from chessclubs.tests.helpers import LogInTester, ClubGroupTester
 
 class SignUpViewTestCase(TestCase, LogInTester):
     """Tests of the sign up view."""
 
-    fixtures = ['chessclubs/tests/fixtures/default_user.json']
+    fixtures = ['chessclubs/tests/fixtures/default_user.json',
+                'chessclubs/tests/fixtures/default_club.json',
+                ]
 
     def setUp(self):
         self.url = reverse('sign_up')
-        self.groups = set_up_app_groups()
         self.form_input = {
             'first_name': 'Jane',
             'last_name': 'Doe',
@@ -26,6 +26,8 @@ class SignUpViewTestCase(TestCase, LogInTester):
             'password_confirmation': 'Password123',
         }
         self.user = User.objects.get(email='johndoe@example.org')
+        self.club = Club.objects.get(name="Test_Club")
+        self.group_tester = ClubGroupTester(self.club)
 
     def test_sign_up_url(self):
         self.assertEqual(self.url, '/sign_up/')
@@ -63,8 +65,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         response = self.client.post(self.url, self.form_input, follow=True)
         new_user = User.objects.get(email=self.form_input['email'])
         self.assertFalse(new_user is None)
-        new_user_status = new_user.status()
-        self.assertEqual(new_user_status, "authenticated_non_member_user")
+        self.assertEqual(self.club.user_status(new_user), "authenticated_non_member_user")
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
         response_url = reverse('my_profile')

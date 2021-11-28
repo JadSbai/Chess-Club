@@ -3,36 +3,36 @@
 {% block content %}
 <div class="container fluid">
   <div class="container d-flex justify-content-center">
-      {% include 'partials/user_profile.html'%}
+      {% include 'partials/user_profile.html' with target_user=target_user%}
     </div>
-    {% if is_officer or is_owner %}
+    {% if current_user_status == "officer" or current_user_status == "owner"%}
     <div class="container mb-5 d-flex justify-content-center">
-      {% include 'partials/show_user_private_info.html'%}
+      {% include 'partials/show_user_private_info.html' with target_user=target_user%}
     </div>
     {%endif%}
     <div class="container d-flex justify-content-center">
-      {% if is_owner %}
-        {% if is_target_user_member %}
+      {% if current_user_status == "owner" %}
+        {% if target_user_status == "member" %}
             <div class="mx-3">
-          <a href="{% url 'promote' user.id %}"  class="btn btn-outline-success">Promote</a>
+          <a href="{% url 'promote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-success">Promote</a>
             </div>
           {%endif%}
-        {% if is_target_user_officer %}
+        {% if target_user_status == "officer" %}
             <div class = "mx-3">
-        <a href="{% url 'demote' user.id %}"  class="btn btn-outline-danger ">Demote </a>
+        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-danger ">Demote </a>
             </div>
             <div class="mx-3">
-        <a href="{% url 'transfer_ownership' user.id %}"  class="btn btn-outline-info ">Transfer ownership </a>
+        <a href="{% url 'transfer_ownership' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-info ">Transfer ownership </a>
             </div>
         {% endif%}
       {%endif%}
-    {% if is_officer %}
-        {% if user.status == "applicant" %}
+    {% if current_user_status == "officer" %}
+        {% if target_user_status == "applicant" %}
             <div class = "mx-3">
-          <a href="{% url 'accept' user.id %}"  class="btn btn-outline-success">Accept</a>
+          <a href="{% url 'accept' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-success">Accept</a>
             </div>
             <div class = "mx-3">
-            <a href="{% url 'deny' user.id %}"  class="btn btn-outline-danger">Deny</a>
+            <a href="{% url 'deny' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-danger">Deny</a>
             </div>
           {%endif%}
       {%endif%}
