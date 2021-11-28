@@ -1,12 +1,13 @@
 {% extends 'base_content.html'%}
 {% block content %}
     <div class="container d-flex justify-content-center">
-      {% include 'partials/user_profile.html'%}
+      {% include 'partials/user_profile.html' with target_user=user%}
         </div>
     <div class="container d-flex justify-content-center">
-    {% include 'partials/show_user_private_info.html'%}
+    {% include 'partials/show_user_private_info.html' with target_user=user%}
         </div>
-    {% if user.status == "applicant" %}
+<!-- This part of Iyen's code will be put in the applications view for applicants instead of here -->
+<!--     {% if user.status == "applicant" %}
         <div class="container d-flex justify-content-center">
             <div class="my-5">
                 <p style="color:sandybrown;"><strong>Notice: </strong>Your application is now under review</p>
@@ -24,5 +25,5 @@
                 <p style="color:red;"> <strong>Notice: </strong>Your application has been denied</p>
             </div>
         </div>
-    {% endif %}
+    {% endif %} -->
 {% endblock %}
