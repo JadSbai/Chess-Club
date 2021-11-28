@@ -32,7 +32,7 @@ def log_in(request):
             user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
-                redirect_url = next or 'my_profile'
+                redirect_url = next or 'landing_page'
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     else:
@@ -91,7 +91,7 @@ def sign_up(request):
             user = form.save()
             groups["authenticated_non_member_users"].user_set.add(user)
             login(request, user)
-            return redirect('my_profile')
+            return redirect('landing_page')
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
@@ -211,6 +211,10 @@ def acknowledged(request):
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
 
+def landing_page(request):
+    current_user = request.user
+    clubs = Club.objects.all()
+    return render(request, 'landing_page.html',  {'clubs': clubs, 'current_user': current_user} )
 
 @login_required
 def create_club(request):
@@ -223,7 +227,7 @@ def create_club(request):
                 name = form.cleaned_data.get('name')
                 description = form.cleaned_data.get('description')
                 club = Club.objects.create(owner=current_user, location=location, name=name, description=description)
-                return redirect('my_profile')
+                return redirect('landing_page')
             else:
                 return render(request, 'create_club.html', {'form': form})
         else:
