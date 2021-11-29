@@ -220,6 +220,7 @@ def create_club(request):
                 name = form.cleaned_data.get('name')
                 description = form.cleaned_data.get('description')
                 club = Club.objects.create(owner=current_user, location=location, name=name, description=description)
+                club.save()
                 return redirect('my_profile')
             else:
                 return render(request, 'create_club.html', {'form': form})
@@ -227,4 +228,4 @@ def create_club(request):
             return redirect('log_in')
     else:
         form = ClubForm()
-        return render(request, 'create_club.html', {'form': form})
+        return render(rgit equest, 'create_club.html', {'form': form})
