@@ -7,6 +7,9 @@
         <span class="bi-bell">{% live_notify_badge badge_class="badge" %}</span>
       </a>
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown">
+{#      {% if len(user.notifications.unread) == 0 %}#}
+{#          pass#}
+{#      {% endif %}#}
         {% for notification in  user.notifications.unread%}
 	  <div class="container fluid">
 {#      <div>#}

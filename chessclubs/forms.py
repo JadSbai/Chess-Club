@@ -1,7 +1,7 @@
 """Forms for the chessclubs app."""
 from django import forms
 from django.core.validators import RegexValidator
-from .models import User
+from .models import User, Club
 
 EXPERIENCE_CHOICES = [
     ('Novice', 'Novice'),
@@ -9,7 +9,8 @@ EXPERIENCE_CHOICES = [
     ('Intermediate', 'Intermediate'),
     ('Advanced', 'Advanced'),
     ('Expert', 'Expert'),
-    ]
+]
+
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -26,6 +27,7 @@ class UserForm(forms.ModelForm):
         model = User
         fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
         widgets = {'bio': forms.Textarea(attrs={"rows":5, "cols":20}), 'personal_statement': forms.Textarea()}
+
 
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
@@ -97,3 +99,28 @@ class SignUpForm(forms.ModelForm):
             personal_statement=self.cleaned_data.get('personal_statement')
         )
         return user
+
+
+class ClubForm(forms.ModelForm):
+    """Form enabling users to create clubs."""
+
+    class Meta:
+        model = Club
+        fields = ['name', 'description', 'location']
+        widgets = {
+            'description': forms.Textarea(),
+
+        }
+
+    def save(self, owner):
+        """Create a new club."""
+        super().save(commit=False)
+        club_created = Club.objects.create(
+            name=self.cleaned_data.get('name'),
+            description=self.cleaned_data.get('description'),
+            location=self.cleaned_data.get('location'),
+            owner=owner
+        )
+        club_created.members.add(owner)
+        club_created.assign_club_groups_permissions()
+        return club_created

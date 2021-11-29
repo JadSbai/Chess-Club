@@ -1,0 +1,25 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <p>
+        <a href='{% url 'create_club' %}' class="btn btn-lg btn-primary">
+          Create club
+        </a>
+      </p>
+      <h1>Current Clubs</h1>
+        <table class="table">
+          <tr> <th> name </th> <th> location </th> <th> </th> </tr>
+            {% for club in clubs %}
+              <tr>
+                <td>{{ club.name }}</td>
+                <td>{{ club.location }}</td>
+                <td> More info </td>
+              </tr>
+            {% endfor%}
+        </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
