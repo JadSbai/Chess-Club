@@ -1,16 +1,13 @@
 <div class="container-fluid content">
   <div class="container d-flex justify-content-center">
-    <img src="{{ user.gravatar }}" alt="Gravatar of {{ user.full_name }}" class="rounded-circle profile-image" />
+    <img src="{{ target_user.gravatar }}" alt="Gravatar of {{ target_user.full_name }}" class="rounded-circle profile-image" />
   </div>
       <div class="container d-flex justify-content-center mb-5">
     <div class="profile-text">
-      <h3 class="profile-title">{{ user.full_name }}</h3>
+      <h3 class="profile-title">{{ target_user.full_name }}</h3>
     </div>
   </div>
-    <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
-        Status: {{ user.status}}
-    </div>
     <div class="container mt-3 mb-2 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
-        Bio: {{ user.bio }}
+        Bio: {{ target_user.bio }}
     </div>
 </div>

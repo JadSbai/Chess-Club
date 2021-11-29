@@ -1,5 +1,4 @@
 from django.urls import reverse
-from chessclubs.groups import set_up_app_groups
 
 
 def reverse_with_next(url_name, next_url):
@@ -13,31 +12,34 @@ class LogInTester:
         return '_auth_user_id' in self.client.session.keys()
 
 
-class GroupTester:
+class ClubGroupTester:
 
-    def __init__(self):
-        self.groups = set_up_app_groups()
+    def __init__(self, club):
+        self.club = club
+        self.club.assign_club_groups_permissions()
+        if self.club.owner not in self.club.members.all():
+            self.club.members.add(self.club.owner)
 
     def make_applicant(self, user):
         user.groups.clear()
-        user.groups.add(self.groups["applicants"])
+        self.club.add_to_applicants_group(user)
 
     def make_denied_applicant(self, user):
         user.groups.clear()
-        user.groups.add(self.groups["denied_applicants"])
+        self.club.add_to_denied_applicants_group(user)
 
     def make_member(self, user):
+        if user not in self.club.members.all():
+            self.club.members.add(user)
         user.groups.clear()
-        user.groups.add(self.groups["members"])
+        self.club.add_to_members_group(user)
 
     def make_officer(self, user):
+        if user not in self.club.members.all():
+            self.club.members.add(user)
         user.groups.clear()
-        user.groups.add(self.groups["officers"])
-
-    def make_owner(self, user):
-        user.groups.clear()
-        user.groups.add(self.groups["owner"])
+        self.club.add_to_officers_group(user)
 
     def make_authenticated_non_member(self, user):
         user.groups.clear()
-        user.groups.add(self.groups["authenticated_non_member_users"])
+        self.club.add_to_logged_in_non_members_group(user)
