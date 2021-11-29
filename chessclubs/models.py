@@ -62,12 +62,21 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     """User model used for authentication"""
+
+    CHESS_EXPERIENCE_CHOICES = [
+        ('Novice', 'Novice'),
+        ('Beginner', 'Beginner'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Expert', 'Expert'),
+        ]
+
     username = None  # Don't use the username field inherited from the AbstractUser Model
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False, null=False)
     bio = models.CharField(max_length=520, blank=True)
-    chess_experience = models.CharField(max_length=50, blank=False)
+    chess_experience = models.CharField(max_length=50, choices = CHESS_EXPERIENCE_CHOICES, default = 'novice', blank=False)
     personal_statement = models.CharField(max_length=500, blank=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Required fields for when creating a superuser (other than USERNAME_FIELD and password that are always required)
