@@ -228,4 +228,4 @@ def create_club(request):
             return redirect('log_in')
     else:
         form = ClubForm()
-        return render(rgit equest, 'create_club.html', {'form': form})
+        return render(request, 'create_club.html', {'form': form})
