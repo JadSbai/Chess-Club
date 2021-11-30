@@ -36,6 +36,7 @@ def log_in(request):
     form = LogInForm()
     return render(request, 'log_in.html', {'form': form, 'next': next})
 
+@login_required
 def log_out(request):
     logout(request)
     return redirect('home')
@@ -88,16 +89,14 @@ def sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
-"""TODO"""
 @login_required
-def show_club(request, club_id):
+def show_club(request, club_name):
     try:
-        club = Club.objects.get(id=club_id)
-        club_owner = club.owner
+        club = Club.objects.get(name=club_name)
         is_member = club.is_member(request.user)
     except ObjectDoesNotExist:
-        return redirect('user_list') # change to club list when it is created
-    return render(request, 'show_club.html', {'club' : club, 'club_id' : club_id, 'club_owner': club_owner, 'is_member': is_member})
+        return redirect('partials/clubs_list.html')
+    return render(request, 'partials/show_club.html', {'club' : club, 'is_member' : is_member})
 
 @login_required
 @club_permission_required('chessclubs.show_public_info')
@@ -233,9 +232,7 @@ def acknowledged(request, club_name):
         club.remove_from_denied_applicants_group(request.user)
         return redirect('my_profile')
 
-def page_not_found_view(request, exception):
-    return render(request, '404.html', status=404)
-
+@login_required
 def landing_page(request):
     current_user = request.user
     clubs = Club.objects.all()
@@ -258,15 +255,5 @@ def create_club(request):
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
 
-# This view is temporary, it will be replaced by Duna's implementation for the list of clubs (landing page)
-@login_required
-def clubs_list(request):
-    clubs = Club.objects.all()
-    return render(request, 'partials/clubs_list.html', {'clubs': clubs})
-
-# This view is temporary, it will be replaced by Duna's implementation for the show club
-@login_required
-@club_permission_required(perm='chessclubs.access_club_info')
-def show_club(request, club_name):
-    club = Club.objects.get(name=club_name)
-    return render(request, 'partials/show_club.html', {'club': club})
+def page_not_found_view(request, exception):
+    return render(request, '404.html', status=404)
