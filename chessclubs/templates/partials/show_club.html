@@ -1,21 +1,35 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container mb-5 d-flex justify-content-center">
-<h1>{{ club.name }}</h1>
+<div class="container fluid">
+  <div class="container d-flex justify-content-center">
+    <div class="container-fluid content">
+      <div class="profile-text">
+        <h3 class="profile-title">{{ club.name }}</h3>
+      </div>
+      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
+        <b>Description</b><br>
+        {{ club.description }}<br>
+      </div>
+      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+        <b>Location</b><br>
+        {{ club.location }}<br>
+      </div>
+      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
+        <b>Statistics</b><br>
+        Number of members: {{ club.member_count }}<br>
+      </div>
+      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+        <b>Club Owner</b></br>
+        <img src="{{ club.get_club_owner.gravatar }}" alt="Gravatar of {{ club.get_club_owner.full_name }}" class="rounded-circle"/><br>
+        {{ club.get_club_owner.full_name }}<br>
+        {{ club.get_club_owner.bio }}<br>
+      </div>
+      {% if not is_member %}
+      <div class="container d-flex justify-content-center">
+        <a href="{% url 'my_profile' %}"  class="btn btn-outline-info">Apply to this club</a>
+      </div>
+      {%endif%}
+    </div>
+  </div>
 </div>
-<div class="container mb-5 d-flex justify-content-center">
-      <div class="container mt-3 mb-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
-        Description: {{ club.description }}
-    </div>
-    </div>
-    <div  class="container d-flex justify-content-center">
-    <a href='{% url 'apply_club' club_name=club.name user_id=request.user.id%}' class="btn btn-lg btn-primary my-5">
-          Apply for this club
-        </a>
-    </div>
-   <div class="container mb-5 d-flex justify-content-center">
-      <a href="{% url 'user_list' club_name=club.name %}"> See list of members</a>
-    </div>
-
-
 {% endblock %}

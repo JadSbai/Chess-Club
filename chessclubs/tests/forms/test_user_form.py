@@ -50,4 +50,3 @@ class UserFormTestCase(TestCase):
         self.assertEqual(user.bio, 'My bio')
         self.assertEqual(user.chess_experience, 'Intermediate')
         self.assertEqual(user.personal_statement, 'I am the best')
-
