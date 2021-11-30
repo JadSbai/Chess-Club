@@ -127,6 +127,9 @@ class Club(models.Model):
         """returns whether user is a member of a certain group"""
         return user in self.members.all()
 
+    def get_club_owner(self):
+        return self.owner
+
     def member_count(self):
         """returns the number is members in the club"""
         return self.members.count()
