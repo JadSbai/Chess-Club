@@ -13,9 +13,9 @@
           <tr> <th> name </th> <th> location </th> <th> </th> </tr>
             {% for club in clubs %}
               <tr>
-                <td>{{ club.name }}</td>
+                  <td>{{ club.name }}</td>
                 <td>{{ club.location }}</td>
-                <td> More info </td>
+                <td> <a href="{% url 'show_club' club_name=club.name %}">More Information and apply</a> </td>
               </tr>
             {% endfor%}
         </table>

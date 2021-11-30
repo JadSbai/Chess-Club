@@ -276,3 +276,22 @@ def clubs_list(request):
 def show_club(request, club_name):
     club = Club.objects.get(name=club_name)
     return render(request, 'partials/show_club.html', {'club': club})
+
+@login_required
+@club_permission_required(perm='chessclubs.access_club_info')
+def apply_club(request, user_id, club_name):
+    club = Club.objects.get(name=club_name)
+    target_user = request.user
+    club.add_to_applicants_group(target_user)
+    return redirect(request, 'my_application.html', {'club': club})
+
+@login_required
+def my_applications(request):
+    try:
+        club = Club.objects.get(name=club_name)
+    except ObjectDoesNotExist:
+        return redirect('my_profile')
+    else:
+        applicants = club.applicants_group().user_set.all()
+        count = len(applicants)
+    return render(request, 'applicants_list.html', {'applicants': applicants, 'count': count, 'club': club})

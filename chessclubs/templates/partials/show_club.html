@@ -8,6 +8,11 @@
         Description: {{ club.description }}
     </div>
     </div>
+    <div  class="container d-flex justify-content-center">
+    <a href='{% url 'apply_club' club_name=club.name user_id=request.user.id%}' class="btn btn-lg btn-primary my-5">
+          Apply for this club
+        </a>
+    </div>
    <div class="container mb-5 d-flex justify-content-center">
       <a href="{% url 'user_list' club_name=club.name %}"> See list of members</a>
     </div>
