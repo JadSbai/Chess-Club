@@ -140,7 +140,7 @@ AUTH_USER_MODEL = 'chessclubs.User'
 LOGIN_URL = 'log_in'
 
 # URL where @login_prohibited redirects to
-REDIRECT_URL_WHEN_LOGGED_IN = 'my_profile'
+REDIRECT_URL_WHEN_LOGGED_IN = 'landing_page'
 
 # Message level tags should use Bootstrap terms
 MESSAGE_TAGS = {

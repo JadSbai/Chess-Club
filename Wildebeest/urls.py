@@ -39,7 +39,6 @@ urlpatterns = [
     path('<club_name>/accept/<int:user_id>', views.accept, name='accept'),
     path('<club_name>/deny/<int:user_id>', views.deny, name='deny'),
     path('<club_name>/acknowledged/', views.acknowledged, name='acknowledged'),
-    path('clubs/', views.clubs_list, name='clubs_list'),
     path('<club_name>/view_applications/', views.view_applications, name='view_applications'),
     path('create_club/', views.create_club, name='create_club'),
     path('landing_page/', views.landing_page, name='landing_page'),

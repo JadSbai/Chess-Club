@@ -121,8 +121,11 @@ def user_list(request, club_name):
         return redirect('clubs_list')
     else:
         users = club.get_members()
+        users_statuses = {}
+        for user in users:
+            users_statuses[user] = club.user_status(user)
         current_user = request.user
-        return render(request, 'user_list.html', {'users': users, 'current_user': current_user, 'club': club})
+        return render(request, 'user_list.html', {'users': users, 'current_user': current_user, 'club': club, 'user_statuses': users_statuses})
 
 
 @login_required
@@ -245,7 +248,7 @@ def page_not_found_view(request, exception):
 def landing_page(request):
     current_user = request.user
     clubs = Club.objects.all()
-    return render(request, 'landing_page.html',  {'clubs': clubs, 'current_user': current_user} )
+    return render(request, 'landing_page.html',  {'clubs': clubs, 'current_user': current_user})
 
 @login_required
 def create_club(request):
@@ -264,13 +267,6 @@ def create_club(request):
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
 
-# This view is temporary, it will be replaced by Duna's implementation for the list of clubs (landing page)
-@login_required
-def clubs_list(request):
-    clubs = Club.objects.all()
-    return render(request, 'partials/clubs_list.html', {'clubs': clubs})
-
-# This view is temporary, it will be replaced by Duna's implementation for the show club 
 @login_required
 @club_permission_required(perm='chessclubs.access_club_info')
 def show_club(request, club_name):

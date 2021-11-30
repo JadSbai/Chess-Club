@@ -45,7 +45,7 @@ class CreateClubTest(TestCase):
         self.assertEqual(club_count_after, club_count_before + 1)
         new_club = Club.objects.last()
         self.assertEqual(self.user, new_club.owner)
-        response_url = reverse('my_profile')
+        response_url = reverse('landing_page')
         self.assertRedirects(
             response, response_url,
             status_code=302, target_status_code=200,
