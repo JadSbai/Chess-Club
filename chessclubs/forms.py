@@ -28,7 +28,6 @@ class UserForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
         widgets = {'bio': forms.Textarea(attrs={"rows":5, "cols":20}), 'personal_statement': forms.Textarea()}
 
-
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
 
