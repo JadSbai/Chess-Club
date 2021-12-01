@@ -8,6 +8,7 @@
     <li class="nav-item">
       <a class="nav-link" href="{% url 'my_profile' %}">My Profile</a>
     </li>
+    {% include 'partials/my_clubs.html' with user=user clubs=user.get_all_clubs %}
         {% if request.user.status == "officer" or request.user.status == "owner" %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'view_applications' club.id%}">Applications</a>
@@ -15,6 +16,7 @@
         {% endif %}
   </ul>
 {% include 'partials/notifications.html' with user=user%}
+
   <ul class="navbar-nav mb-2 mb-lg-0">
     <li class="nav-item dropdown">
       <a class="nav-link" href="#" id="user-account-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
