@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
-from .models import Club
+from .models import Club, User
+from django.contrib import messages
 
 def login_prohibited(view_function):
     def modified_view_function(request):
@@ -21,6 +22,7 @@ def club_permission_required(perm):
             if not request.user.has_club_perm(perm, club):
                 return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
             else:
+                # messages.add_message(request, messages.ERROR, "Permission denied!")
                 return view_func(request, *args, **kwargs)
         return wrapped
     return wrapper

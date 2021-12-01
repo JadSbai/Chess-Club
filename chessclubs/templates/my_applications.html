@@ -11,8 +11,8 @@
       <table class="table">
         {% for application in applications%}
           <tr>
-              <td><a href="{% url 'show_user' club_name=club.name user_id=applicant.id %}">{{ applicant.full_name }}</a></td>
-            <td>{{ applicant.status }}</td>
+              <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=application.name %}">{{ application.name }}</a></td>
+              <td><p style="color:sandybrown;"><strong>Notice: </strong>Your application is now under review</p></td>
           </tr>
         {% endfor%}
         {% for denied_application in denied_applications%}

@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm
-from .decorators import login_prohibited, club_permission_required
+from .decorators import login_prohibited, club_permission_required, add_current_user_to_logged_in_group
 from .models import User, Club
 from notifications.signals import notify
 
@@ -203,7 +203,7 @@ def accept(request, user_id, club_name):
     except ObjectDoesNotExist:
         return redirect('view_applications', club_name)
     else:
-        club.add_to_members_group(target_user)
+        club.add_to_accepted_applicants_group(target_user)
         club.remove_from_applicants_group(target_user)
         notify.send(request.user, recipient=target_user, verb='Message',
                     description=f"Your application for club {club_name} has been accepted")
@@ -227,16 +227,20 @@ def deny(request, user_id, club_name):
 
 
 @login_required
-@permission_required('chessclubs.acknowledge_denial')
-def acknowledged(request, club_name):
+@club_permission_required('chessclubs.acknowledge_denial')
+def acknowledge(request, club_name):
     try:
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('my_profile')
+        return redirect('landing_page')
     else:
-        club.add_to_logged_in_non_members_group(request.user)
-        club.remove_from_denied_applicants_group(request.user)
-        return redirect('my_profile')
+        if club.user_status(request.user) == "accepted_applicant":
+            club.add_member(request.user)
+            club.remove_from_accepted_applicants_group(request.user)
+        else:
+            club.add_to_logged_in_non_members_group(request.user)
+            club.remove_from_denied_applicants_group(request.user)
+        return redirect('my_applications')
 
 
 def page_not_found_view(request, exception):
@@ -255,6 +259,7 @@ def create_club(request):
             form = ClubForm(request.POST)
             if form.is_valid():
                 club = form.save(current_user)
+                add_current_user_to_logged_in_group(club)
                 return redirect('landing_page')
             else:
                 return render(request, 'create_club.html', {'form': form})
@@ -276,7 +281,8 @@ def clubs_list(request):
 @club_permission_required(perm='chessclubs.access_club_info')
 def show_club(request, club_name):
     club = Club.objects.get(name=club_name)
-    return render(request, 'partials/show_club.html', {'club': club})
+    user_status = club.user_status(request.user)
+    return render(request, 'partials/show_club.html', {'club': club, 'user': request.user, 'user_status': user_status})
 
 @login_required
 @club_permission_required(perm='chessclubs.apply_to_club')
