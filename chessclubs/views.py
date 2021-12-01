@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm
-from .decorators import login_prohibited, club_permission_required
+from .decorators import login_prohibited, club_permission_required, add_current_user_to_logged_in_group
 from .models import User, Club
 from notifications.signals import notify
 
@@ -39,7 +39,6 @@ def log_in(request):
     return render(request, 'log_in.html', {'form': form, 'next': next})
 
 
-@login_required
 def log_out(request):
     logout(request)
     return redirect('home')
@@ -98,16 +97,6 @@ def sign_up(request):
 
 
 @login_required
-def show_club(request, club_name):
-    try:
-        club = Club.objects.get(name=club_name)
-        is_member = club.is_member(request.user)
-    except ObjectDoesNotExist:
-        return redirect('partials/clubs_list.html')
-    return render(request, 'partials/show_club.html', {'club': club, 'is_member': is_member})
-
-
-@login_required
 @club_permission_required('chessclubs.show_public_info')
 def show_user(request, user_id, club_name):
     try:
@@ -132,12 +121,8 @@ def user_list(request, club_name):
         return redirect('clubs_list')
     else:
         users = club.get_members()
-        users_statuses = {}
-        for user in users:
-            users_statuses[user] = club.user_status(user)
         current_user = request.user
-        return render(request, 'user_list.html',
-                      {'users': users, 'current_user': current_user, 'club': club, 'user_statuses': users_statuses})
+        return render(request, 'user_list.html', {'users': users, 'current_user': current_user, 'club': club})
 
 
 @login_required
@@ -163,16 +148,12 @@ def demote(request, user_id, club_name):
         target_user = User.objects.get(id=user_id)
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "The club or user you are looking for don't exist!")
-        return redirect('landing_page')
+        return redirect('view_applications', club_name=club_name)
     else:
-        if club.user_status(target_user) == "officer":
-            club.remove_from_officers_group(target_user)
-            club.add_to_members_group(target_user)
-            notify.send(request.user, recipient=target_user, verb='Message',
-                        description=f"You have been demoted to Member of club {club.name}")
-        else:
-            messages.add_message(request, messages.ERROR, "You can only demote an officer")
+        club.remove_from_officers_group(target_user)
+        club.add_to_members_group(target_user)
+        notify.send(request.user, recipient=target_user, verb='Message',
+                    description=f"You have been demoted to Member of club {club.name}")
         return redirect('show_user', club_name=club_name, user_id=user_id)
 
 
@@ -222,7 +203,7 @@ def accept(request, user_id, club_name):
     except ObjectDoesNotExist:
         return redirect('view_applications', club_name)
     else:
-        club.add_to_members_group(target_user)
+        club.add_to_accepted_applicants_group(target_user)
         club.remove_from_applicants_group(target_user)
         notify.send(request.user, recipient=target_user, verb='Message',
                     description=f"Your application for club {club_name} has been accepted")
@@ -246,24 +227,29 @@ def deny(request, user_id, club_name):
 
 
 @login_required
-@permission_required('chessclubs.acknowledge_denial')
-def acknowledged(request, club_name):
+@club_permission_required('chessclubs.acknowledge_denial')
+def acknowledge(request, club_name):
     try:
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('my_profile')
+        return redirect('landing_page')
     else:
-        club.add_to_logged_in_non_members_group(request.user)
-        club.remove_from_denied_applicants_group(request.user)
-        return redirect('my_profile')
+        if club.user_status(request.user) == "accepted_applicant":
+            club.add_member(request.user)
+            club.remove_from_accepted_applicants_group(request.user)
+        else:
+            club.add_to_logged_in_non_members_group(request.user)
+            club.remove_from_denied_applicants_group(request.user)
+        return redirect('my_applications')
 
 
-@login_required
+def page_not_found_view(request, exception):
+    return render(request, '404.html', status=404)
+
 def landing_page(request):
     current_user = request.user
     clubs = Club.objects.all()
-    return render(request, 'landing_page.html', {'clubs': clubs, 'current_user': current_user})
-
+    return render(request, 'landing_page.html',  {'clubs': clubs, 'current_user': current_user} )
 
 @login_required
 def create_club(request):
@@ -273,6 +259,7 @@ def create_club(request):
             form = ClubForm(request.POST)
             if form.is_valid():
                 club = form.save(current_user)
+                add_current_user_to_logged_in_group(club)
                 return redirect('landing_page')
             else:
                 return render(request, 'create_club.html', {'form': form})
@@ -283,5 +270,41 @@ def create_club(request):
         return render(request, 'create_club.html', {'form': form})
 
 
-def page_not_found_view(request, exception):
-    return render(request, '404.html', status=404)
+# This view is temporary, it will be replaced by Duna's implementation for the list of clubs (landing page)
+@login_required
+def clubs_list(request):
+    clubs = Club.objects.all()
+    return render(request, 'partials/clubs_list.html', {'clubs': clubs})
+
+# This view is temporary, it will be replaced by Duna's implementation for the show club 
+@login_required
+@club_permission_required(perm='chessclubs.access_club_info')
+def show_club(request, club_name):
+    club = Club.objects.get(name=club_name)
+    user_status = club.user_status(request.user)
+    return render(request, 'partials/show_club.html', {'club': club, 'user': request.user, 'user_status': user_status})
+
+@login_required
+@club_permission_required(perm='chessclubs.apply_to_club')
+def apply_club(request, club_name):
+    club = Club.objects.get(name=club_name)
+    target_user = request.user
+    club.remove_from_logged_in_non_members_group(target_user)
+    club.add_to_applicants_group(target_user)
+    return redirect('my_applications')
+
+@login_required
+def my_applications(request):
+    applications = []
+    denied_applications = []
+    accepted_applications = []
+    for club in Club.objects.all():
+        if club.user_status(request.user) == "applicant":
+            print("I'm an applicant")
+            applications.append(club)
+        elif club.user_status(request.user) == "denied_applicant":
+            denied_applications.append(club)
+        elif club.user_status(request.user) == "accepted_applicant":
+            accepted_applications.append(club)
+    count = len(applications) + len(denied_applications) + len(accepted_applications)
+    return render(request, 'my_applications.html', {'applications': applications, 'count': count, 'denied_applications':denied_applications, 'accepted_applications': accepted_applications})
