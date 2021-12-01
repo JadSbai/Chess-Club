@@ -24,3 +24,8 @@ def club_permission_required(perm):
                 return view_func(request, *args, **kwargs)
         return wrapped
     return wrapper
+
+def add_current_user_to_logged_in_group(club):
+    for user in User.objects.all():
+        if club.owner != user:
+            club.add_to_logged_in_non_members_group(user)

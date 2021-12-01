@@ -172,11 +172,21 @@ class Club(models.Model):
         non_members, created = Group.objects.get_or_create(name=f"{self.name}_authenticated_non_members")
         return non_members
 
+    def __accepted_applicants_group(self):
+        accepted_applicants, created = Group.objects.get_or_create(name=f"{self.name}_accepted_applicants")
+        return accepted_applicants
+
     def add_to_members_group(self, user):
         self.__members_group().user_set.add(user)
 
     def remove_from_members_group(self, user):
         self.__members_group().user_set.remove(user)
+
+    def add_to_accepted_applicants_group(self, user):
+        self.__accepted_applicants_group().user_set.add(user)
+
+    def remove_from_accepted_applicants_group(self, user):
+        self.__accepted_applicants_group().user_set.remove(user)
 
     def add_to_applicants_group(self, user):
         self.applicants_group().user_set.add(user)
@@ -234,6 +244,8 @@ class Club(models.Model):
             return "officer"
         elif user == self.owner:
             return "owner"
+        elif user in self.__accepted_applicants_group().user_set.all():
+            return "accepted_applicant"
         else:
             return "anonymous"
 

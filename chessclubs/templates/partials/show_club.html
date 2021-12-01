@@ -24,10 +24,17 @@
         {{ club.get_club_owner.full_name }}<br>
         {{ club.get_club_owner.bio }}<br>
       </div>
-      {% if not is_member %}
-      <div class="container d-flex justify-content-center">
-        <a href="{% url 'my_profile' %}"  class="btn btn-outline-info">Apply to this club</a>
+      {% if user_status == 'authenticated_non_member_user'  %}
+      <div class="container d-flex justify-content-center mt-3">
+        <a href="{% url 'apply_club' club_name=club.name %}"  class="btn btn-outline-info">Apply to this club</a>
       </div>
+          {% else %}
+          <div class="container d-flex justify-content-center mt-3">
+          <p>For this club, your current status is :<br></p>
+          </div>
+          <div class="container d-flex justify-content-center">
+          <p> {{user_status}}</p>
+          </div>
       {%endif%}
     </div>
   </div>

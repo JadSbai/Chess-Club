@@ -264,6 +264,7 @@ def create_club(request):
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
 
+
 # This view is temporary, it will be replaced by Duna's implementation for the list of clubs (landing page)
 @login_required
 def clubs_list(request):
@@ -276,3 +277,28 @@ def clubs_list(request):
 def show_club(request, club_name):
     club = Club.objects.get(name=club_name)
     return render(request, 'partials/show_club.html', {'club': club})
+
+@login_required
+@club_permission_required(perm='chessclubs.apply_to_club')
+def apply_club(request, club_name):
+    club = Club.objects.get(name=club_name)
+    target_user = request.user
+    club.remove_from_logged_in_non_members_group(target_user)
+    club.add_to_applicants_group(target_user)
+    return redirect('my_applications')
+
+@login_required
+def my_applications(request):
+    applications = []
+    denied_applications = []
+    accepted_applications = []
+    for club in Club.objects.all():
+        if club.user_status(request.user) == "applicant":
+            print("I'm an applicant")
+            applications.append(club)
+        elif club.user_status(request.user) == "denied_applicant":
+            denied_applications.append(club)
+        elif club.user_status(request.user) == "accepted_applicant":
+            accepted_applications.append(club)
+    count = len(applications) + len(denied_applications) + len(accepted_applications)
+    return render(request, 'my_applications.html', {'applications': applications, 'count': count, 'denied_applications':denied_applications, 'accepted_applications': accepted_applications})
