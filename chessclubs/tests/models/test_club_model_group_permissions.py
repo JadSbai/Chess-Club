@@ -70,6 +70,16 @@ class GroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.transfer_ownership', self.club):
             self.fail('Applicant should not be able to transfer_ownership')
 
+    def test_applicant_cannot_apply_to_club(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Applicant should not be able to apply to club')
+
+    def test_applicant_cannot_acknowledge_application_response(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Applicant should not be able to acknowledge response')
+
     def test_member_can_access_club_info(self):
         self.group_tester.make_member(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
@@ -114,6 +124,16 @@ class GroupPermissionsTestCase(TestCase):
         self.group_tester.make_member(self.other_user)
         if self.other_user.has_club_perm('chessclubs.transfer_ownership', self.club):
             self.fail('Member should not be able to transfer_ownership')
+
+    def test_member_cannot_apply_to_club(self):
+        self.group_tester.make_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Member should not be able to apply to club')
+
+    def test_member_cannot_acknowledge_application_response(self):
+        self.group_tester.make_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Member should not be able to acknowledge response')
 
     def test_officer_can_access_club_info(self):
         self.group_tester.make_officer(self.other_user)
@@ -160,6 +180,16 @@ class GroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.transfer_ownership', self.club):
             self.fail('Officer should not be able to transfer_ownership')
 
+    def test_officer_cannot_apply_to_club(self):
+        self.group_tester.make_officer(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Officer should not be able to apply to club')
+
+    def test_officer_cannot_acknowledge_application_response(self):
+        self.group_tester.make_officer(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Officer should not be able to acknowledge response')
+
     def test_owner_can_access_club_info(self):
         if not self.owner.has_club_perm('chessclubs.access_club_info', self.club):
             self.fail('Owner should have access to club info')
@@ -196,10 +226,18 @@ class GroupPermissionsTestCase(TestCase):
         if not self.club.owner.has_club_perm('chessclubs.transfer_ownership', self.club):
             self.fail('Owner should be able to transfer_ownership')
 
+    def test_owner_cannot_apply_to_club(self):
+        if self.owner.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Officer should not be able to apply to club')
+
+    def test_owner_cannot_acknowledge_application_response(self):
+        if self.owner.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Owner should not be able to acknowledge response')
+
     def test_denied_applicant_can_access_club_info(self):
         self.group_tester.make_denied_applicant(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
-            self.fail('Denied applicant should have access to club info')
+            self.fail('Owner applicant should have access to club info')
 
     def test_denied_applicant_can_access_club_owner_public_info(self):
         self.group_tester.make_denied_applicant(self.other_user)
@@ -240,6 +278,71 @@ class GroupPermissionsTestCase(TestCase):
         self.group_tester.make_denied_applicant(self.other_user)
         if self.other_user.has_club_perm('chessclubs.transfer_ownership', self.club):
             self.fail('Denied applicant should not be able to transfer_ownership')
+
+    def test_denied_applicant_cannot_apply_to_club(self):
+        self.group_tester.make_denied_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Denied applicant should not be able to apply to club')
+
+    def test_denied_applicant_can_acknowledge_application_response(self):
+        self.group_tester.make_denied_applicant(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Denied applicant should be able to acknowledge response')
+
+    def test_accepted_applicant_can_access_club_info(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
+            self.fail('Accepted applicant should have access to club info')
+
+    def test_accepted_applicant_can_access_club_owner_public_info(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.access_club_owner_public_info', self.club):
+            self.fail('Accepted applicant should have access to cub owner public info')
+
+    def test_accepted_applicant_cannot_manage_applications(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.manage_applications', self.club):
+            self.fail('Accepted applicant should not be able to manage applications')
+
+    def test_accepted_applicant_cannot_access_members_list(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.access_members_list', self.club):
+            self.fail('Accepted applicant should not have access to members list')
+
+    def test_accepted_applicant_cannot_access_public_info(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.show_public_info', self.club):
+            self.fail('Accepted applicant should not have access to public info')
+
+    def test_accepted_applicant_cannot_access_private_info(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.show_private_info', self.club):
+            self.fail('Accepted applicant should not have access to private info')
+
+    def test_accepted_applicant_cannot_promote_members(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.promote', self.club):
+            self.fail('Accepted applicant should not be able to promote members')
+
+    def test_accepted_applicant_cannot_demote_officers(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.demote', self.club):
+            self.fail('Accepted applicant should not be able to demote officers')
+
+    def test_accepted_applicant_cannot_transfer_ownership(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.transfer_ownership', self.club):
+            self.fail('Accepted applicant should not be able to transfer_ownership')
+
+    def test_accepted_applicant_cannot_apply_to_club(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Accepted applicant should not be able to apply to club')
+
+    def test_accepted_applicant_can_acknowledge_application_response(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Accepted applicant should be able to acknowledge response')
 
     def test_logged_in_non_member_can_access_club_info(self):
         self.group_tester.make_authenticated_non_member(self.other_user)
@@ -285,3 +388,13 @@ class GroupPermissionsTestCase(TestCase):
         self.group_tester.make_authenticated_non_member(self.other_user)
         if self.other_user.has_club_perm('chessclubs.transfer_ownership', self.club):
             self.fail('Logged-in non-member should not be able to transfer_ownership')
+
+    def test_logged_in_non_member_can_apply_to_club(self):
+        self.group_tester.make_authenticated_non_member(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
+            self.fail('Logged-in non-member should not be able to apply to club')
+
+    def test_logged_in_non_member_cannot_acknowledge_application_response(self):
+        self.group_tester.make_authenticated_non_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
+            self.fail('Logged-in non-member should be able to acknowledge response')

@@ -28,6 +28,10 @@ class ClubGroupTester:
         user.groups.clear()
         self.club.add_to_denied_applicants_group(user)
 
+    def make_accepted_applicant(self, user):
+        user.groups.clear()
+        self.club.add_to_accepted_applicants_group(user)
+
     def make_member(self, user):
         if user not in self.club.members.all():
             self.club.members.add(user)

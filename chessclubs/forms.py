@@ -108,7 +108,6 @@ class ClubForm(forms.ModelForm):
         fields = ['name', 'description', 'location']
         widgets = {
             'description': forms.Textarea(),
-
         }
 
     def save(self, owner):
@@ -123,3 +122,10 @@ class ClubForm(forms.ModelForm):
         club_created.members.add(owner)
         club_created.assign_club_groups_permissions()
         return club_created
+
+class NewOwnerForm(forms.ModelForm):
+    class Meta:
+        """Form options."""
+        model = Club
+        fields = ['owner']
+

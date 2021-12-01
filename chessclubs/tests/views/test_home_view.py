@@ -2,6 +2,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import User
+from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class HomeViewTestCase(TestCase):
     """Tests of the home view."""
@@ -23,6 +24,7 @@ class HomeViewTestCase(TestCase):
     def test_get_home_redirects_when_logged_in(self):
         self.client.login(email=self.user.email, password="Password123")
         response = self.client.get(self.url, follow=True)
-        redirect_url = reverse('my_profile')
+        redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')
+
