@@ -22,7 +22,7 @@ class MarkAsReadViewTestCase(TestCase):
                     description="Talking to yourself")
         self.slug = self.user.notifications.unread()[0].slug
         self.url = reverse('mark_as_read', kwargs={'slug': self.slug})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('my_applications')
 
     def test_notification_is_read(self):
         before_count = self.user.notifications.unread().count()
