@@ -34,11 +34,23 @@
       </div>
           {% else %}
           <div class="container d-flex justify-content-center mt-3">
-          <p>For this club, your current status is:  <b>{{user_status}}</b></p>
+          <p>For this club, your current status is :<br></p>
+          </div>
+          <div class="container d-flex justify-content-center">
+          <p> {{user_status}}</p>
           </div>
       {%endif%}
+        {% if user_status == "officer" or user_status == "owner" %}
+    <div>
+        <a href="{% url 'view_applications' club_name=club.name %}"  class="btn btn-outline-info">see applications</a>
+    </div>
+    {% endif %}
+    <div>
+        <a href="{% url 'user_list' club_name=club.name %}"  class="btn btn-outline-info">members</a>
+    </div>
     </div>
   </div>
 </div>
 {% endblock %}
 {% endblock %}
+

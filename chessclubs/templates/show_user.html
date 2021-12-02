@@ -1,9 +1,5 @@
 
 {% extends 'base_content.html' %}
-{% block body %}
-  {% include 'partials/navbar.html' with request=request%}
-  {% include 'partials/second_navbar.html' with request=request club=club%}
-  {% include 'partials/messages.html' %}
 {% block content %}
 <div class="container fluid">
   <div class="container d-flex justify-content-center">
@@ -41,7 +37,7 @@
             </div>
           {%endif%}
       {%endif%}
+
 </div>
 </div>
 {% endblock %}
-{%endblock%}
