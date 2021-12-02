@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import reverse_with_next, ClubGroupTester
-from django.contrib.auth.models import Permission
+
 
 class UserListTest(TestCase):
 

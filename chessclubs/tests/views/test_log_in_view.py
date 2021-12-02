@@ -5,6 +5,8 @@ from django.urls import reverse
 from chessclubs.forms import LogInForm
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import LogInTester, reverse_with_next, ClubGroupTester
+from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
+
 
 class LogInViewTestCase(TestCase, LogInTester):
     """Tests of the log in view."""
@@ -50,9 +52,9 @@ class LogInViewTestCase(TestCase, LogInTester):
     def test_get_log_in_redirects_when_logged_in(self):
         self.client.login(email=self.user.email, password="Password123")
         response = self.client.get(self.url, follow=True)
-        redirect_url = reverse('my_profile')
+        redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')
 
     def test_unsuccesful_log_in(self):
         form_input = { 'email': 'johndoe@example.org', 'password': 'WrongPassword123' }
@@ -97,9 +99,9 @@ class LogInViewTestCase(TestCase, LogInTester):
         form_input = {'email': 'johndoe@example.org', 'password': 'Password123'}
         response = self.client.post(self.url, form_input, follow=True)
         self.assertTrue(self.user.is_authenticated)
-        response_url = reverse('my_profile')
+        response_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
 
@@ -117,9 +119,9 @@ class LogInViewTestCase(TestCase, LogInTester):
         self.client.login(email=self.user.email, password="Password123")
         form_input = {'email': 'wrong_email.org', 'password': 'WrongPassword123' }
         response = self.client.post(self.url, form_input, follow=True)
-        redirect_url = reverse('my_profile')
+        redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')
 
     def test_post_log_in_with_incorrect_credentials_and_redirect(self):
         redirect_url = reverse('user_list', kwargs={'club_name': self.club.name})

@@ -33,7 +33,7 @@ class UserFormTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_form_uses_model_validation(self):
-        self.form_input['chess_experience'] = ''
+        self.form_input['chess_experience'] = 'not_valid_choice'
         form = UserForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
@@ -50,4 +50,3 @@ class UserFormTestCase(TestCase):
         self.assertEqual(user.bio, 'My bio')
         self.assertEqual(user.chess_experience, 'Intermediate')
         self.assertEqual(user.personal_statement, 'I am the best')
-

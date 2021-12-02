@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('my_profile/', views.my_profile, name='my_profile'),
+    path('club/<int:club_id>', views.show_club, name='show_club'),
     path('log_in/', views.log_in, name='log_in'),
     path('log_out/', views.log_out, name='log_out'),
     path('password/', views.password, name='password'),
@@ -38,11 +39,12 @@ urlpatterns = [
     path(r'mark-as-read/(<slug>[-\w]+)/', views.mark_as_read, name='mark_as_read'),
     path('<club_name>/accept/<int:user_id>', views.accept, name='accept'),
     path('<club_name>/deny/<int:user_id>', views.deny, name='deny'),
-    path('<club_name>/acknowledged/', views.acknowledged, name='acknowledged'),
-    path('clubs/', views.clubs_list, name='clubs_list'),
+    path('<club_name>/acknowledge/', views.acknowledge, name='acknowledge'),
     path('<club_name>/view_applications/', views.view_applications, name='view_applications'),
     path('create_club/', views.create_club, name='create_club'),
     path('landing_page/', views.landing_page, name='landing_page'),
+    path('apply_club/<club_name>', views.apply_club, name='apply_club'),
+    path('my_applications', views.my_applications, name='my_applications'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
 handler404 = "chessclubs.views.page_not_found_view"

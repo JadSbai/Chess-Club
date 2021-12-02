@@ -3,10 +3,9 @@
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import User, Club
-from chessclubs.tests.helpers import reverse_with_next
-from chessclubs.tests.helpers import ClubGroupTester
-from notifications.models import Notification
-from notifications.signals import notify
+from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next
+from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
+from django.contrib import messages
 
 
 class AcceptViewTestCase(TestCase):
@@ -26,11 +25,13 @@ class AcceptViewTestCase(TestCase):
         self.group_tester.make_officer(self.officer)
         self.client.login(email=self.officer.email, password='Password123')
         self.url = reverse('deny', kwargs={'club_name': self.club.name, 'user_id': self.applicant.id})
+        self.target_url = reverse('view_applications', kwargs={'club_name': self.club.name})
+        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_deny_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/deny/{self.applicant.id}')
 
-    def test_accept_and_become_denied_applicant(self):
+    def test_deny_and_become_denied_applicant(self):
         before_status = self.club.user_status(self.applicant)
         self.assertEqual(before_status, "applicant")
         self.client.get(self.url)
@@ -40,7 +41,6 @@ class AcceptViewTestCase(TestCase):
         self.assertFalse(self.applicant.groups.filter(name=f"{self.club.name}_applicants").exists())
 
     def test_redirect_to_application_page(self):
-        self.target_url = reverse('view_applications', kwargs={'club_name': self.club.name})
         response = self.client.get(self.url)
         self.assertRedirects(response, self.target_url, status_code=302, target_status_code=200)
 
@@ -57,14 +57,79 @@ class AcceptViewTestCase(TestCase):
         self.assertEqual(len(self.applicant.notifications.unread()), notifications + 1)
         self.assertEqual(last_notification, f"Your application for club {self.club.name} has been denied")
 
-    # def test_acknowledged_button_is_displayed(self):
-    #     self.client.get(self.url)
-    #     self.client.login(email=self.applicant.email, password='Password123')
-    #     applicant_profile = self.client.get(reverse('my_applications', kwargs={'club_name': self.club.name}))
-    #     self.assertContains(applicant_profile, "Acknowledged", html=True)
-    #
-    # def test_notice_of_denial_is_displayed(self):
-    #     self.client.get(self.url)
-    #     self.client.login(email=self.applicant.email, password='Password123')
-    #     applicant_profile = self.client.get(reverse('my_applications', kwargs={'club_name': self.club.name}))
-    #     self.assertContains(applicant_profile, "Notice: Your application has been denied", html=True)
+    def test_acknowledge_button_is_displayed(self):
+        self.client.get(self.url)
+        self.client.login(email=self.applicant.email, password='Password123')
+        applicant_profile = self.client.get(reverse('my_applications'))
+        self.assertContains(applicant_profile, "ok", html=True)
+
+    def test_notice_of_denial_is_displayed(self):
+        self.client.get(self.url)
+        self.client.login(email=self.applicant.email, password='Password123')
+        applicant_profile = self.client.get(reverse('my_applications'))
+        self.assertContains(applicant_profile, "Your application has been denied")
+
+    def test_deny_non_applicant_redirects(self):
+        self.club.remove_from_applicants_group(self.applicant)
+        self.club.add_member(self.applicant)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.target_url, status_code=302, target_status_code=200)
+
+    def test_applicant_cannot_deny(self):
+        self.group_tester.make_applicant(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    def test_accepted_applicant_cannot_deny(self):
+        self.group_tester.make_accepted_applicant(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    def test_denied_applicant_cannot_deny(self):
+        self.group_tester.make_denied_applicant(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    def test_member_cannot_deny(self):
+        self.group_tester.make_member(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    def test_officer_can_deny(self):
+        response = self.client.get(self.url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 0)
+
+    def test_owner_can_deny(self):
+        self.client.login(email=self.owner.email, password='Password123')
+        response = self.client.get(self.url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 0)
+
+    def test_logged_in_non_member_cannot_deny(self):
+        self.group_tester.make_authenticated_non_member(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    def test_non_logged_is_redirected(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        redirect_url = reverse_with_next('log_in', reverse('deny', kwargs={'club_name': self.club.name, 'user_id': self.applicant.id}))
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)

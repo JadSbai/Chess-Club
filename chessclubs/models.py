@@ -62,12 +62,21 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     """User model used for authentication"""
+
+    CHESS_EXPERIENCE_CHOICES = [
+        ('Novice', 'Novice'),
+        ('Beginner', 'Beginner'),
+        ('Intermediate', 'Intermediate'),
+        ('Advanced', 'Advanced'),
+        ('Expert', 'Expert'),
+        ]
+
     username = None  # Don't use the username field inherited from the AbstractUser Model
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False, null=False)
     bio = models.CharField(max_length=520, blank=True)
-    chess_experience = models.CharField(max_length=50, blank=False)
+    chess_experience = models.CharField(max_length=50, choices = CHESS_EXPERIENCE_CHOICES, default = 'novice', blank=False)
     personal_statement = models.CharField(max_length=500, blank=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Required fields for when creating a superuser (other than USERNAME_FIELD and password that are always required)
@@ -112,11 +121,14 @@ class Club(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     members = models.ManyToManyField(User, related_name="clubs")  # All members of the club (members, officers, owner)
 
-    owner_permissions = []
+
 
     def is_member(self, user):
         """returns whether user is a member of a certain group"""
         return user in self.members.all()
+
+    def get_club_owner(self):
+        return self.owner
 
     def member_count(self):
         """returns the number is members in the club"""
@@ -160,11 +172,25 @@ class Club(models.Model):
         non_members, created = Group.objects.get_or_create(name=f"{self.name}_authenticated_non_members")
         return non_members
 
+    def __accepted_applicants_group(self):
+        accepted_applicants, created = Group.objects.get_or_create(name=f"{self.name}_accepted_applicants")
+        return accepted_applicants
+
+    def __owner_group(self):
+        owners, created = Group.objects.get_or_create(name=f"{self.name}_owner")
+        return owners
+
     def add_to_members_group(self, user):
         self.__members_group().user_set.add(user)
 
     def remove_from_members_group(self, user):
         self.__members_group().user_set.remove(user)
+
+    def add_to_accepted_applicants_group(self, user):
+        self.__accepted_applicants_group().user_set.add(user)
+
+    def remove_from_accepted_applicants_group(self, user):
+        self.__accepted_applicants_group().user_set.remove(user)
 
     def add_to_applicants_group(self, user):
         self.applicants_group().user_set.add(user)
@@ -190,26 +216,20 @@ class Club(models.Model):
     def remove_from_logged_in_non_members_group(self, user):
         self.__authenticated_non_member_group().user_set.remove(user)
 
-    def assign_owner_permissions(self):
-        for permission in self.owner_permissions:
-            permission.add_user(self.owner)
+    def owner_count(self):
+        return self.__owner_group().user_set.all().count()
 
-    def remove_owner_permissions(self):
-        for permission in self.owner_permissions:
-            permission.remove_user(self.owner)
-
-    def set_owner_permissions(self, permissions):
-        self.owner_permissions = permissions
+    def officer_count(self):
+        return self.__officers_group().user_set.all().count()
 
     def change_owner(self, user):
         self.remove_from_officers_group(user)
-        self.remove_owner_permissions()
+        self.__owner_group().user_set.remove(self.owner)
+        self.__owner_group().user_set.add(user)
         self.add_to_officers_group(self.owner)
-        self.owner = user
-        self.assign_owner_permissions()
 
     def user_status(self, user):
-        """Returns the status of a given user in the club (assumes a user belongs to one and only one group)"""
+        """Returns the status of a given user in the club (assumes a user belongs to one and only one group of each club)"""
         if user in self.__authenticated_non_member_group().user_set.all():
             return "authenticated_non_member_user"
         elif user in self.applicants_group().user_set.all():
@@ -220,14 +240,16 @@ class Club(models.Model):
             return "member"
         elif user in self.__officers_group().user_set.all():
             return "officer"
-        elif user == self.owner:
+        elif user in self.__accepted_applicants_group().user_set.all():
+            return "accepted_applicant"
+        elif user in self.__owner_group().user_set.all():
             return "owner"
         else:
             return "anonymous"
 
     def assign_club_groups_permissions(self):
         """Create and assign club-specific permissions to the club's groups and owner"""
-        # Get the base permissions
+        # Get the base permissions from the Club Meta class
         access_club_info_perm = Permission.objects.get(codename="access_club_info")
         access_club_owner_info_perm = Permission.objects.get(codename="access_club_owner_public_info")
         members_list_perm = Permission.objects.get(codename='access_members_list')
@@ -237,9 +259,10 @@ class Club(models.Model):
         promote_perm = Permission.objects.get(codename='promote')
         demote_perm = Permission.objects.get(codename='demote')
         transfer_ownership_perm = Permission.objects.get(codename='transfer_ownership')
-        acknowledge_denial_perm = Permission.objects.get(codename='acknowledge_denial')
+        acknowledge_response_perm = Permission.objects.get(codename='acknowledge_response')
+        apply_to_club_perm = Permission.objects.get(codename='apply_to_club')
 
-        # Create the club-specific permissions
+        # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
                                                                          base_permission=access_club_info_perm)
         access_club_owner_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -253,28 +276,33 @@ class Club(models.Model):
         demote, created = ClubPermission.objects.get_or_create(club=self, base_permission=demote_perm)
         transfer_ownership, created = ClubPermission.objects.get_or_create(club=self,
                                                                            base_permission=transfer_ownership_perm)
-        acknowledge_denial, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=acknowledge_denial_perm)
+        acknowledge_response, created = ClubPermission.objects.get_or_create(club=self,
+                                                                           base_permission=acknowledge_response_perm)
 
-        # Assign the appropriate groups and/or users to the the club permissions (according to the requirements)
+        apply_to_club, created = ClubPermission.objects.get_or_create(club=self,
+                                                                           base_permission=apply_to_club_perm)
+
+        # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
-                  self.__authenticated_non_member_group(), self.__members_group()]
+                  self.__authenticated_non_member_group(), self.__members_group(), self.__accepted_applicants_group(),
+                  self.__owner_group()]
         access_club_info.set_groups(groups)
         access_club_owner_info.set_groups(groups)
-        groups = [self.__denied_applicants_group()]
-        acknowledge_denial.set_groups(groups)
-        groups = [self.__officers_group(), self.__members_group()]
+        groups = [self.__authenticated_non_member_group()]
+        apply_to_club.set_groups(groups)
+        groups = [self.__denied_applicants_group(), self.__accepted_applicants_group()]
+        acknowledge_response.set_groups(groups)
+        groups = [self.__officers_group(), self.__members_group(), self.__owner_group()]
         members_list.set_groups(groups)
         public.set_groups(groups)
-        groups = [self.__officers_group()]
+        groups = [self.__officers_group(), self.__owner_group()]
         private.set_groups(groups)
         manage_applications.set_groups(groups)
-
-        # Set and assign the owner's permissions
-        self.set_owner_permissions(
-            [access_club_info, access_club_owner_info, members_list, public, private, manage_applications, promote,
-             demote, transfer_ownership])
-        self.assign_owner_permissions()
+        groups = [self.__owner_group()]
+        promote.set_groups(groups)
+        demote.set_groups(groups)
+        transfer_ownership.set_groups(groups)
+        self.__owner_group().user_set.add(self.owner)
 
     class Meta:
         """" All base permissions associated with the Club Model"""
@@ -288,7 +316,8 @@ class Club(models.Model):
             ("manage_applications", "Can manage applications"),
             ("access_club_info", "Can access a club's public info"),
             ("access_club_owner_public_info", "Can access a club owner public info"),
-            ("acknowledge_denial", "Can acknowledge denial of application"),
+            ("acknowledge_response", "Can acknowledge response (acceptance or denial) to an application"),
+            ("apply_to_club", "Can apply to club"),
         ]
 
 

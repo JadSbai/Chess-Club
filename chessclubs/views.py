@@ -7,10 +7,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
-from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm
-from .decorators import login_prohibited, club_permission_required
+from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm
+from .decorators import login_prohibited, club_permission_required, add_current_user_to_logged_in_group
 from .models import User, Club
 from notifications.signals import notify
+from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 
 @login_required
@@ -23,20 +24,20 @@ def my_profile(request):
 def log_in(request):
     if request.method == 'POST':
         form = LogInForm(request.POST)
-        next = request.POST.get('next') or ''
+        next_url = request.POST.get('next') or ''
         if form.is_valid():
             email = form.cleaned_data.get('email')
             password = form.cleaned_data.get('password')
             user = authenticate(email=email, password=password)
             if user is not None:
                 login(request, user)
-                redirect_url = next or 'landing_page'
+                redirect_url = next_url or REDIRECT_URL_WHEN_LOGGED_IN
                 return redirect(redirect_url)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     else:
-        next = request.GET.get('next') or ''
+        next_url = request.GET.get('next') or ''
     form = LogInForm()
-    return render(request, 'log_in.html', {'form': form, 'next': next})
+    return render(request, 'log_in.html', {'form': form, 'next': next_url})
 
 
 def log_out(request):
@@ -90,7 +91,7 @@ def sign_up(request):
             for club in Club.objects.all():
                 club.add_to_logged_in_non_members_group(user)
             login(request, user)
-            return redirect('landing_page')
+            return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
@@ -103,7 +104,8 @@ def show_user(request, user_id, club_name):
         target_user = User.objects.get(id=user_id)
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('user_list', club_name=club_name)
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
         current_user_status = club.user_status(request.user)
         target_user_status = club.user_status(target_user)
@@ -118,7 +120,8 @@ def user_list(request, club_name):
     try:
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('clubs_list')
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
         users = club.get_members()
         current_user = request.user
@@ -132,12 +135,16 @@ def promote(request, user_id, club_name):
         target_user = User.objects.get(id=user_id)
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('view_applications', club_name=club_name)
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
-        club.remove_from_members_group(target_user)
-        club.add_to_officers_group(target_user)
-        notify.send(request.user, recipient=target_user, verb='Message',
-                    description=f"You have been promoted to Officer of club {club_name}")
+        if club.user_status(target_user) != "member":
+            messages.add_message(request, messages.WARNING, "Only members can be promoted")
+        else:
+            club.remove_from_members_group(target_user)
+            club.add_to_officers_group(target_user)
+            notify.send(request.user, recipient=target_user, verb='Message',
+                        description=f"You have been promoted to Officer of club {club_name}")
         return redirect('show_user', club_name=club_name, user_id=user_id)
 
 
@@ -148,13 +155,18 @@ def demote(request, user_id, club_name):
         target_user = User.objects.get(id=user_id)
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('view_applications', club_name=club_name)
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
-        club.remove_from_officers_group(target_user)
-        club.add_to_members_group(target_user)
-        notify.send(request.user, recipient=target_user, verb='Message',
-                    description=f"You have been demoted to Member of club {club.name}")
-        return redirect('show_user', club_name=club_name, user_id=user_id)
+        if club.user_status(target_user) != "officer":
+            messages.add_message(request, messages.WARNING, "Only officers can be demoted")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        else:
+            club.remove_from_officers_group(target_user)
+            club.add_to_members_group(target_user)
+            notify.send(request.user, recipient=target_user, verb='Message',
+                        description=f"You have been demoted to Member of club {club.name}")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
 
 
 @login_required
@@ -164,11 +176,18 @@ def transfer_ownership(request, user_id, club_name):
         target_user = User.objects.get(id=user_id)
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('view_applications', club_name=club_name)
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
-        club.change_owner(target_user)
-        notify.send(request.user, recipient=target_user, verb='Message',
-                    description="You have been transfered the ownership of the club")
+        if club.user_status(target_user) != "officer":
+            messages.add_message(request, messages.WARNING, "Only officers can be transferred ownership")
+        else:
+            club.change_owner(target_user)
+            form = NewOwnerForm(instance=club, data={'owner': target_user})
+            if form.is_valid():
+                form.save()
+            notify.send(request.user, recipient=target_user, verb='Message',
+                        description=f"You have been transferred the ownership of the club {club.name}")
         return redirect('show_user', club_name=club_name, user_id=user_id)
 
 
@@ -178,7 +197,7 @@ def mark_as_read(request, slug=None):
     notification = get_object_or_404(
         Notification, recipient=request.user, id=notification_id)
     notification.mark_as_read()
-    return redirect('my_profile')
+    return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
 
 
 @login_required
@@ -187,7 +206,8 @@ def view_applications(request, club_name):
     try:
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('my_profile')
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
         applicants = club.applicants_group().user_set.all()
         count = len(applicants)
@@ -201,12 +221,17 @@ def accept(request, user_id, club_name):
         club = Club.objects.get(name=club_name)
         target_user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
         return redirect('view_applications', club_name)
     else:
-        club.add_to_members_group(target_user)
-        club.remove_from_applicants_group(target_user)
-        notify.send(request.user, recipient=target_user, verb='Message',
-                    description=f"Your application for club {club_name} has been accepted")
+        if club.user_status(target_user) != "applicant":
+            messages.add_message(request, messages.WARNING,
+                                 "The user you want to accept is not an applicant of this club")
+        else:
+            club.add_to_accepted_applicants_group(target_user)
+            club.remove_from_applicants_group(target_user)
+            notify.send(request.user, recipient=target_user, verb='Message',
+                        description=f"Your application for club {club_name} has been accepted")
         return redirect('view_applications', club_name)
 
 
@@ -217,35 +242,51 @@ def deny(request, user_id, club_name):
         club = Club.objects.get(name=club_name)
         target_user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
         return redirect('view_applications', club_name)
     else:
-        club.add_to_denied_applicants_group(target_user)
-        club.remove_from_applicants_group(target_user)
-        notify.send(request.user, recipient=target_user, verb='Message',
-                    description=f"Your application for club {club_name} has been denied")
+        if club.user_status(target_user) != "applicant":
+            messages.add_message(request, messages.WARNING,
+                                 "The user you want to deny is not an applicant of this club")
+        else:
+            club.add_to_denied_applicants_group(target_user)
+            club.remove_from_applicants_group(target_user)
+            notify.send(request.user, recipient=target_user, verb='Message',
+                        description=f"Your application for club {club_name} has been denied")
         return redirect('view_applications', club_name)
 
 
 @login_required
-@permission_required('chessclubs.acknowledge_denial')
-def acknowledged(request, club_name):
+@club_permission_required('chessclubs.acknowledge_response')
+def acknowledge(request, club_name):
     try:
         club = Club.objects.get(name=club_name)
     except ObjectDoesNotExist:
-        return redirect('my_profile')
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
-        club.add_to_logged_in_non_members_group(request.user)
-        club.remove_from_denied_applicants_group(request.user)
-        return redirect('my_profile')
+        if club.user_status(request.user) == "accepted_applicant":
+            club.add_member(request.user)
+            club.remove_from_accepted_applicants_group(request.user)
+        elif club.user_status(request.user) == "denied_applicant":
+            club.add_to_logged_in_non_members_group(request.user)
+            club.remove_from_denied_applicants_group(request.user)
+        else:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot acknowledge an application that isn't yet processed or that doesn't exist")
+        return redirect('my_applications')
 
 
 def page_not_found_view(request, exception):
     return render(request, '404.html', status=404)
 
+
+@login_required
 def landing_page(request):
     current_user = request.user
     clubs = Club.objects.all()
-    return render(request, 'landing_page.html',  {'clubs': clubs, 'current_user': current_user} )
+    return render(request, 'landing_page.html', {'clubs': clubs, 'current_user': current_user})
+
 
 @login_required
 def create_club(request):
@@ -255,7 +296,8 @@ def create_club(request):
             form = ClubForm(request.POST)
             if form.is_valid():
                 club = form.save(current_user)
-                return redirect('landing_page')
+                add_current_user_to_logged_in_group(club)
+                return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
             else:
                 return render(request, 'create_club.html', {'form': form})
         else:
@@ -264,15 +306,49 @@ def create_club(request):
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
 
-# This view is temporary, it will be replaced by Duna's implementation for the list of clubs (landing page)
-@login_required
-def clubs_list(request):
-    clubs = Club.objects.all()
-    return render(request, 'partials/clubs_list.html', {'clubs': clubs})
 
-# This view is temporary, it will be replaced by Duna's implementation for the show club 
 @login_required
 @club_permission_required(perm='chessclubs.access_club_info')
 def show_club(request, club_name):
-    club = Club.objects.get(name=club_name)
-    return render(request, 'partials/show_club.html', {'club': club})
+    try:
+        club = Club.objects.get(name=club_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The user or club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    else:
+        user_status = club.user_status(request.user)
+        return render(request, 'partials/show_club.html',
+                      {'club': club, 'user': request.user, 'user_status': user_status})
+
+
+@login_required
+@club_permission_required(perm='chessclubs.apply_to_club')
+def apply_club(request, club_name):
+    try:
+        club = Club.objects.get(name=club_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    else:
+        target_user = request.user
+        club.remove_from_logged_in_non_members_group(target_user)
+        club.add_to_applicants_group(target_user)
+        return redirect('my_applications')
+
+
+@login_required
+def my_applications(request):
+    applications = []
+    denied_applications = []
+    accepted_applications = []
+    for club in Club.objects.all():
+        if club.user_status(request.user) == "applicant":
+            applications.append(club)
+        elif club.user_status(request.user) == "denied_applicant":
+            denied_applications.append(club)
+        elif club.user_status(request.user) == "accepted_applicant":
+            accepted_applications.append(club)
+    count = len(applications) + len(denied_applications) + len(accepted_applications)
+    return render(request, 'my_applications.html',
+                  {'applications': applications, 'count': count, 'denied_applications': denied_applications,
+                   'accepted_applications': accepted_applications})

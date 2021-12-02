@@ -2,7 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import Club, User
 from chessclubs.tests.helpers import reverse_with_next
-
+from django.contrib import messages
+from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class CreateClubTest(TestCase):
     fixtures = [
@@ -15,6 +16,7 @@ class CreateClubTest(TestCase):
         self.user = User.objects.get(email='johndoe@example.org')
         self.url = reverse('create_club')
         self.data = {'name': 'y' * 40, 'description': 'x' * 200, 'location': 'z' * 20}
+        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_create_club_url(self):
         self.assertEqual(self.url, '/create_club/')
@@ -45,7 +47,7 @@ class CreateClubTest(TestCase):
         self.assertEqual(club_count_after, club_count_before + 1)
         new_club = Club.objects.last()
         self.assertEqual(self.user, new_club.owner)
-        response_url = reverse('my_profile')
+        response_url = reverse('landing_page')
         self.assertRedirects(
             response, response_url,
             status_code=302, target_status_code=200,
@@ -72,3 +74,17 @@ class CreateClubTest(TestCase):
         self.assertEqual(club_count_after, club_count_before + 1)
         new_club = Club.objects.last()
         self.assertEqual(self.user, new_club.owner)
+
+    def test_all_users_become_non_members(self):
+        self.client.login(email=self.user.email, password="Password123")
+        self.client.post(self.url, self.data, follow=True)
+        new_club = Club.objects.last()
+        for user in User.objects.all():
+            if user != self.user:
+                self.assertEqual(new_club.user_status(user), "authenticated_non_member_user")
+
+    def test_non_logged_is_redirected(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        redirect_url = reverse_with_next('log_in', reverse('create_club'))
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
