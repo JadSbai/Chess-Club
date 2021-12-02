@@ -121,9 +121,7 @@ class Club(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     members = models.ManyToManyField(User, related_name="clubs")  # All members of the club (members, officers, owner)
 
-    def get_seeder_groups(self):
-        groups = ["officer", "applicant", "member", "logged_in_non_member"]
-        return groups
+
 
     def is_member(self, user):
         """returns whether user is a member of a certain group"""
