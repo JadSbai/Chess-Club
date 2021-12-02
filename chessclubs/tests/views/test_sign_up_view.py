@@ -5,6 +5,7 @@ from django.urls import reverse
 from chessclubs.forms import SignUpForm
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import LogInTester, ClubGroupTester
+from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class SignUpViewTestCase(TestCase, LogInTester):
     """Tests of the sign up view."""
@@ -43,9 +44,9 @@ class SignUpViewTestCase(TestCase, LogInTester):
     def test_get_sign_up_redirects_when_logged_in(self):
         self.client.login(email=self.user.email, password="Password123")
         response = self.client.get(self.url, follow=True)
-        redirect_url = reverse('my_profile')
+        redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')
 
     def test_unsuccesful_sign_up(self):
         self.form_input['email'] = 'BAD_email'
@@ -68,9 +69,9 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertEqual(self.club.user_status(new_user), "authenticated_non_member_user")
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
-        response_url = reverse('my_profile')
+        response_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')
         user = User.objects.get(email='janedoe@example.org')
         self.assertEqual(user.first_name, 'Jane')
         self.assertEqual(user.last_name, 'Doe')
@@ -88,6 +89,6 @@ class SignUpViewTestCase(TestCase, LogInTester):
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count)
-        redirect_url = reverse('my_profile')
+        redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'my_profile.html')
+        self.assertTemplateUsed(response, 'landing_page.html')

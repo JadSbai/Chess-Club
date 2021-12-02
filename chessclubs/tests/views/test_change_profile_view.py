@@ -1,4 +1,4 @@
-"""Tests for the profile view."""
+"""Tests for the change profile view."""
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
@@ -6,7 +6,7 @@ from chessclubs.forms import UserForm
 from chessclubs.models import User
 from chessclubs.tests.helpers import reverse_with_next
 
-class ProfileViewTest(TestCase):
+class ChangeProfileViewTest(TestCase):
     """Test suite for the change_profile view."""
 
     fixtures = [
@@ -84,4 +84,9 @@ class ProfileViewTest(TestCase):
     def test_post_profile_redirects_when_not_logged_in(self):
         redirect_url = reverse_with_next('log_in', self.url)
         response = self.client.post(self.url, self.form_input)
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+
+    def test_non_logged_is_redirected(self):
+        response = self.client.get(self.url)
+        redirect_url = reverse_with_next('log_in', reverse('change_profile'))
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)

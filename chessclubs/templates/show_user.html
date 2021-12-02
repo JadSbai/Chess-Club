@@ -19,11 +19,12 @@
           {%endif%}
         {% if target_user_status == "officer" %}
             <div class = "mx-3">
-        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-danger ">Demote </a>
+        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-danger ">Demote</a>
             </div>
-            <div class="mx-3">
-        <a href="{% url 'transfer_ownership' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-info ">Transfer ownership </a>
-            </div>
+            <form action="{% url 'transfer_ownership' club_name=club.name user_id=target_user.id %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Transfer ownership" class="btn btn-outline-info">
+      </form>
         {% endif%}
       {%endif%}
     {% if current_user_status == "officer" or current_user_status == "owner"%}

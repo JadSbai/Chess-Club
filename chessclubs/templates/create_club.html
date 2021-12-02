@@ -3,7 +3,7 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1 class="mb-5">Apply</h1>
+      <h1 class="mb-5">Create Club</h1>
       <form action="{% url 'create_club' %}" method="post">
         {% csrf_token %}
         {% include 'partials/bootstrap_form.html' with form=form %}
