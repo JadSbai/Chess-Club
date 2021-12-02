@@ -8,3 +8,4 @@ class Command(BaseCommand):
         User.objects.filter(is_staff=False, is_superuser=False).delete()
         Club.objects.all().delete()
         Group.objects.all().delete()
+
