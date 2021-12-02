@@ -197,7 +197,7 @@ def mark_as_read(request, slug=None):
     notification = get_object_or_404(
         Notification, recipient=request.user, id=notification_id)
     notification.mark_as_read()
-    return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    return redirect('my_applications')
 
 
 @login_required
