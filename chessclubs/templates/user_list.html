@@ -1,6 +1,11 @@
 
-{% extends 'base_content.html'%}
+{% extends 'base_content.html' %}
+{% block body %}
+    {% include 'partials/navbar.html' with request=request%}
+  {% include 'partials/second_navbar.html' with request=request club=club%}
+  {% include 'partials/messages.html' %}
 {% load custom_template_tags %}
+
 {% block content %}
 <div class="container">
   <div class="row">
@@ -28,3 +33,4 @@
   </div>
 </div>
 {% endblock %}
+{%  endblock %}
