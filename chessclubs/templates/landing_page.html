@@ -3,8 +3,8 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <p>
-        <a href='{% url 'create_club' %}' class="btn btn-lg btn-primary">
+      <p class="mt-3">
+        <a  href='{% url 'create_club' %}' class="btn btn-lg btn-primary">
           Create Club
         </a>
       </p>
@@ -15,7 +15,6 @@
               <tr>
                 <td><a href="{% url 'show_club' club_name=club.name %}">{{ club.name }}</a></td>
                 <td>{{ club.location }}</td>
-                <td><a href="{% url 'show_club' club_name=club.name %}">More info</td>
               </tr>
             {% endfor%}
         </table>
