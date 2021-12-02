@@ -1,14 +1,14 @@
 <nav class="navbar navbar-expand-lg navbar-dark mb-4" style="font-size: 80%; background-color: #1150b9;">
   <div class="container">
-    <a class="navbar-brand" href="{% url 'home' %}">
-      &nbsp;club.name
+    <a class="navbar-brand" href="{% url 'show_club' club_name=club.name%}">
+      &nbsp;{{ club.name }}
     </a>
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-                <a class="nav-link" href="{% url 'landing_page' %}">Members</a>
-            </li>
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'my_profile' %}">My Profile</a>
+            <a class="nav-link" href="{% url 'user_list'  club_name=club.name%}">Members</a>
+        </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'view_applications'  club_name=club.name %}">View applications</a>
         </li>
     </ul>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
