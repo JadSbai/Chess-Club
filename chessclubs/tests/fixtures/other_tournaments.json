@@ -1,0 +1,14 @@
+[
+  {
+    "model": "chessclubs.tournament",
+    "pk": 2,
+    "fields": {
+      "name": "Test_Tournament2",
+      "location": "London",
+      "capacity": 10,
+      "deadline": "2024-04-08 11:30+00:00",
+      "organiser": 2,
+      "club": 2
+    }
+  }
+]

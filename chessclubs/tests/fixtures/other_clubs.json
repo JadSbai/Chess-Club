@@ -1,0 +1,12 @@
+[
+  {
+    "model": "chessclubs.club",
+    "pk": 2,
+    "fields": {
+      "name": "Test_Club2",
+      "location": "London",
+      "description": "Worst club ever",
+      "owner": 2
+    }
+  }
+]
