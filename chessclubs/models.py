@@ -3,10 +3,14 @@ from django.contrib import auth
 
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
 from libgravatar import Gravatar
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 
+TOURNAMENT_MAX_CAPACITY = 96
+TOURNAMENT_MIN_CAPACITY = 2
 
 class UserManager(BaseUserManager):
     """Custom user manager used for creation of users and superusers"""
@@ -69,14 +73,14 @@ class User(AbstractUser):
         ('Intermediate', 'Intermediate'),
         ('Advanced', 'Advanced'),
         ('Expert', 'Expert'),
-        ]
+    ]
 
     username = None  # Don't use the username field inherited from the AbstractUser Model
     first_name = models.CharField(max_length=50, blank=False)
     last_name = models.CharField(max_length=50, blank=False)
     email = models.EmailField(unique=True, blank=False, null=False)
     bio = models.CharField(max_length=520, blank=True)
-    chess_experience = models.CharField(max_length=50, choices = CHESS_EXPERIENCE_CHOICES, default = 'novice', blank=False)
+    chess_experience = models.CharField(max_length=50, choices=CHESS_EXPERIENCE_CHOICES, default='novice', blank=False)
     personal_statement = models.CharField(max_length=500, blank=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []  # Required fields for when creating a superuser (other than USERNAME_FIELD and password that are always required)
@@ -279,10 +283,10 @@ class Club(models.Model):
         transfer_ownership, created = ClubPermission.objects.get_or_create(club=self,
                                                                            base_permission=transfer_ownership_perm)
         acknowledge_response, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=acknowledge_response_perm)
+                                                                             base_permission=acknowledge_response_perm)
 
         apply_to_club, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=apply_to_club_perm)
+                                                                      base_permission=apply_to_club_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -359,3 +363,36 @@ def _user_has_club_perm(user, perm, club):
         except PermissionDenied:
             return False
     return False
+
+
+
+def validate_tournament_deadline(value):
+    """Validator function for a tournament deadline"""
+    if value > timezone.now(): #Deadline must be after creation date
+        return value
+    else:
+        raise ValidationError("The deadline must be after the date and time of creation of the tournament")
+
+
+class Tournament(models.Model):
+    """Model for representing  a club tournament"""
+    name = models.CharField(max_length=50, blank=False, unique=True)
+    location = models.CharField(max_length=50, blank=False)
+    capacity = models.IntegerField(default=1, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY)])
+    deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])
+    organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
+    co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
+    club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="all_tournaments")
+    participants = models.ManyToManyField(User, related_name="tournaments")
+
+    def participants_list(self):
+        return self.participants.all()
+
+    def is_max_capacity_reached(self):
+        return self.capacity == TOURNAMENT_MAX_CAPACITY
+
+    def is_min_capacity_attained(self):
+        return self.capacity == TOURNAMENT_MIN_CAPACITY
+
+    def co_organisers_list(self):
+        return self.co_organisers.all()
