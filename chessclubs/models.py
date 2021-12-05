@@ -12,6 +12,7 @@ from django.utils import timezone
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
 
+
 class UserManager(BaseUserManager):
     """Custom user manager used for creation of users and superusers"""
 
@@ -113,6 +114,19 @@ class User(AbstractUser):
 
         # Otherwise we need to check the backends.
         return _user_has_club_perm(self, perm, club)
+
+    def has_tournament_perm(self, perm, tournament):
+        """Return True if the user has the specified permission in a tournament."""
+        # Active superusers have all permissions.
+        if self.is_active and self.is_superuser:
+            return True
+
+        # Otherwise we need to check the backends.
+        return _user_has_tournament_perm(self, perm, tournament)
+
+    def save(self, *args, **kwargs):
+        self.backend = 'django.contrib.auth.backends.ModelBackend'
+        super(User, self).save(*args, **kwargs)
 
     objects = UserManager()
 
@@ -255,7 +269,7 @@ class Club(models.Model):
 
     def assign_club_groups_permissions(self):
         """Create and assign club-specific permissions to the club's groups and owner"""
-        # Get the base permissions from the Club Meta class
+        # Get the base permissions from the Club model Meta class
         access_club_info_perm = Permission.objects.get(codename="access_club_info")
         access_club_owner_info_perm = Permission.objects.get(codename="access_club_owner_public_info")
         members_list_perm = Permission.objects.get(codename='access_members_list')
@@ -365,10 +379,9 @@ def _user_has_club_perm(user, perm, club):
     return False
 
 
-
 def validate_tournament_deadline(value):
     """Validator function for a tournament deadline"""
-    if value > timezone.now(): #Deadline must be after creation date
+    if value > timezone.now():  # Deadline must be after creation date
         return value
     else:
         raise ValidationError("The deadline must be after the date and time of creation of the tournament")
@@ -396,3 +409,93 @@ class Tournament(models.Model):
 
     def co_organisers_list(self):
         return self.co_organisers.all()
+
+    def __participants_group(self):
+        participants_group, created = Group.objects.get_or_create(name=f"{self.name}_participants")
+        return participants_group
+
+    def __organisers_group(self):
+        participants_group, created = Group.objects.get_or_create(name=f"{self.name}_organisers")
+        return participants_group
+
+    def add_to_participants_group(self, user):
+        self.__participants_group().user_set.add(user)
+
+    def add_to_organisers_group(self, user):
+        self.__organisers_group().user_set.add(user)
+
+    def remove_from_participants_group(self, user):
+        self.__participants_group().user_set.remove(user)
+
+    def remove_from_organisers_group(self, user):
+        self.__organisers_group().user_set.remove(user)
+
+    def assign_tournament_permissions_and_groups(self):
+        # Get the base permissions from the Tournament model Meta class
+        play_matches_perm = Permission.objects.get(codename="play_matches")
+        enter_match_results_perm = Permission.objects.get(codename="enter_match_results")
+        see_tournament_private_info_perm = Permission.objects.get(codename="see_tournament_private_info")
+
+        # Create the club-specific permissions using the TournamentPermission Model
+        play_matches, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                           base_permission=play_matches_perm)
+        enter_match_results, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                                  base_permission=enter_match_results_perm)
+        see_tournament_private_info, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                                          base_permission=see_tournament_private_info_perm)
+
+        # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
+        groups = [self.__participants_group()]
+        play_matches.set_groups(groups)
+        groups = [self.__participants_group(), self.__organisers_group()]
+        see_tournament_private_info.set_groups(groups)
+        org_group = self.__organisers_group()
+        org_group.user_set.add(self.organiser)
+        groups = [self.__organisers_group()]
+        enter_match_results.set_groups(groups)
+
+    class Meta:
+        """Set of base permissions associated with tournaments"""
+        permissions = [
+            ("play_matches", "Can play matches"),
+            ("enter_match_results", "Can enter match results"),
+            ("see_tournament_private_info", "Can see tournament private info"),
+        ]
+
+
+class TournamentPermission(models.Model):
+    """A permission that is valid for a specific tournament."""
+
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    base_permission = models.ForeignKey(
+        Permission, on_delete=models.CASCADE, related_name="tournament_permission"
+    )
+    users = models.ManyToManyField(User, related_name="user_tournament_permissions")
+    groups = models.ManyToManyField(Group, related_name="tournament_permissions")
+
+    def set_groups(self, groups):
+        for group in groups:
+            self.groups.add(group)
+
+    def add_user(self, user):
+        self.users.add(user)
+
+    def remove_user(self, user):
+        self.users.remove(user)
+
+    class Meta:
+        indexes = [models.Index(fields=["tournament", "base_permission"])]
+        unique_together = ["tournament", "base_permission"]
+
+
+def _user_has_tournament_perm(user, perm, tournament):
+    """Checks whether a given user has the required permission in the the specified tournament"""
+    for backend in auth.get_backends():
+        if not hasattr(backend, "has_tournament_perm"):
+            continue
+        try:
+            if backend.has_tournament_perm(user, perm, tournament):
+                return True
+        except PermissionDenied:
+            return False
+    return False

@@ -11,18 +11,14 @@ class ClubPermissionModelTestCase(TestCase):
 
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
-        'chessclubs/tests/fixtures/other_users.json'
+        'chessclubs/tests/fixtures/other_users.json',
+        'chessclubs/tests/fixtures/default_club.json'
     ]
 
     def setUp(self):
         super(TestCase, self).setUp()
         self.user = User.objects.get(email='johndoe@example.org')
-        self.club = Club.objects.create(
-            owner=self.user,
-            name="Test name",
-            location="London",
-            description="The quick brown fow jumps over the lazy dog"
-        )
+        self.club = Club.objects.get(name="Test_Club")
         self.base_permission = Permission.objects.get(codename="promote")
 
 
@@ -63,7 +59,7 @@ class ClubPermissionModelTestCase(TestCase):
         try:
             ClubPermission.objects.create(club=self.club, base_permission=self.base_permission)
         except (exception):
-            self.fail('Test user should be valid')
+            self.fail('Test club permission should be valid')
 
     def _assert_creation_is_invalid(self, exception):
         with self.assertRaises(exception):

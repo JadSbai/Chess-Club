@@ -3,7 +3,7 @@
     <li class="nav-item">
       <a class="nav-link" href="{% url 'my_profile' %}">My Profile</a>
     </li>
-    {% include 'partials/my_clubs.html' with user=user clubs=user.get_all_clubs %}
+    {% include 'my_clubs.html' with user=user clubs=user.get_all_clubs %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'my_applications' %}">My Applications</a>
     </li>

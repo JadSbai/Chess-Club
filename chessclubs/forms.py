@@ -26,7 +26,8 @@ class UserForm(forms.ModelForm):
 
         model = User
         fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
-        widgets = {'bio': forms.Textarea(attrs={"rows":5, "cols":20}), 'personal_statement': forms.Textarea()}
+        widgets = {'bio': forms.Textarea(attrs={"rows": 5, "cols": 20}), 'personal_statement': forms.Textarea()}
+
 
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
@@ -61,7 +62,7 @@ class SignUpForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'bio', 'chess_experience', 'personal_statement']
         widgets = {
             'bio': forms.Textarea(),
-            'personal_statement' : forms.Textarea(),
+            'personal_statement': forms.Textarea(),
         }
 
     new_password = forms.CharField(
@@ -97,6 +98,7 @@ class SignUpForm(forms.ModelForm):
             chess_experience=self.cleaned_data.get('chess_experience'),
             personal_statement=self.cleaned_data.get('personal_statement')
         )
+        user.backend = 'django.contrib.auth.backends.ModelBackend'  # Set the user's authentication backend
         return user
 
 
@@ -123,9 +125,9 @@ class ClubForm(forms.ModelForm):
         club_created.assign_club_groups_permissions()
         return club_created
 
+
 class NewOwnerForm(forms.ModelForm):
     class Meta:
         """Form options."""
         model = Club
         fields = ['owner']
-

@@ -78,6 +78,26 @@ class AcceptViewTestCase(TestCase):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.WARNING)
 
+    def test_wrong_user_accept(self):
+        bad_url = reverse('accept', kwargs={'club_name': self.club.name, 'user_id': 2000})
+        response = self.client.get(bad_url, follow=True)
+        target_url = reverse('view_applications', kwargs={'club_name': self.club.name})
+        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(messages_list[0].message, "The user you are looking for does not exist!")
+
+    def test_wrong_club_accept(self):
+        bad_url = reverse('accept', kwargs={'club_name': "blabla", 'user_id': self.applicant.id})
+        response = self.client.get(bad_url, follow=True)
+        target_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
+
     def test_applicant_cannot_accept(self):
         self.group_tester.make_applicant(self.officer)
         response = self.client.get(self.url, follow=True)
