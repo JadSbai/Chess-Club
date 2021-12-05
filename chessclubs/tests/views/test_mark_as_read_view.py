@@ -18,11 +18,11 @@ class MarkAsReadViewTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(email='johndoe@example.org')
         self.client.login(email=self.user.email, password='Password123')
-        notify.send(self.user, recipient=self.user, verb='Message',
+        notify.send(self.user, recipient=self.user, verb='_Test',
                     description="Talking to yourself")
         self.slug = self.user.notifications.unread()[0].slug
         self.url = reverse('mark_as_read', kwargs={'slug': self.slug})
-        self.redirect_url = reverse('my_applications')
+        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_notification_is_read(self):
         before_count = self.user.notifications.unread().count()

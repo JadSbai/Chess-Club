@@ -30,6 +30,7 @@ class UserListTest(TestCase):
         for user_id in range(15-1):
             self.assertContains(response, f'First{user_id}')
             self.assertContains(response, f'Last{user_id}')
+            self.assertContains(response, 'member')
             user = User.objects.get(email=f'user{user_id}@test.org')
             user_url = reverse('show_user', kwargs={'user_id': user.id, 'club_name': self.club.name})
             self.assertContains(response, user_url)

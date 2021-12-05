@@ -17,6 +17,7 @@ class Command(BaseCommand):
     CLUB3OWNER = None
     RANDOM_USERS_LIST = []
     SPECIFIC_USERS_LIST = []
+    SPECIFIC_CLUBS_LIST = []
 
     def __init__(self):
         super().__init__()
@@ -42,6 +43,7 @@ class Command(BaseCommand):
             club1 = self._create_specific_club('Club 1', 'Description 1', 'London', 'club1owner@example.org')
             club2 = self._create_specific_club('Club 2', 'Description 2', 'London', 'val@example.org')
             club3 = self._create_specific_club('Club 3', 'Description 3', 'London', 'club3owner@example.org')
+            Command.SPECIFIC_CLUBS_LIST = [kerbal, club1, club2, club3]
             club_count += 4
             kerbal.add_member(Command.JEB)
             kerbal.members.add(Command.VALENTINA)
@@ -77,12 +79,14 @@ class Command(BaseCommand):
             try:
                 club = self._create_club()
                 self._assign_random_users_to_club_groups(club)
-
+                self._assign_existing_users_to_non_logged_in_group(club)
                 club_count += 1
             except IntegrityError:
                 print("This club already exists")
                 continue
 
+        for club in Command.SPECIFIC_CLUBS_LIST:
+            self._assign_existing_users_to_non_logged_in_group(club)
         print(f'Seeding complete: {club_count} clubs and {user_count} users')
 
     def _create_user(self):
@@ -151,6 +155,11 @@ class Command(BaseCommand):
             elif group == "logged_in_non_member":
                 club.add_to_logged_in_non_members_group(user)
             else: print("No group assigned")
+
+    def _assign_existing_users_to_non_logged_in_group(self, club):
+        for user in User.objects.all():
+            if not (user in Command.RANDOM_USERS_LIST or user in Command.SPECIFIC_USERS_LIST):
+                club.add_to_logged_in_non_members_group(user)
 
     def _email(self, first_name, last_name):
         email = '' + first_name.lower() + '.' + last_name.lower() + '@example.org'

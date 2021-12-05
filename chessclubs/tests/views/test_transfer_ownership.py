@@ -64,15 +64,25 @@ class TransferOwnershipViewTestCase(TestCase):
         target_url = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
         self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
 
-    def test_wrong_user_or_club_transfer(self):
-        bad_url = reverse('transfer_ownership', kwargs={'club_name': "blabla", 'user_id': 2000})
-        with self.assertRaises(ObjectDoesNotExist):
-            response = self.client.get(bad_url)
-            target_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
-            self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
-            messages_list = list(response.context['messages'])
-            self.assertEqual(len(messages_list), 1)
-            self.assertEqual(messages_list[0].level, messages.ERROR)
+    def test_wrong_user_transfer(self):
+        bad_url = reverse('transfer_ownership', kwargs={'club_name': self.club.name, 'user_id': 2000})
+        response = self.client.get(bad_url, follow=True)
+        target_url = reverse('user_list', kwargs={'club_name': self.club.name})
+        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(messages_list[0].message, "The user you are looking for does not exist!")
+
+    def test_wrong_club_transfer(self):
+        bad_url = reverse('transfer_ownership', kwargs={'club_name': "blabla", 'user_id': self.officer.id})
+        response = self.client.get(bad_url, follow=True)
+        target_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
 
     def test_applicant_cannot_transfer(self):
         self.group_tester.make_applicant(self.other_user)

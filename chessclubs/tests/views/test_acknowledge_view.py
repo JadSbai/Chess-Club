@@ -9,7 +9,7 @@ from django.contrib import messages
 
 
 
-class AcknowledgedViewTestCase(TestCase):
+class AcknowledgeViewTestCase(TestCase):
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -36,6 +36,17 @@ class AcknowledgedViewTestCase(TestCase):
         self.assertEqual(self.club.user_status(self.applicant), "authenticated_non_member_user")
         self.assertNotEqual(self.club.user_status(self.applicant), "denied_applicant")
 
+    def test_notification_sent_to_officers_and_owner_for_accepted_applicant(self):
+        self.client.get(self.accept_url)
+        self.client.login(email=self.applicant.email, password='Password123')
+        for member in self.club.members.all():
+            if self.club.user_status(member) == "officer" or self.club.user_status(member) == "owner":
+                notifications = len(member.notifications.unread())
+                self.client.get(self.url)
+                last_notification = member.notifications.unread()[0].description
+                self.assertEqual(len(member.notifications.unread()), notifications + 1)
+                self.assertEqual(last_notification, f"{self.applicant.full_name()} has joined club {self.club.name}")
+
     def test_accepted_applicant_becomes_member(self):
         self.client.get(self.accept_url)
         self.client.login(email=self.applicant.email, password='Password123')
@@ -43,9 +54,16 @@ class AcknowledgedViewTestCase(TestCase):
         self.assertEqual(self.club.user_status(self.applicant), "member")
         self.assertNotEqual(self.club.user_status(self.applicant), "accepted_applicant")
 
-    def test_redirect_to_applications(self):
-        self.target_url = reverse('my_applications')
+    def test_redirects_to_club_when_accepted(self):
+        self.target_url = reverse('show_club', kwargs={'club_name': self.club.name})
         self.client.get(self.accept_url)
+        self.client.login(email=self.applicant.email, password='Password123')
+        response = self.client.get(self.url)
+        self.assertRedirects(response, self.target_url, status_code=302, target_status_code=200)
+
+    def test_redirects_to_my_applications_when_accepted(self):
+        self.target_url = reverse('my_applications')
+        self.client.get(self.deny_url)
         self.client.login(email=self.applicant.email, password='Password123')
         response = self.client.get(self.url)
         self.assertRedirects(response, self.target_url, status_code=302, target_status_code=200)

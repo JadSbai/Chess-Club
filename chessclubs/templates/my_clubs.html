@@ -2,10 +2,20 @@
 <ul class="navbar-nav mb-2 mb-lg-0">
   <li class="nav-item dropdown">
     <a class="nav-link" href="#" id="my-clubs-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> My clubs </a>
+  {% if clubs.count != 0 %}
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-account-dropdown">
         {% for club in clubs %}
+            <li>
           <a class="dropdown-item" href="{% url 'show_club' club_name=club.name %}"> {{club.name}} </a>
+            </li>
         {% endfor%}
       </ul>
+      {% else %}
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
+        <li >
+	    <p class="dropdown-item disabled">You are currently part of no club</p>
+		</li>
+        </ul>
+    {% endif %}
     </li>
 </ul>

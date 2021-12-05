@@ -39,7 +39,7 @@ class PasswordViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
-    def test_succesful_password_change(self):
+    def test_successful_password_change(self):
         self.client.login(email=self.user.email, password='Password123')
         response = self.client.post(self.url, self.form_input, follow=True)
         response_url = reverse('my_profile')

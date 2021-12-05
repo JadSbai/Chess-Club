@@ -1,28 +1,24 @@
-"""Unit tests for the other_user model."""
+"""Unit tests for the o model."""
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import ClubGroupTester
 
 
-class GroupPermissionsTestCase(TestCase):
-    """Unit tests for the Group permissions. Assess that groups possess the appropriate permissions"""
+class ClubGroupPermissionsTestCase(TestCase):
+    """Unit tests for the Club Group permissions. Assess that groups in clubs possess the appropriate permissions"""
 
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
-        'chessclubs/tests/fixtures/other_users.json'
+        'chessclubs/tests/fixtures/other_users.json',
+        'chessclubs/tests/fixtures/default_club.json',
     ]
 
     def setUp(self):
         self.owner = User.objects.get(email='johndoe@example.org')
         self.other_user = User.objects.get(email='janedoe@example.org')
         self.client.login(email=self.other_user.email, password='Password123')
-        self.club = Club.objects.create(
-            owner=self.owner,
-            name="Test name",
-            location="London",
-            description="The quick brown fow jumps over the lazy dog"
-        )
+        self.club = Club.objects.get(name="Test_Club")
         self.group_tester = ClubGroupTester(self.club)
 
     def test_applicant_can_access_club_info(self):
