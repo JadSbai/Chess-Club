@@ -339,7 +339,7 @@ def my_applications(request):
 
 
 @login_required
-@club_permission_required('chessclubs.manage_applications')
+@club_permissions_required(perms_list=['chessclubs.create_tournament'])
 def create_tournament(request, club_name):
     try:
         club = Club.objects.get(name=club_name)
