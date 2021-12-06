@@ -37,6 +37,11 @@
               <h5>For this club, your current status is :<strong> {{user_status}}</strong></h5>
           </div>
       {%endif%}
+        {% if user_status == 'officer' or user_status == 'member' %}
+            <div class="container d-flex justify-content-center mt-3">
+        <a href="{% url 'leave' club_name=club.name %}"  class="btn btn-outline-danger" onclick="return leaveConfirmation()">Leave this club</a>
+            </div>
+        {% endif %}
     </div>
   </div>
 </div>

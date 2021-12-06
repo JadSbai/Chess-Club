@@ -281,6 +281,8 @@ class Club(models.Model):
         transfer_ownership_perm = Permission.objects.get(codename='transfer_ownership')
         acknowledge_response_perm = Permission.objects.get(codename='acknowledge_response')
         apply_to_club_perm = Permission.objects.get(codename='apply_to_club')
+        ban_perm = Permission.objects.get(codename='ban')
+        leave_perm = Permission.objects.get(codename='leave')
 
         # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -301,6 +303,10 @@ class Club(models.Model):
 
         apply_to_club, created = ClubPermission.objects.get_or_create(club=self,
                                                                       base_permission=apply_to_club_perm)
+        ban, created = ClubPermission.objects.get_or_create(club=self,
+                                                                      base_permission=ban_perm)
+        leave, created = ClubPermission.objects.get_or_create(club=self,
+                                                            base_permission=leave_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -322,6 +328,7 @@ class Club(models.Model):
         promote.set_groups(groups)
         demote.set_groups(groups)
         transfer_ownership.set_groups(groups)
+        ban.set_groups(groups)
         self.__owner_group().user_set.add(self.owner)
 
     class Meta:
