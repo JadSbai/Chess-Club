@@ -308,7 +308,7 @@ class Club(models.Model):
                                                                       base_permission=ban_perm)
         leave, created = ClubPermission.objects.get_or_create(club=self,
                                                             base_permission=leave_perm)
-        create_tournament = ClubPermission.objects.get_or_create(club=self,
+        create_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                             base_permission=tournament_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
