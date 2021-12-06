@@ -8,6 +8,7 @@ from django.db import models
 from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
+from chessclubs.helpers import generate_schedule
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
@@ -510,3 +511,59 @@ def _user_has_tournament_perm(user, perm, tournament):
         except PermissionDenied:
             return False
     return False
+
+class Match(models.Model):
+    _player1 = models.ForeignKey(User, on_delete=models.CASCADE)
+    _player2 = models.ForeignKey(User, on_delete=models.CASCADE)
+    _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    _open = True
+
+    # def enter_winner(self, player):
+    #     if not open:
+    #         print("This match is closed")
+    #     if player == self._player1 or player == self._player2:
+    #         self.winner = player
+    #         self.open = False
+    #     else:
+    #         print("This user is not a player of this match")
+    def close_match(self):
+        self._open = False
+
+    def return_winner(self):
+        if not open and self._winner:
+            return self._winner.full_name()
+        else:
+            print("Match still open or winner not yet determined")
+
+
+class EliminationRounds(models.Model):
+    """Model for Elimination rounds of the tournament"""
+    _PHASE_CHOICES = [
+        ('Final', 'Final'),
+        ('Semi-Final', 'Semi-Final'),
+        ('Quarter-Final', 'Quarter_Final'),
+        ('Eight-Final', 'Eight-Final'),
+    ]
+    _tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    _players = models.ManyToManyField(User, related_name="elimination_rounds")
+    _phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eight_Final", blank=False)
+
+    def set_phase(self):
+        if 16 >= self._players.count() >= 9:
+            self.phase = "Eighth_Final"
+        elif 8 >= self._players.count() >= 5:
+            self.phase = "Quarter_Final"
+        elif 4 >= self._players.count() >= 3:
+            self.phase = "Semi_Final"
+        else:
+            self.phase = "Final"
+
+    def create_schedule(self):
+        schedule = generate_schedule(self.phase, self._players)
+        return schedule
+
+    def add_players(self, new_players):
+        for player in new_players:
+            self._players.add(player)
+
+
