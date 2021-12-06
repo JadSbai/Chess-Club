@@ -1,4 +1,4 @@
-"""Unit tests of the log in form."""
+"""Unit tests of the club form."""
 from django import forms
 from django.test import TestCase
 from chessclubs.models import User,Club
@@ -11,7 +11,7 @@ class ClubFormTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(email="johndoe@example.org")
 
-    def test_valid_post_form(self):
+    def test_valid_club_form(self):
         input={'name': 'y'*40, 'description': 'x'*200, 'location': 'z'*20}
         form = ClubForm(data=input)
         self.assertTrue(form.is_valid())

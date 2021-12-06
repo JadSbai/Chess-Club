@@ -378,7 +378,7 @@ class Tournament(models.Model):
     """Model for representing  a club tournament"""
     name = models.CharField(max_length=50, blank=False, unique=True)
     location = models.CharField(max_length=50, blank=False)
-    capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY)])
+    capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY),MinValueValidator(2, "The capacity needs to be at least 2.")])
     deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")

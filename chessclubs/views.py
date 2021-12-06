@@ -363,22 +363,16 @@ def create_tournament(request, club_name):
         messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
         return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     if request.method == 'POST':
-        print(1)
         if request.user.is_authenticated:
-            print(2)
             current_user = request.user
             form = TournamentForm(request.POST)
             if form.is_valid():
-                print(3)
                 tournament = form.save(current_user, club)
                 return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
             else:
-                print(5)
                 return render(request, 'create_tournament.html', {'form': form, 'club': club})
         else:
-            print(6)
-            return redirect('log_in')
+             return redirect('log_in')
     else:
-        print(7)
         form = TournamentForm()
         return render(request, 'create_tournament.html', {'form': form, 'club': club})
