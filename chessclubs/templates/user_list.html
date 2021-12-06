@@ -11,6 +11,13 @@
     <div class="col-12">
       <h1>Members of club {{ club.name }}</h1>
     <br>
+    <div>
+        <form class="d-flex mb-5" method="POST" action="{% url 'search_user' club_name=club.name %}">
+            {% csrf_token %}
+            <input class="form-control me-2" type="search" placeholder="Search User" aria-label="Search" name="user_searched">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </form>
+    </div>
       <table class="table">
         {% for user in users %}
             {% if club|user_status:user != "applicant" and not user.is_superuser and club|user_status:user != "denied_applicants"%}

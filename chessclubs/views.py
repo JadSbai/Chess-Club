@@ -369,7 +369,18 @@ def leave(request, club_name):
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
 
-
-
+def search_user(request, club_name):
+    if request.method == 'POST':
+        user_searched = request.POST['user_searched']
+        club = Club.objects.get(name=club_name)
+        all_users = club.members.all()
+        user_names = []
+        dic = {}
+        for user in all_users:
+            user_names.append(user.last_name.lower())
+            dic[user.last_name.lower()] = user
+        print(user_names)
+        found_users = generate_corresponding_names(user_names, user_searched, dic)
+    return redirect('user_list', club_name=club_name)
 
 
