@@ -18,6 +18,13 @@ def notify_officers_and_owner_of_joining(user, club):
                         description=f"{user.full_name()} has joined club {club.name}")
 
 
+def notify_officers_and_owner_of_leave(user, club):
+    for member in club.members.all():
+        if club.user_status(member) == "officer" or club.user_status(member) == "owner":
+            notify.send(user, recipient=member, verb=f'{club.name}_Leave_Notice',
+                        description=f"{user.full_name()} has left club {club.name}")
+
+
 def notify_officers_and_owner_of_new_application(user, club):
     for member in club.members.all():
         if club.user_status(member) == "officer" or club.user_status(member) == "owner":
@@ -41,7 +48,6 @@ def get_appropriate_redirect(notification):
     except AttributeError:
         print("No club name")
         raise BaseException
-
 
     # Not going to be kept in production
     clubs = Club.objects.all()
