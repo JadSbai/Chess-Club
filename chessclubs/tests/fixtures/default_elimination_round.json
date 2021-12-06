@@ -1,0 +1,9 @@
+[
+  {
+    "model": "chessclubs.eliminationrounds",
+    "pk": 1,
+    "fields": {
+      "tournament": 1
+    }
+  }
+]
