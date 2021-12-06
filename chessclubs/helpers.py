@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from chessclubs.models import User, Club
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 import re
+from suffix_trees import STree
 
 
 def add_all_users_to_logged_in_group(club):
@@ -75,3 +76,14 @@ def get_appropriate_redirect(notification):
         # Not going to be kept in production
         print("Action name is not valid")
         raise BaseException
+
+
+
+
+def generate_corresponding_names(name_list, name, dic):
+    result = []
+    for user_name in name_list:
+        if user_name.startswith(name):
+            result.append(dic[user_name])
+    print(result)
+    return result

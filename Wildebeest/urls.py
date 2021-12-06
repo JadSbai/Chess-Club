@@ -47,6 +47,7 @@ urlpatterns = [
     path('my_applications', views.my_applications, name='my_applications'),
     path('<club_name>/ban/<int:user_id>', views.ban, name='ban'),
     path('<club_name>/leave/', views.leave, name='leave'),
+    path('<club_name>/search_user/', views.search_user, name='search_user'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
 handler404 = "chessclubs.views.page_not_found_view"

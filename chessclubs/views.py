@@ -11,7 +11,7 @@ from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewO
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required
 from .models import User, Club
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
-    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
+    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave, generate_corresponding_names
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
