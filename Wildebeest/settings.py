@@ -148,4 +148,5 @@ MESSAGE_TAGS = {
     message_constants.ERROR: 'danger',
 }
 
-AUTHENTICATION_BACKENDS = ["chessclubs.auth_backends.ClubBackend"]
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend", "chessclubs.auth_backends.ClubBackend",
+                           "chessclubs.auth_backends.TournamentBackend"]

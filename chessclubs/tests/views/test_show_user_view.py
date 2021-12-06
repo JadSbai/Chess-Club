@@ -26,7 +26,7 @@ class ShowUserTest(TestCase):
     def test_show_user_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/user/{self.target_user.id}')
 
-    def test_get_show_user_with_valid_id(self):
+    def test_get_show_user_with_valid_id_and_club(self):
         self.client.login(email=self.user.email, password='Password123')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
@@ -41,18 +41,34 @@ class ShowUserTest(TestCase):
         self.assertTemplateUsed(response, 'show_user.html')
         self.assertContains(response, "John Doe")
 
-    def test_get_show_user_with_invalid_id(self):
-        self.client.login(email=self.user.email, password='Password123')
-        url = reverse('show_user', kwargs={'user_id': self.user.id+9999, 'club_name': self.club.name})
-        response = self.client.get(url, follow=True)
-        response_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
-        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        self.assertTemplateUsed(response, 'landing_page.html')
-
     def test_get_show_user_redirects_when_not_logged_in(self):
         redirect_url = reverse_with_next('log_in', self.url)
         response = self.client.get(self.url)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+
+    def test_show_wrong_user(self):
+        self.client.login(email=self.user.email, password='Password123')
+        bad_url = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': 2000})
+        response = self.client.get(bad_url, follow=True)
+        target_url = reverse('user_list', kwargs={'club_name':self.club.name})
+        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'user_list.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(messages_list[0].message, "The user you are looking for does not exist!")
+
+    def test_show_user_in_wrong_club(self):
+        self.client.login(email=self.user.email, password='Password123')
+        bad_url = reverse('show_user', kwargs={'club_name': "blabla", 'user_id': self.target_user.id})
+        response = self.client.get(bad_url, follow=True)
+        target_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
+        self.assertTemplateUsed(response, 'landing_page.html')
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.ERROR)
+        self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
 
     def test_applicant_cannot_access_the_user_page(self):
         self.group_tester.make_applicant(self.other_user)

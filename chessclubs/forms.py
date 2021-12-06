@@ -103,6 +103,7 @@ class SignUpForm(forms.ModelForm):
             chess_experience=self.cleaned_data.get('chess_experience'),
             personal_statement=self.cleaned_data.get('personal_statement')
         )
+        user.backend = 'django.contrib.auth.backends.ModelBackend'  # Set the user's authentication backend
         return user
 
 

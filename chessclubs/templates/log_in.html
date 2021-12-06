@@ -10,6 +10,12 @@
         {% include 'partials/bootstrap_form.html' with form=form %}
         <input type="submit" value="Log in" class="btn btn-primary">
       </form>
+      <a>
+        Don't have an account?
+      </a>
+        <a href='{% url 'sign_up' %}' class="btn btn-sm btn-primary">
+          Sign up
+        </a>
     </div>
   </div>
 </div>
