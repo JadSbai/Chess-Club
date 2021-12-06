@@ -281,6 +281,8 @@ class Club(models.Model):
         transfer_ownership_perm = Permission.objects.get(codename='transfer_ownership')
         acknowledge_response_perm = Permission.objects.get(codename='acknowledge_response')
         apply_to_club_perm = Permission.objects.get(codename='apply_to_club')
+        ban_perm = Permission.objects.get(codename='ban')
+        leave_perm = Permission.objects.get(codename='leave')
 
         # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -301,6 +303,10 @@ class Club(models.Model):
 
         apply_to_club, created = ClubPermission.objects.get_or_create(club=self,
                                                                       base_permission=apply_to_club_perm)
+        ban, created = ClubPermission.objects.get_or_create(club=self,
+                                                                      base_permission=ban_perm)
+        leave, created = ClubPermission.objects.get_or_create(club=self,
+                                                            base_permission=leave_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -318,10 +324,13 @@ class Club(models.Model):
         groups = [self.__officers_group(), self.__owner_group()]
         private.set_groups(groups)
         manage_applications.set_groups(groups)
+        groups = [self.__officers_group(), self.__members_group()]
+        leave.set_groups(groups)
         groups = [self.__owner_group()]
         promote.set_groups(groups)
         demote.set_groups(groups)
         transfer_ownership.set_groups(groups)
+        ban.set_groups(groups)
         self.__owner_group().user_set.add(self.owner)
 
     class Meta:
@@ -338,6 +347,8 @@ class Club(models.Model):
             ("access_club_owner_public_info", "Can access a club owner public info"),
             ("acknowledge_response", "Can acknowledge response (acceptance or denial) to an application"),
             ("apply_to_club", "Can apply to club"),
+            ("ban", "Can ban a user from the club"),
+            ("leave", "Can leave a club"),
         ]
 
 
