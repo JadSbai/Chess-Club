@@ -324,6 +324,8 @@ class Club(models.Model):
         groups = [self.__officers_group(), self.__owner_group()]
         private.set_groups(groups)
         manage_applications.set_groups(groups)
+        groups = [self.__officers_group(), self.__members_group()]
+        leave.set_groups(groups)
         groups = [self.__owner_group()]
         promote.set_groups(groups)
         demote.set_groups(groups)
@@ -345,6 +347,8 @@ class Club(models.Model):
             ("access_club_owner_public_info", "Can access a club owner public info"),
             ("acknowledge_response", "Can acknowledge response (acceptance or denial) to an application"),
             ("apply_to_club", "Can apply to club"),
+            ("ban", "Can ban a user from the club"),
+            ("leave", "Can leave a club"),
         ]
 
 

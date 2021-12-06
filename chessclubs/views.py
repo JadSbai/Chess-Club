@@ -333,3 +333,43 @@ def my_applications(request):
     return render(request, 'my_applications.html',
                   {'applications': applications, 'count': count, 'denied_applications': denied_applications,
                    'accepted_applications': accepted_applications})
+
+@login_required
+@club_permissions_required(perms_list=['chessclubs.ban'])
+def ban(request, club_name, user_id):
+    try:
+        target_user = User.objects.get(id=user_id)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The user you are looking for does not exist!")
+        return redirect('user_list', club_name=club_name)
+    else:
+        club = Club.objects.get(name=club_name)
+        if club.user_status(target_user) != "member":
+            messages.add_message(request, messages.WARNING, "The user you want to ban is not a member of your club. You cannot ban officers.")
+            return redirect('user_list', club_name=club_name)
+        else:
+            club.remove_from_members_group(target_user)
+            club.remove_member(target_user)
+            notify.send(request.user, recipient=target_user, verb=f'{club.name}_Ban',
+                        description=f"You have been banned from {club.name}")
+            return redirect('user_list', club_name=club_name)
+
+@login_required
+@club_permissions_required(perms_list=['chessclubs.leave'])
+def leave(request, club_name):
+    club = Club.objects.get(name=club_name)
+    if club.user_status(request.user) == "officer":
+        club.remove_from_officers_group(request.user)
+        club.remove_member(request.user)
+    elif club.user_status(request.user) == "member":
+        club.remove_from_members_group(request.user)
+        club.remove_member(request.user)
+    notify.send(request.user, recipient=request.user, verb=f'{club.name}_Leave',
+                description=f"You have left {club.name}")
+    notify_officers_and_owner_of_leave(request.user, club)
+    return redirect('landing_page')
+
+
+
+
+

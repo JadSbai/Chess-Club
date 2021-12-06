@@ -1,10 +1,10 @@
-
 {% extends 'base_content.html' %}
 {% block body %}
     {% include 'partials/navbar.html' with request=request%}
   {% include 'partials/second_navbar.html' with request=request club=club%}
   {% include 'partials/messages.html' %}
 {% block content %}
+
 <div class="container fluid">
   <div class="container d-flex justify-content-center">
       {% include 'partials/user_profile.html' with target_user=target_user%}
@@ -19,6 +19,9 @@
         {% if target_user_status == "member" %}
             <div class="mx-3">
           <a href="{% url 'promote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-success">Promote</a>
+            </div>
+            <div class="mx-3">
+          <a href="{% url 'ban' club_name=club.name user_id=target_user.id%}" onclick="return banConfirmation()" class="btn btn-outline-danger">Ban this user</a>
             </div>
           {%endif%}
         {% if target_user_status == "officer" %}

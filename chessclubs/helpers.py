@@ -65,6 +65,12 @@ def get_appropriate_redirect(notification):
         return redirect('view_applications', club_name=club_name)
     elif action_name == "Join":
         return redirect('user_list', club_name=club_name)
+    elif action_name == "Ban":
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    elif action_name == "Leave":
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    elif action_name == "Leave_Notice":
+        return redirect('user_list', club_name=club_name)
     else:
         # Not going to be kept in production
         print("Action name is not valid")
