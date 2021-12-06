@@ -317,7 +317,7 @@ def show_club(request, club_name):
         return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
     else:
         user_status = club.user_status(request.user)
-        return render(request, 'partials/show_club.html',
+        return render(request, 'show_club.html',
                       {'club': club, 'user': request.user, 'user_status': user_status})
 
 
