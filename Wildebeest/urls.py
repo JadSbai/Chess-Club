@@ -45,6 +45,7 @@ urlpatterns = [
     path('landing_page/', views.landing_page, name='landing_page'),
     path('apply_club/<club_name>', views.apply_club, name='apply_club'),
     path('my_applications', views.my_applications, name='my_applications'),
+    path('<club_name>/create_tournament/', views.create_tournament, name='create_tournament'),
     path('<club_name>/ban/<int:user_id>', views.ban, name='ban'),
     path('<club_name>/leave/', views.leave, name='leave'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))

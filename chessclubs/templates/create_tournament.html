@@ -1,0 +1,22 @@
+{% extends 'base_content.html' %}
+{% block body %}
+    {% include 'partials/navbar.html' with request=request%}
+  {% include 'partials/second_navbar.html' with request=request club=club%}
+  {% include 'partials/messages.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-5">Create Tournament</h1>
+      <form action="{% url 'create_tournament' club_name=club.name %}" method="post">
+        {% csrf_token %}
+        {% include 'partials/bootstrap_form.html' with form=form %}
+          <div class="container d-flex justify-content-center">
+        <input type="submit" value="Create Tournament" class="btn btn-primary mb-5">
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% endblock %}

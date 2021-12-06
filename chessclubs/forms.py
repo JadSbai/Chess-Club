@@ -1,7 +1,12 @@
 """Forms for the chessclubs app."""
+from datetime import timedelta
+
 from django import forms
 from django.core.validators import RegexValidator
-from .models import User, Club
+from .models import User, Club, Tournament
+from django.utils import timezone
+
+
 
 EXPERIENCE_CHOICES = [
     ('Novice', 'Novice'),
@@ -131,3 +136,28 @@ class NewOwnerForm(forms.ModelForm):
         """Form options."""
         model = Club
         fields = ['owner']
+
+
+class TournamentForm(forms.ModelForm):
+    """Form enabling users to create tournaments."""
+
+    class Meta:
+        model = Tournament
+        fields = ['name', 'deadline', 'location', 'capacity']
+
+    widgets = {
+        'deadline': forms.DateTimeField(required=True,input_formats=['%d/%m/%Y %H:%M']),
+    }
+
+    def save(self, organiser, club):
+        """Create a new club."""
+        super().save(commit=False)
+        tournament_created = Tournament.objects.create(
+            name=self.cleaned_data.get('name'),
+            deadline=self.cleaned_data.get('deadline'),
+            location=self.cleaned_data.get('location'),
+            capacity=self.cleaned_data.get('capacity'),
+            organiser=organiser,
+            club=club
+        )
+        return tournament_created

@@ -7,9 +7,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
-from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm
+
+from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
+from .models import User, Club, Tournament
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required
-from .models import User, Club
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
     notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
@@ -306,6 +307,7 @@ def show_club(request, club_name):
                   {'club': club, 'user': request.user, 'user_status': user_status})
 
 
+
 @login_required
 @club_permissions_required(perms_list=['chessclubs.apply_to_club'])
 def apply_club(request, club_name):
@@ -333,6 +335,31 @@ def my_applications(request):
     return render(request, 'my_applications.html',
                   {'applications': applications, 'count': count, 'denied_applications': denied_applications,
                    'accepted_applications': accepted_applications})
+
+
+
+@login_required
+@club_permission_required('chessclubs.manage_applications')
+def create_tournament(request, club_name):
+    try:
+        club = Club.objects.get(name=club_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            current_user = request.user
+            form = TournamentForm(request.POST)
+            if form.is_valid():
+                tournament = form.save(current_user, club)
+                return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+            else:
+                return render(request, 'create_tournament.html', {'form': form, 'club': club})
+        else:
+             return redirect('log_in')
+    else:
+        form = TournamentForm()
+        return render(request, 'create_tournament.html', {'form': form, 'club': club})
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.ban'])
@@ -368,6 +395,7 @@ def leave(request, club_name):
                 description=f"You have left {club.name}")
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
+
 
 
 
