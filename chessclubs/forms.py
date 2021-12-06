@@ -1,7 +1,12 @@
 """Forms for the chessclubs app."""
+from datetime import timedelta
+
 from django import forms
 from django.core.validators import RegexValidator
-from .models import User, Club
+from .models import User, Club, Tournament
+from django.utils import timezone
+
+
 
 EXPERIENCE_CHOICES = [
     ('Novice', 'Novice'),
@@ -26,7 +31,8 @@ class UserForm(forms.ModelForm):
 
         model = User
         fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
-        widgets = {'bio': forms.Textarea(attrs={"rows":5, "cols":20}), 'personal_statement': forms.Textarea()}
+        widgets = {'bio': forms.Textarea(attrs={"rows": 5, "cols": 20}), 'personal_statement': forms.Textarea()}
+
 
 class PasswordForm(forms.Form):
     """Form enabling users to change their password."""
@@ -61,7 +67,7 @@ class SignUpForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'bio', 'chess_experience', 'personal_statement']
         widgets = {
             'bio': forms.Textarea(),
-            'personal_statement' : forms.Textarea(),
+            'personal_statement': forms.Textarea(),
         }
 
     new_password = forms.CharField(
@@ -123,9 +129,34 @@ class ClubForm(forms.ModelForm):
         club_created.assign_club_groups_permissions()
         return club_created
 
+
 class NewOwnerForm(forms.ModelForm):
     class Meta:
         """Form options."""
         model = Club
         fields = ['owner']
 
+
+class TournamentForm(forms.ModelForm):
+    """Form enabling users to create tournaments."""
+
+    class Meta:
+        model = Tournament
+        fields = ['name', 'deadline', 'location', 'capacity']
+
+    widgets = {
+        'deadline': forms.DateTimeField(required=True,input_formats=['%d/%m/%Y %H:%M']),
+    }
+
+    def save(self, organiser, club):
+        """Create a new club."""
+        super().save(commit=False)
+        tournament_created = Tournament.objects.create(
+            name=self.cleaned_data.get('name'),
+            deadline=self.cleaned_data.get('deadline'),
+            location=self.cleaned_data.get('location'),
+            capacity=self.cleaned_data.get('capacity'),
+            organiser=organiser,
+            club=club
+        )
+        return tournament_created

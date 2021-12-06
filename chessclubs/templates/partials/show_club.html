@@ -44,6 +44,9 @@
     <div>
         <a href="{% url 'view_applications' club_name=club.name %}"  class="btn btn-outline-info">see applications</a>
     </div>
+             <div>
+        <a href="{% url 'create_tournament' club_name=club.name %}"  class="btn btn-outline-info">Create new tournament</a>
+    </div>
     {% endif %}
     <div>
         <a href="{% url 'user_list' club_name=club.name %}"  class="btn btn-outline-info">members</a>

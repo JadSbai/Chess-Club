@@ -7,9 +7,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
-from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm
+from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
 from .decorators import login_prohibited, club_permission_required, add_current_user_to_logged_in_group
-from .models import User, Club
+from .models import User, Club, Tournament
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
@@ -352,3 +352,33 @@ def my_applications(request):
     return render(request, 'my_applications.html',
                   {'applications': applications, 'count': count, 'denied_applications': denied_applications,
                    'accepted_applications': accepted_applications})
+
+
+@login_required
+@club_permission_required('chessclubs.manage_applications')
+def create_tournament(request, club_name):
+    try:
+        club = Club.objects.get(name=club_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    if request.method == 'POST':
+        print(1)
+        if request.user.is_authenticated:
+            print(2)
+            current_user = request.user
+            form = TournamentForm(request.POST)
+            if form.is_valid():
+                print(3)
+                tournament = form.save(current_user, club)
+                return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+            else:
+                print(5)
+                return render(request, 'create_tournament.html', {'form': form, 'club': club})
+        else:
+            print(6)
+            return redirect('log_in')
+    else:
+        print(7)
+        form = TournamentForm()
+        return render(request, 'create_tournament.html', {'form': form, 'club': club})
