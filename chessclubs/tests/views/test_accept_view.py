@@ -26,6 +26,7 @@ class AcceptViewTestCase(TestCase):
         self.client.login(email=self.officer.email, password='Password123')
         self.url = reverse('accept', kwargs={'club_name': self.club.name, 'user_id': self.applicant.id})
         self.target_url = reverse('view_applications', kwargs={'club_name': self.club.name})
+        self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_accept_url(self):
@@ -57,18 +58,6 @@ class AcceptViewTestCase(TestCase):
         self.assertEqual(len(self.applicant.notifications.unread()), notifications+1)
         self.assertEqual(last_notification, f"Your application for club {self.club.name} has been accepted")
 
-    def test_acknowledge_button_is_displayed(self):
-        self.client.get(self.url)
-        self.client.login(email=self.applicant.email, password='Password123')
-        applicant_profile = self.client.get(reverse('my_applications'))
-        self.assertContains(applicant_profile, "join now", html=True)
-
-    def test_notice_of_acceptance_is_displayed(self):
-        self.client.get(self.url)
-        self.client.login(email=self.applicant.email, password='Password123')
-        applicant_profile = self.client.get(reverse('my_applications'))
-        self.assertContains(applicant_profile, "Your application has been accepted")
-
     def test_accept_non_applicant_redirects(self):
         self.club.add_member(self.applicant)
         self.club.remove_from_applicants_group(self.applicant)
@@ -97,6 +86,14 @@ class AcceptViewTestCase(TestCase):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
+
+    def test_cannot_accept_yourself(self):
+        own_url = reverse('accept', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
+        response = self.client.get(own_url, follow=True)
+        self.assertRedirects(response, self.show_self, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
 
     def test_applicant_cannot_accept(self):
         self.group_tester.make_applicant(self.officer)

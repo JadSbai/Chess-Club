@@ -13,7 +13,7 @@
           <tr>
               <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=accepted_application.name %}">{{ accepted_application.name }}</a></td>
               <td><p style="color:green;"> <strong>Notice: </strong>Your application has been accepted</p></td>
-              <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=accepted_application.name %}">join now</a></td>
+              <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=accepted_application.name %}">Join now!</a></td>
           </tr>
         {% endfor%}
         {% for application in applications%}
@@ -26,7 +26,7 @@
           <tr>
                 <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=denied_application.name %}">{{ denied_application.name }}</a></td>
                 <td><p style="color:red;"> <strong>Notice: </strong>Your application has been denied</p></td>
-                <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=denied_application.name %}">ok</a></td>
+                <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=denied_application.name %}">OK</a></td>
           </tr>
         {% endfor%}
       </table>

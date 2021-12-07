@@ -23,6 +23,7 @@ class TransferOwnershipViewTestCase(TestCase):
         self.group_tester = ClubGroupTester(self.club)
         self.group_tester.make_officer(self.officer)
         self.url = reverse('transfer_ownership', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
+        self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.owner.id})
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_transfer_ownership_url(self):
@@ -83,6 +84,14 @@ class TransferOwnershipViewTestCase(TestCase):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
+
+    def test_cannot_transfer_ownership_to_yourself(self):
+        own_url = reverse('transfer_ownership', kwargs={'club_name': self.club.name, 'user_id': self.club.owner.id})
+        response = self.client.get(own_url, follow=True)
+        self.assertRedirects(response, self.show_self, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
 
     def test_applicant_cannot_transfer(self):
         self.group_tester.make_applicant(self.other_user)

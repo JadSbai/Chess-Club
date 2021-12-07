@@ -58,7 +58,11 @@ class TournamentModelTestCase(TestCase):
         self._assert_tournament_is_valid()
 
     def test_capacity_cannot_be_more_than_MAX_CAPACITY(self):
-        self.tournament.capacity = 97
+        self.tournament.max_capacity = 97
+        self._assert_tournament_is_invalid()
+
+    def test_capacity_cannot_be_less_than_MIN_CAPACITY(self):
+        self.tournament.max_capacity = 1
         self._assert_tournament_is_invalid()
 
     def test_deadline_must_be_after_creation_date(self):

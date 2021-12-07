@@ -136,7 +136,11 @@ def promote(request, user_id, club_name):
         return redirect('user_list', club_name=club_name)
     else:
         club = Club.objects.get(name=club_name)
-        if club.user_status(target_user) != "member":
+        if target_user == request.user:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot promote yourself")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        elif club.user_status(target_user) != "member":
             messages.add_message(request, messages.WARNING, "Only members can be promoted")
         else:
             club.remove_from_members_group(target_user)
@@ -156,7 +160,11 @@ def demote(request, user_id, club_name):
         return redirect('user_list', club_name=club_name)
     else:
         club = Club.objects.get(name=club_name)
-        if club.user_status(target_user) != "officer":
+        if target_user == request.user:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot demote yourself")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        elif club.user_status(target_user) != "officer":
             messages.add_message(request, messages.WARNING, "Only officers can be demoted")
             return redirect('show_user', club_name=club_name, user_id=user_id)
         else:
@@ -177,7 +185,11 @@ def transfer_ownership(request, user_id, club_name):
         return redirect('user_list', club_name=club_name)
     else:
         club = Club.objects.get(name=club_name)
-        if club.user_status(target_user) != "officer":
+        if target_user == request.user:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot transfer ownership to yourself")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        elif club.user_status(target_user) != "officer":
             messages.add_message(request, messages.WARNING, "Only officers can be transferred ownership")
         else:
             club.change_owner(target_user)
@@ -217,7 +229,11 @@ def accept(request, user_id, club_name):
         return redirect('view_applications', club_name)
     else:
         club = Club.objects.get(name=club_name)
-        if club.user_status(target_user) != "applicant":
+        if target_user == request.user:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot accept your own application")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        elif club.user_status(target_user) != "applicant":
             messages.add_message(request, messages.WARNING,
                                  "The user you want to accept is not an applicant of this club")
         else:
@@ -238,9 +254,14 @@ def deny(request, user_id, club_name):
         return redirect('view_applications', club_name)
     else:
         club = Club.objects.get(name=club_name)
-        if club.user_status(target_user) != "applicant":
+        if target_user == request.user:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot deny your own application")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        elif club.user_status(target_user) != "applicant":
             messages.add_message(request, messages.WARNING,
                                  "The user you want to deny is not an applicant of this club")
+
         else:
             club.add_to_denied_applicants_group(target_user)
             club.remove_from_applicants_group(target_user)
@@ -307,7 +328,6 @@ def show_club(request, club_name):
                   {'club': club, 'user': request.user, 'user_status': user_status})
 
 
-
 @login_required
 @club_permissions_required(perms_list=['chessclubs.apply_to_club'])
 def apply_club(request, club_name):
@@ -337,7 +357,6 @@ def my_applications(request):
                    'accepted_applications': accepted_applications})
 
 
-
 @login_required
 @club_permissions_required(perms_list=['chessclubs.create_tournament'])
 def create_tournament(request, club_name):
@@ -356,10 +375,11 @@ def create_tournament(request, club_name):
             else:
                 return render(request, 'create_tournament.html', {'form': form, 'club': club})
         else:
-             return redirect('log_in')
+            return redirect('log_in')
     else:
         form = TournamentForm()
         return render(request, 'create_tournament.html', {'form': form, 'club': club})
+
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.ban'])
@@ -371,8 +391,13 @@ def ban(request, club_name, user_id):
         return redirect('user_list', club_name=club_name)
     else:
         club = Club.objects.get(name=club_name)
-        if club.user_status(target_user) != "member":
-            messages.add_message(request, messages.WARNING, "The user you want to ban is not a member of your club. You cannot ban officers.")
+        if target_user == request.user:
+            messages.add_message(request, messages.WARNING,
+                                 "You cannot ban yourself")
+            return redirect('show_user', club_name=club_name, user_id=user_id)
+        elif club.user_status(target_user) != "member":
+            messages.add_message(request, messages.WARNING,
+                                 "The user you want to ban is not a member of your club. You cannot ban officers.")
             return redirect('user_list', club_name=club_name)
         else:
             club.remove_from_members_group(target_user)
@@ -380,6 +405,7 @@ def ban(request, club_name, user_id):
             notify.send(request.user, recipient=target_user, verb=f'{club.name}_Ban',
                         description=f"You have been banned from {club.name}")
             return redirect('user_list', club_name=club_name)
+
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.leave'])
@@ -395,9 +421,3 @@ def leave(request, club_name):
                 description=f"You have left {club.name}")
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
-
-
-
-
-
-

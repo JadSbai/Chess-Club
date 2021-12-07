@@ -22,6 +22,7 @@ class DemoteViewTestCase(TestCase):
         self.group_tester = ClubGroupTester(self.club)
         self.group_tester.make_officer(self.officer)
         self.url = reverse('demote', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
+        self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.owner.id})
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_demote_url(self):
@@ -75,6 +76,13 @@ class DemoteViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
 
+    def test_cannot_demote_yourself(self):
+        own_url = reverse('demote', kwargs={'club_name': self.club.name, 'user_id': self.club.owner.id})
+        response = self.client.get(own_url, follow=True)
+        self.assertRedirects(response, self.show_self, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
 
     def test_applicant_cannot_demote(self):
         self.client.login(email=self.officer.email, password='Password123')
@@ -140,6 +148,8 @@ class DemoteViewTestCase(TestCase):
         response = self.client.get(self.url)
         redirect_url = reverse_with_next('log_in', reverse('demote', kwargs={'club_name': self.club.name, 'user_id': self.officer.id}))
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+
+    # Forbidden ban test only covers the case where you try to ban an officer, similar tests should be written for all other statuses
 
 
 

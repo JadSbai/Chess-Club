@@ -76,6 +76,21 @@ class ClubGroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
             self.fail('Applicant should not be able to acknowledge response')
 
+    def test_applicant_cannot_ban(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Applicant should not be able to ban a user')
+
+    def test_applicant_cannot_leave(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Applicant should not be able to leave a club')
+
+    def test_applicant_cannot_create_tournament(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Applicant should not be able to create tournament')
+
     def test_member_can_access_club_info(self):
         self.group_tester.make_member(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
@@ -130,6 +145,21 @@ class ClubGroupPermissionsTestCase(TestCase):
         self.group_tester.make_member(self.other_user)
         if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
             self.fail('Member should not be able to acknowledge response')
+
+    def test_member_cannot_ban(self):
+        self.group_tester.make_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Member should not be able to ban a user')
+
+    def test_member_can_leave(self):
+        self.group_tester.make_member(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Member should not be able to leave a club')
+
+    def test_member_cannot_create_tournament(self):
+        self.group_tester.make_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Member should not be able to create tournament')
 
     def test_officer_can_access_club_info(self):
         self.group_tester.make_officer(self.other_user)
@@ -186,6 +216,21 @@ class ClubGroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
             self.fail('Officer should not be able to acknowledge response')
 
+    def test_officer_cannot_ban(self):
+        self.group_tester.make_officer(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Officer should not be able to ban a user')
+
+    def test_officer_can_leave(self):
+        self.group_tester.make_officer(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Officer should be able to leave a club')
+
+    def test_officer_can_create_tournament(self):
+        self.group_tester.make_officer(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Officer should be able to create tournament')
+
     def test_owner_can_access_club_info(self):
         if not self.owner.has_club_perm('chessclubs.access_club_info', self.club):
             self.fail('Owner should have access to club info')
@@ -229,6 +274,18 @@ class ClubGroupPermissionsTestCase(TestCase):
     def test_owner_cannot_acknowledge_application_response(self):
         if self.owner.has_club_perm('chessclubs.acknowledge_response', self.club):
             self.fail('Owner should not be able to acknowledge response')
+
+    def test_owner_can_ban(self):
+        if not self.owner.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Owner should not be able to ban a user')
+
+    def test_owner_cannot_leave(self):
+        if self.owner.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Owner should be able to leave a club')
+
+    def test_owner_can_create_tournament(self):
+        if not self.owner.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Owner should be able to create tournament')
 
     def test_denied_applicant_can_access_club_info(self):
         self.group_tester.make_denied_applicant(self.other_user)
@@ -285,6 +342,21 @@ class ClubGroupPermissionsTestCase(TestCase):
         if not self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
             self.fail('Denied applicant should be able to acknowledge response')
 
+    def test_denied_applicant_cannot_ban(self):
+        self.group_tester.make_denied_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Denied applicant should not be able to ban a user')
+
+    def test_denied_applicant_cannot_leave(self):
+        self.group_tester.make_denied_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Denied applicant should not be able to leave a club')
+
+    def test_denied_applicant_cannot_create_tournament(self):
+        self.group_tester.make_denied_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Denied applicant should not be able to create tournament')
+
     def test_accepted_applicant_can_access_club_info(self):
         self.group_tester.make_accepted_applicant(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
@@ -334,6 +406,21 @@ class ClubGroupPermissionsTestCase(TestCase):
         self.group_tester.make_accepted_applicant(self.other_user)
         if self.other_user.has_club_perm('chessclubs.apply_to_club', self.club):
             self.fail('Accepted applicant should not be able to apply to club')
+
+    def test_accepted_applicant_cannot_ban(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Accepted applicant should not be able to ban a user')
+
+    def test_accepted_applicant_cannot_leave(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Accepted applicant should not be able to leave a club')
+
+    def test_accepted_applicant_cannot_create_tournament(self):
+        self.group_tester.make_accepted_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Accepted applicant should not be able to create tournament')
 
     def test_accepted_applicant_can_acknowledge_application_response(self):
         self.group_tester.make_accepted_applicant(self.other_user)
@@ -394,3 +481,18 @@ class ClubGroupPermissionsTestCase(TestCase):
         self.group_tester.make_authenticated_non_member(self.other_user)
         if self.other_user.has_club_perm('chessclubs.acknowledge_response', self.club):
             self.fail('Logged-in non-member should be able to acknowledge response')
+
+    def test_logged_in_non_member_cannot_ban(self):
+        self.group_tester.make_authenticated_non_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.ban', self.club):
+            self.fail('Logged-in non-member should not be able to ban a user')
+
+    def test_logged_in_non_member_cannot_leave(self):
+        self.group_tester.make_authenticated_non_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.leave', self.club):
+            self.fail('Logged-in non-member should not be able to leave a club')
+
+    def test_logged_in_non_member_cannot_create_tournament(self):
+        self.group_tester.make_authenticated_non_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.create_tournament', self.club):
+            self.fail('Logged-in non-member should not be able to create tournament')

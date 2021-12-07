@@ -1,4 +1,4 @@
-"""Tests of apply club view"""
+"""Tests of leave club view"""
 
 from django.test import TestCase
 from django.urls import reverse
@@ -8,48 +8,61 @@ from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from django.contrib import messages
 
 
-class ApplyClubViewTestCase(TestCase):
+class LeaveClubViewTestCase(TestCase):
+    """Test Suites of leave club view"""
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
                 ]
 
     def setUp(self):
-        self.applicant = User.objects.get(email='janedoe@example.org')
+        self.member = User.objects.get(email='janedoe@example.org')
         self.club = Club.objects.get(name="Test_Club")
-        self.client.login(email=self.applicant.email, password='Password123')
+        self.client.login(email=self.member.email, password='Password123')
         self.group_tester = ClubGroupTester(self.club)
-        self.group_tester.make_authenticated_non_member(self.applicant)
-        self.url = reverse('apply_club', kwargs={'club_name': self.club.name})
+        self.group_tester.make_member(self.member)
+        self.url = reverse('leave', kwargs={'club_name': self.club.name})
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
-    def test_apply_club_url(self):
-        self.assertEqual(self.url, f'/apply_club/{self.club.name}')
+    def test_leave_club_url(self):
+        self.assertEqual(self.url, f'/{self.club.name}/leave/')
 
-    def test_notification_sent_to_officers_and_owner_for_new_applicant(self):
-        self.client.login(email=self.applicant.email, password='Password123')
+    def test_non_logged_in_redirects(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        redirect_url = reverse_with_next('log_in', reverse('leave', kwargs={'club_name': self.club.name}))
+        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
+
+    def test_notification_sent_to_officers_and_owner(self):
         for member in self.club.members.all():
             if self.club.user_status(member) == "officer" or self.club.user_status(member) == "owner":
                 notifications = len(member.notifications.unread())
                 self.client.get(self.url)
                 last_notification = member.notifications.unread()[0].description
                 self.assertEqual(len(member.notifications.unread()), notifications + 1)
-                self.assertEqual(last_notification, f"{self.applicant.full_name()} has applied to club {self.club.name}")
+                self.assertEqual(last_notification, f"{self.member.full_name()} has left club {self.club.name}")
 
-    def test_becomes_applicant_of_club(self):
-        before_status = self.club.user_status(self.applicant)
-        self.assertEqual(before_status, "authenticated_non_member_user")
+    def test_notification_of_leave_sent(self):
+        notifications = len(self.member.notifications.unread())
         self.client.get(self.url)
-        after_status = self.club.user_status(self.applicant)
-        self.assertEqual(after_status, "applicant")
+        last_notification = self.member.notifications.unread()[0].description
+        self.assertEqual(len(self.member.notifications.unread()), notifications+1)
+        self.assertEqual(last_notification, f"You have left {self.club.name}")
 
-    def test_successful_application_redirects(self):
+    def test_becomes_non_member_of_club(self):
+        before_status = self.club.user_status(self.member)
+        self.assertEqual(before_status, "member")
+        self.client.get(self.url)
+        after_status = self.club.user_status(self.member)
+        self.assertEqual(after_status, "authenticated_non_member_user")
+
+    def test_successful_leave_redirects(self):
         response = self.client.get(self.url)
-        target_url = reverse('my_applications')
+        target_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
 
-    def test_wrong_club_apply(self):
-        bad_url = reverse('apply_club', kwargs={'club_name': "blabla"})
+    def test_wrong_club_leave(self):
+        bad_url = reverse('leave', kwargs={'club_name': "blabla"})
         response = self.client.get(bad_url, follow=True)
         target_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
         self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
@@ -58,53 +71,45 @@ class ApplyClubViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
 
-    def test_non_logged_in_redirects(self):
-        self.client.logout()
-        response = self.client.get(self.url)
-        redirect_url = reverse_with_next('log_in', reverse('apply_club', kwargs={'club_name': self.club.name}))
-        self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-
-    def test_applicant_cannot_apply(self):
-        self.group_tester.make_applicant(self.applicant)
+    def test_applicant_cannot_leave(self):
+        self.group_tester.make_applicant(self.member)
         response = self.client.get(self.url, follow=True)
         self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.WARNING)
 
-    def test_accepted_applicant_cannot_apply(self):
-        self.group_tester.make_accepted_applicant(self.applicant)
+    def test_accepted_applicant_cannot_leave(self):
+        self.group_tester.make_accepted_applicant(self.member)
         response = self.client.get(self.url, follow=True)
         self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.WARNING)
 
-    def test_denied_applicant_cannot_apply(self):
-        self.group_tester.make_denied_applicant(self.applicant)
+    def test_denied_applicant_cannot_leave(self):
+        self.group_tester.make_denied_applicant(self.member)
         response = self.client.get(self.url, follow=True)
         self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.WARNING)
 
-    def test_member_cannot_apply(self):
-        self.group_tester.make_member(self.applicant)
+    def test_member_can_leave(self):
+        self.group_tester.make_member(self.member)
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        self.assertEqual(response.status_code, 200)
         messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.WARNING)
+        self.assertEqual(len(messages_list), 0)
 
-    def test_officer_cannot_apply(self):
-        self.group_tester.make_officer(self.applicant)
+    def test_officer_can_leave(self):
+        self.group_tester.make_officer(self.member)
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        self.assertEqual(response.status_code, 200)
         messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.WARNING)
+        self.assertEqual(len(messages_list), 0)
 
-    def test_owner_cannot_apply(self):
+    def test_owner_cannot_leave(self):
         self.client.login(email=self.club.owner.email, password='Password123')
         response = self.client.get(self.url, follow=True)
         self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
@@ -112,10 +117,13 @@ class ApplyClubViewTestCase(TestCase):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.WARNING)
 
-    def test_logged_in_non_member_can_apply(self):
-        self.group_tester.make_authenticated_non_member(self.applicant)
+    def test_logged_in_non_member_cannot_leave(self):
+        self.group_tester.make_authenticated_non_member(self.member)
         response = self.client.get(self.url, follow=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
         messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 0)
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    # Thorough tests for template content
 

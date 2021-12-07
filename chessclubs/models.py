@@ -407,7 +407,7 @@ class Tournament(models.Model):
     """Model for representing  a club tournament"""
     name = models.CharField(max_length=50, blank=False, unique=True)
     location = models.CharField(max_length=50, blank=False)
-    capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY),MinValueValidator(2, "The capacity needs to be at least 2.")])
+    max_capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
     deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
@@ -418,10 +418,10 @@ class Tournament(models.Model):
         return self.participants.all()
 
     def is_max_capacity_reached(self):
-        return self.capacity == TOURNAMENT_MAX_CAPACITY
+        return self.participants.count() == self.max_capacity
 
     def is_min_capacity_attained(self):
-        return self.capacity == TOURNAMENT_MIN_CAPACITY
+        return self.participants.count() == TOURNAMENT_MIN_CAPACITY
 
     def co_organisers_list(self):
         return self.co_organisers.all()
