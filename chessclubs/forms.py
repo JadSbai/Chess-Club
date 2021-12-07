@@ -143,10 +143,10 @@ class TournamentForm(forms.ModelForm):
 
     class Meta:
         model = Tournament
-        fields = ['name', 'deadline', 'location', 'capacity']
+        fields = ['name', 'deadline', 'location', 'max_capacity']
 
     widgets = {
-        'deadline': forms.DateTimeField(required=True,input_formats=['%d/%m/%Y %H:%M']),
+        'deadline': forms.DateTimeField(required=True, input_formats=['%d/%m/%Y %H:%M']),
     }
 
     def save(self, organiser, club):
@@ -156,7 +156,7 @@ class TournamentForm(forms.ModelForm):
             name=self.cleaned_data.get('name'),
             deadline=self.cleaned_data.get('deadline'),
             location=self.cleaned_data.get('location'),
-            capacity=self.cleaned_data.get('capacity'),
+            max_capacity=self.cleaned_data.get('max_capacity'),
             organiser=organiser,
             club=club
         )

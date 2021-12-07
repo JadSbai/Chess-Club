@@ -48,7 +48,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'landing_page.html')
 
-    def test_unsuccesful_sign_up(self):
+    def test_unsuccessful_sign_up(self):
         self.form_input['email'] = 'BAD_email'
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input)
