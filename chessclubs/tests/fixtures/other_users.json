@@ -40,5 +40,20 @@
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 5,
+    "fields": {
+      "first_name": "Morgane",
+      "last_name": "Zadjlic",
+      "email": "morganezadjlic@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
   }
 ]

@@ -1,0 +1,11 @@
+[
+  {
+    "model": "chessclubs.match",
+    "pk": 1,
+    "fields": {
+      "_player1": 2,
+      "_player2": 3,
+      "tournament": 1
+    }
+  }
+]

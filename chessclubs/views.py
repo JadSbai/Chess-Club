@@ -7,17 +7,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
-from django.urls import reverse
 
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
 from .models import User, Club, Tournament
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required
-from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
+from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
+    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
-
-from django.utils import timezone
-import datetime
 
 
 @login_required
@@ -327,9 +324,8 @@ def create_club(request):
 def show_club(request, club_name):
     club = Club.objects.get(name=club_name)
     user_status = club.user_status(request.user)
-    tournaments = club.get_all_tournaments()
     return render(request, 'show_club.html',
-                  {'club': club, 'user': request.user, 'user_status': user_status, 'tournaments': tournaments})
+                  {'club': club, 'user': request.user, 'user_status': user_status})
 
 
 @login_required
@@ -375,9 +371,7 @@ def create_tournament(request, club_name):
             form = TournamentForm(request.POST)
             if form.is_valid():
                 tournament = form.save(current_user, club)
-                club_name = club.name
-                tournament_name = form.cleaned_data.get('name')
-                return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+                return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
             else:
                 return render(request, 'create_tournament.html', {'form': form, 'club': club})
         else:
@@ -476,3 +470,4 @@ def withdraw_tournament(request, club_name, tournament_name):
     elif not tournament.is_participant(target_user):
         messages.add_message(request, messages.WARNING, "You are not a participant of this tournament.")
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+

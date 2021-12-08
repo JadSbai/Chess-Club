@@ -77,9 +77,6 @@ def get_appropriate_redirect(notification):
         raise BaseException
 
 
-def generate_schedule(phase, players):
-    schedule = {}
-    if phase == "Final":
-        schedule[1] = Match(players[0], players[1])
+
 
 
