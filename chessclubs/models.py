@@ -337,6 +337,9 @@ class Club(models.Model):
         ban.set_groups(groups)
         self.__owner_group().user_set.add(self.owner)
 
+    def get_all_tournaments(self):
+        return self.all_tournaments.all()
+
     class Meta:
         """" All base permissions associated with the Club Model"""
         permissions = [
