@@ -1,0 +1,23 @@
+{% extends 'base_content.html' %}
+{% block body %}
+    {% include 'partials/navbar.html' with request=request%}
+    {% include 'partials/second_navbar.html' with request=request club=club%}
+    {% include 'partials/messages.html' %}
+{% block content %}
+<div class="container fluid">
+  <div class="container d-flex justify-content-center">
+    <div class="container-fluid content">
+      <div class="profile-text">
+        <h3 class="profile-title">{{ tournament.name }}</h3>
+      </div>
+      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
+        <b>Deadline</b><br>
+        {{ tournament.deadline }}<br>
+      </div>
+      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+        <b>Maximum caapacity</b><br>
+        {{ club.max_capacity }}<br>
+      </div>
+    </div>
+  </div>
+</div>
