@@ -420,6 +420,15 @@ class Tournament(models.Model):
     def participants_list(self):
         return self.participants.all()
 
+    def is_participant(self, member):
+        return member in self.participants.all()
+
+    def is_organiser(self, member):
+        return member == self.organiser
+
+    def is_co_organiser(self, member):
+        return member in self.co_organisers.all()
+
     def is_max_capacity_reached(self):
         return self.participants.count() == self.max_capacity
 
@@ -439,6 +448,14 @@ class Tournament(models.Model):
 
     def add_to_participants_group(self, user):
         self.__participants_group().user_set.add(user)
+
+    def add_participant(self, member):
+        self.participants.add(member)
+        self.add_to_participants_group(member)
+
+    def remove_participant(self, member):
+        self.participants.remove(member)
+        self.remove_from_participants_group(member)
 
     def add_to_organisers_group(self, user):
         self.__organisers_group().user_set.add(user)

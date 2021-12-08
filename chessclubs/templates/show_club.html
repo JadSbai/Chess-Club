@@ -47,7 +47,7 @@
         <a href="{% url 'leave' club_name=club.name %}"  class="btn btn-outline-danger" onclick="return leaveConfirmation()">Leave this club</a>
             </div>
         {% endif %}
-
+        {% if user_status == "member" %}
         <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
           <b>Tournaments </b><br>
           <table class="table">
@@ -60,6 +60,7 @@
               {% endfor%}
           </table>
         </div>
+      {%endif%}
     </div>
   </div>
 </div>
