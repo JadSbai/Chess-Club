@@ -73,6 +73,18 @@ class TournamentModelTestCase(TestCase):
         self.tournament.deadline = ""
         self._assert_tournament_is_invalid()
 
+    def test_current_phase_cannot_be_blank(self):
+        self.tournament.set_current_phase("")
+        self._assert_tournament_is_invalid()
+
+    def test_current_phase_must_be_among_choices(self):
+        self.tournament.set_current_phase("bad_choice")
+        self._assert_tournament_is_invalid()
+
+    def test_successful_change_current_phase(self):
+        self.tournament.set_current_phase("Small_Group_Phase")
+        self._assert_tournament_is_valid()
+
     def _assert_tournament_is_valid(self):
         try:
             self.tournament.full_clean()

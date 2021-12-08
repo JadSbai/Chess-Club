@@ -421,3 +421,4 @@ def leave(request, club_name):
                 description=f"You have left {club.name}")
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
+

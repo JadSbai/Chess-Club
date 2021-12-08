@@ -1,6 +1,8 @@
 """Models in the chessclubs app."""
-from django.contrib import auth
 
+
+from django.contrib import auth
+import random
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -8,7 +10,6 @@ from django.db import models
 from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
-from chessclubs.helpers import generate_schedule
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
@@ -306,11 +307,11 @@ class Club(models.Model):
         apply_to_club, created = ClubPermission.objects.get_or_create(club=self,
                                                                       base_permission=apply_to_club_perm)
         ban, created = ClubPermission.objects.get_or_create(club=self,
-                                                                      base_permission=ban_perm)
+                                                            base_permission=ban_perm)
         leave, created = ClubPermission.objects.get_or_create(club=self,
-                                                            base_permission=leave_perm)
+                                                              base_permission=leave_perm)
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                            base_permission=tournament_perm)
+                                                                          base_permission=tournament_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -406,14 +407,29 @@ def validate_tournament_deadline(value):
 
 class Tournament(models.Model):
     """Model for representing  a club tournament"""
+    _PHASE_CHOICES = [
+        ('Elimination-Rounds', 'Elimination-Rounds'),
+        ('Small_Group_Phase', 'Small_Group_Phase'),
+        ('Large-Group-Phase', 'Large-Group-Phase'),
+    ]
     name = models.CharField(max_length=50, blank=False, unique=True)
     location = models.CharField(max_length=50, blank=False)
-    max_capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
+    max_capacity = models.IntegerField(default=2, validators=[
+        MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),
+        MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
     deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="all_tournaments")
     participants = models.ManyToManyField(User, related_name="tournaments")
+    _current_phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Elimination-Rounds", blank=False)
+
+    def add_participant(self, member):
+        self.participants.add(member)
+        self.add_to_participants_group(member)
+
+    def set_current_phase(self, phase):
+        self._current_phase = phase
 
     def participants_list(self):
         return self.participants.all()
@@ -517,29 +533,6 @@ def _user_has_tournament_perm(user, perm, tournament):
             return False
     return False
 
-class Match(models.Model):
-    _player1 = models.ForeignKey(User, on_delete=models.CASCADE)
-    _player2 = models.ForeignKey(User, on_delete=models.CASCADE)
-    _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    _open = True
-
-    # def enter_winner(self, player):
-    #     if not open:
-    #         print("This match is closed")
-    #     if player == self._player1 or player == self._player2:
-    #         self.winner = player
-    #         self.open = False
-    #     else:
-    #         print("This user is not a player of this match")
-    def close_match(self):
-        self._open = False
-
-    def return_winner(self):
-        if not open and self._winner:
-            return self._winner.full_name()
-        else:
-            print("Match still open or winner not yet determined")
-
 
 class EliminationRounds(models.Model):
     """Model for Elimination rounds of the tournament"""
@@ -547,28 +540,169 @@ class EliminationRounds(models.Model):
         ('Final', 'Final'),
         ('Semi-Final', 'Semi-Final'),
         ('Quarter-Final', 'Quarter_Final'),
-        ('Eight-Final', 'Eight-Final'),
+        ('Eighth-Final', 'Eighth-Final'),
     ]
-    _tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    _tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="elimination_round")
     _players = models.ManyToManyField(User, related_name="elimination_rounds")
-    _phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eight_Final", blank=False)
+    phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eighth-Final", blank=False)
 
     def set_phase(self):
         if 16 >= self._players.count() >= 9:
-            self.phase = "Eighth_Final"
+            self.phase = "Eighth-Final"
         elif 8 >= self._players.count() >= 5:
-            self.phase = "Quarter_Final"
+            self.phase = "Quarter-Final"
         elif 4 >= self._players.count() >= 3:
-            self.phase = "Semi_Final"
+            self.phase = "Semi-Final"
         else:
             self.phase = "Final"
-
-    def create_schedule(self):
-        schedule = generate_schedule(self.phase, self._players)
-        return schedule
+        self.save()
 
     def add_players(self, new_players):
         for player in new_players:
             self._players.add(player)
 
+    def remove_player(self, player):
+        self._players.remove(player)
 
+    def remove_all_players(self):
+        self._players.all().delete()
+
+    def enter_winner(self, player, match):
+        match.enter_winner(player)
+        self.remove_match_from_schedule(match)
+
+    def remove_match_from_schedule(self, match):
+        if match in self.schedule.all():
+            match.delete()
+
+    def number_of_players(self):
+        return self._players.count()
+
+    def clean_schedule(self):
+        self.schedule.all().delete()
+
+    def generate_schedule(self):
+        if self.phase == "Final":
+            self.generate_matches(1)
+        elif self.phase == "Semi-Final":
+            if self._players.count() == 3:
+                self.generate_matches(1)
+            else:
+                self.generate_matches(2)
+        elif self.phase == "Quarter-Final":
+            count = self._players.count()
+            if count == 5:
+                self.generate_matches(2)
+            elif count == 6 or count == 7:
+                self.generate_matches(3)
+            elif count == 8:
+                self.generate_matches(4)
+        else:
+            count = self._players.count()
+            if count == 9:
+                self.generate_matches(4)
+            elif count == 10 or count == 11:
+                self.generate_matches(5)
+            elif count == 12 or count == 13:
+                self.generate_matches(6)
+            elif count == 14 or count == 15:
+                self.generate_matches(7)
+            else:
+                self.generate_matches(8)
+
+    def generate_matches(self, num):
+        i = 0
+        counter = 0
+        while counter < num:
+            new_match = EliminationRoundMatch.objects.create_elimination_match(player1=self._players.all()[i],
+                                                                               player2=self._players.all()[i + 1],
+                                                                               tournament=self._tournament,
+                                                                               elimination_round=self)
+            self.schedule.add(new_match)
+            i += 2
+            counter += 1
+
+
+class MatchManager(models.Manager):
+    """Custom user manager used for creation of users and superusers"""
+
+    def create_match(self, tournament, player1, player2):
+        """Create a match according to User model"""
+        if not tournament:
+            raise ValueError("Match must be part of a tournament")
+        if not player2:
+            raise ValueError("Match must have a player2")
+        if not player1:
+            raise ValueError("Match must have a player1")
+        if player2 == player1:
+            raise ValueError("Players of a match must be distinct")
+        if player1 == tournament.organiser or player2 == tournament.organiser:
+            raise ValueError("The organiser cannot play matches")
+
+        match = self.model()
+        match._player1 = player1
+        match._player2 = player2
+        match.tournament = tournament
+        return match
+
+
+class Match(models.Model):
+    _player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="matches")
+    _player2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="my_matches")
+    _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_matches", default=None, blank=True)
+    _open = models.BooleanField(default=True)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_matches")
+
+    objects = MatchManager()
+
+    def enter_winner(self, player):
+        if not self._open:
+            print("This match is closed")
+            return None
+        if player == self._player1 or player == self._player2:
+            self.winner = player
+            self.close_match()
+            self.save()
+            return self.winner
+        else:
+            print("This user is not a player of this match")
+            return None
+
+    def close_match(self):
+        self._open = False
+
+    def get_winner(self):
+        return self._winner
+
+    def is_open(self):
+        return self._open
+
+    def return_winner(self):
+        if not self._open and self._winner:
+            return self._winner.full_name()
+        else:
+            print("Match still open or winner not yet determined")
+
+
+class EliminationRoundMatchManager(MatchManager):
+
+    def create_elimination_match(self, tournament, player1, player2, elimination_round):
+        match = super().create_match(tournament, player1, player2)
+        match.elimination_round = elimination_round
+        match.save(using=self._db)
+        return match
+
+
+class EliminationRoundMatch(Match):
+    elimination_round = models.ForeignKey(EliminationRounds, on_delete=models.CASCADE, related_name="schedule")
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+
+    def enter_winner(self, player):
+        winner = super(EliminationRoundMatch, self).enter_winner(player)
+        if winner is not None:
+            self.elimination_round.remove_player(player)
+        return winner
+
+    objects = EliminationRoundMatchManager()
