@@ -101,13 +101,3 @@ class ShowTournamentViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
-
-
-    # def test_logged_in_non_member_cannot_see_tournament_page(self):
-    #     self.group_tester.make_authenticated_non_member(self.user2)
-    #     self.client.login(email=self.user2.email, password='Password123')
-    #     response = self.client.get(self.url, follow=True)
-    #     self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
-    #     messages_list = list(response.context['messages'])
-    #     self.assertEqual(len(messages_list), 1)
-    #     self.assertEqual(messages_list[0].level, messages.WARNING)
