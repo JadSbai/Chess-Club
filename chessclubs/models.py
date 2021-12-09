@@ -565,7 +565,7 @@ class EliminationRounds(models.Model):
         ('Eighth-Final', 'Eighth-Final'),
     ]
     _tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="elimination_round")
-    _players = models.ManyToManyField(User, related_name="elimination_rounds")
+    _players = models.ManyToManyField(Player, related_name="elimination_rounds")
     phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eighth-Final", blank=False)
     _open = models.BooleanField(default=True)
     _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_elimination_rounds",
@@ -780,6 +780,12 @@ class Match(models.Model):
         else:
             print("This player is not a player of this match")
             return None
+
+    def enter_draw(self):
+        self._player1.update_points(0.5)
+        self._player2.update_points(0.5)
+        self._close_match()
+        self.save()
 
     def _close_match(self):
         self._open = False

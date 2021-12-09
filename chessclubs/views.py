@@ -422,3 +422,17 @@ def leave(request, club_name):
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
 
+@login_required
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+def show_tournament(request,  club_name, tournament_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    club = Club.objects.get(name=club_name)
+    user_status = club.user_status(request.user)
+    return render(request, 'show_tournament.html',
+                  {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club})
+
+def temporary(request, club_name, tournament_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+
+
+
