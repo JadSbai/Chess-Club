@@ -1,5 +1,4 @@
-"""Tests of ban member view"""
-
+"""Tests of the ban member view."""
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import User, Club
@@ -9,7 +8,8 @@ from django.contrib import messages
 
 
 class BanViewTestCase(TestCase):
-    """Test Suites of ban member view"""
+    """Test Suites of the ban member view."""
+
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

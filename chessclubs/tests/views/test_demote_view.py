@@ -9,6 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class DemoteViewTestCase(TestCase):
+    """Tests of demote view."""
+
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

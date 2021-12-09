@@ -439,10 +439,10 @@ def show_tournament(request,  club_name, tournament_name):
     is_organiser = tournament.is_organiser(request.user)
     current_date = timezone.now()
     participants = tournament.participants_list()
-    co_organisers= tournament.co_organisers_list()
+    co_organisers = tournament.co_organisers_list()
     return render(request, 'show_tournament.html',
                   {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club, 'is_participant': is_participant,
-                   'is_co_organiser': is_co_organiser, 'is_organiser':is_organiser, 'current_date':current_date, 'participants':participants, 'co_organisers': co_organisers})
+                   'is_co_organiser': is_co_organiser, 'is_organiser':is_organiser, 'current_date':current_date, 'participants': participants, 'co_organisers': co_organisers})
 
 
 @login_required

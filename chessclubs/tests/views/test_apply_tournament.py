@@ -1,5 +1,6 @@
-from django.contrib import messages
+"""Tests of apply to the tournament view."""
 
+from django.contrib import messages
 from chessclubs.models import User, Club, Tournament
 from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next, TournamentGroupTester
 from django.test import TestCase
@@ -8,6 +9,7 @@ from django.utils import timezone
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class ApplyTournamentViewTestCase(TestCase):
+    """Tests of apply to the tournament view."""
 
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',

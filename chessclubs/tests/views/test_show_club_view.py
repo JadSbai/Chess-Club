@@ -10,6 +10,7 @@ from django.contrib import messages
 
 class ShowClubViewTestCase(TestCase):
     """Test Suites of show club view"""
+
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

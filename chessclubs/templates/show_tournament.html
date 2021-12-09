@@ -23,28 +23,36 @@
         <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
                 <b>Co-Organisers</b><br>
                 {% for co_organiser in co_organisers %}
-                  {{co_organiser.full_name}}
-                {% endfor%}
+                  {{ co_organiser.full_name }}
+                {% endfor %}
             </div>
             <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
                 <b>Participants</b><br>
                 {% for participant in participants %}
-                  {{participant.full_name}}
-                {% endfor%}
+                  {{ participant.full_name }}
+                {% endfor %}
             </div>
 
          {% if current_date < tournament.deadline %}
-          {% if user_status == 'member' and  not is_participant and not is_organiser and not is_co_organiser%}
             <div class="container d-flex justify-content-center mt-3">
-              <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}"  class="btn btn-outline-info">Apply to this tournament</a>
+                {% if not is_participant and not is_organiser and not is_co_organiser %}
+                    <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
+                {% else %}
+                    <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}" class="btn btn-outline-info disabled" aria-disabled="true">Apply to this tournament</a>
+                {% endif %}
             </div>
-          {% endif%}
-          {% if user_status == 'member' and is_participant %}
           <div class="container d-flex justify-content-center mt-3">
-            <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
+              {% if is_participant %}
+                  <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
+              {% else %}
+                  <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info disabled" aria-disabled="true">Withdraw from tournament</a>
+              {% endif %}
           </div>
-          {%endif%}
-          {%endif%}
+          {% else %}
+            <div class="container d-flex justify-content-center mt-3">
+                <p>Deadline for the applications was {{ tournament.deadline }}. Currently, it is {{ current_date }}. Registration is now closed.</p>
+            </div>
+        {% endif %}
 
         </div>
     </div>
