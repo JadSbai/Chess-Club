@@ -47,7 +47,7 @@ def tournament_permissions_required(perms_list):
                 return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
             else:
                 for perm in perms_list:
-                    if not request.user.has_club_perm(perm, tournament):
+                    if not request.user.has_tournament_perm(perm, tournament):
                         messages.add_message(request, messages.WARNING,
                                              "Permission denied! You don't have the necessary tournament permission(s)")
                         return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
@@ -55,6 +55,3 @@ def tournament_permissions_required(perms_list):
                 return view_func(request, *args, **kwargs)
         return wrapped
     return wrapper
-
-
-
