@@ -1,6 +1,5 @@
 """Models in the chessclubs app."""
 
-
 from django.contrib import auth
 import random
 from django.contrib.auth.base_user import BaseUserManager
@@ -421,12 +420,22 @@ class Tournament(models.Model):
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="all_tournaments")
-    participants = models.ManyToManyField(User, related_name="tournaments")
+    # participants = models.ManyToManyField(User, related_name="tournaments")
     _current_phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Elimination-Rounds", blank=False)
+    _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_tournaments", default=None,
+                                blank=True)
+    _open = models.BooleanField(default=False)
 
     def add_participant(self, member):
         self.participants.add(member)
         self.add_to_participants_group(member)
+
+    def open_tournament(self):
+        if timezone.now() >= self.deadline:
+            self._open = True
+            self.save()
+        else:
+            print("The deadline is not yet passed")
 
     def set_current_phase(self, phase):
         self._current_phase = phase
@@ -534,6 +543,19 @@ def _user_has_tournament_perm(user, perm, tournament):
     return False
 
 
+class Player(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_profiles")
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="players")
+    points = models.FloatField(validators=[MinValueValidator(0)], default=0)
+
+    class Meta:
+        ordering = ['-points']
+
+    def update_points(self, value):
+        self.points += value
+        self.save()
+
+
 class EliminationRounds(models.Model):
     """Model for Elimination rounds of the tournament"""
     _PHASE_CHOICES = [
@@ -545,6 +567,10 @@ class EliminationRounds(models.Model):
     _tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="elimination_round")
     _players = models.ManyToManyField(User, related_name="elimination_rounds")
     phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eighth-Final", blank=False)
+    _open = models.BooleanField(default=True)
+    _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_elimination_rounds",
+                                default=None,
+                                blank=True)
 
     def set_phase(self):
         if 16 >= self._players.count() >= 9:
@@ -568,12 +594,13 @@ class EliminationRounds(models.Model):
         self._players.all().delete()
 
     def enter_winner(self, player, match):
-        match.enter_winner(player)
-        self.remove_match_from_schedule(match)
-
-    def remove_match_from_schedule(self, match):
-        if match in self.schedule.all():
-            match.delete()
+        winner = match.enter_winner(player)
+        if self.phase == "Final" and winner:
+            self._winner = winner
+            self._open = False
+            self.save()
+        else:
+            print("Invalid entry")
 
     def number_of_players(self):
         return self._players.count()
@@ -623,6 +650,91 @@ class EliminationRounds(models.Model):
             counter += 1
 
 
+class SmallPoolPhase(models.Model):
+    tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="small_pool_phase")
+    _qualified_players = models.ManyToManyField(Player, related_name="won_SPPhases")
+    _players = models.ManyToManyField(Player, related_name="my_SPPhases")
+
+    def create_small_pools(self, groups_of_3, groups_of_4):
+        not_yet_selected_players = self._players
+        for i in range(groups_of_4):
+            new_pool = SmallPool.objects.create()
+            pool_players = random.sample(not_yet_selected_players, 4)
+            for player in pool_players:
+                not_yet_selected_players.remove(player)
+            new_pool.add_players(pool_players)
+
+        for i in range(groups_of_3):
+            new_pool = SmallPool.objects.create()
+            pool_players = random.sample(not_yet_selected_players, 3)
+            for player in pool_players:
+                not_yet_selected_players.remove(player)
+            new_pool.add_players(pool_players)
+
+    def generate_schedule(self):
+        number_of_players = self._players.count()
+        remainder = number_of_players % 4
+        groups_of_4 = 0
+        groups_of_3 = 0
+        if remainder == 0:
+            groups_of_4 = number_of_players / 4
+        elif remainder == 1:
+            groups_of_3 = 3
+            groups_of_4 = (number_of_players - 9) / 4
+        elif remainder == 2:
+            groups_of_3 = 2
+            groups_of_4 = (number_of_players - 6) / 4
+        else:
+            groups_of_3 = 1
+            groups_of_4 = (number_of_players - 3) / 4
+
+        print(groups_of_3)
+        print(groups_of_4)
+
+        self.create_small_pools(groups_of_3, groups_of_4)
+        return self.pools_schedule.all()
+
+
+class SmallPool(models.Model):
+    _players = models.ManyToManyField(Player, related_name="my_small_pools")
+    _small_pool_phase = models.ForeignKey(SmallPoolPhase, on_delete=models.CASCADE, related_name="pools_schedule")
+    _all_matches_played = models.BooleanField(default=False)
+
+    def add_players(self, players):
+        for player in players:
+            self._players.add(player)
+        self.save()
+
+    def create_matches(self):
+        for i in range(self._players.count()):
+            for j in range(i + 1, self._players.count()):
+                player1 = self._players.all()[i]
+                player2 = self._players.all()[j]
+                new_match = SmallPoolPhaseMatch.objects.create_small_pool_match(player1=player1, player2=player2,
+                                                                                tournament=self._small_pool_phase.tournament,
+                                                                                pool=self)
+                self.small_pool_matches.add(new_match)
+                self.save()
+
+    def enter_result(self, match, result, winner):
+        match.enter_result(result, winner)
+        self._all_matches_played = all(not m.is_open() for m in self.small_pool_matches)
+        if self._all_matches_played:
+            self.set_qualified_players()
+
+    def set_qualified_players(self):
+        qualified_players = self.get_qualified_players()
+        # Pass those qualified players to the elimination round
+
+    def get_qualified_players(self):
+        if not self._all_matches_played:
+            print("Some matches still need to be played")
+            return None
+        else:
+            print(self._players.all())
+            return self._players.all()[0], self._players.all()[1]
+
+
 class MatchManager(models.Manager):
     """Custom user manager used for creation of users and superusers"""
 
@@ -647,9 +759,10 @@ class MatchManager(models.Manager):
 
 
 class Match(models.Model):
-    _player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="matches")
-    _player2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="my_matches")
-    _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_matches", default=None, blank=True)
+    _player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="matches")
+    _player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="my_matches")
+    _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_matches", default=None,
+                                blank=True)
     _open = models.BooleanField(default=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_matches")
 
@@ -661,14 +774,14 @@ class Match(models.Model):
             return None
         if player == self._player1 or player == self._player2:
             self.winner = player
-            self.close_match()
+            self._close_match()
             self.save()
             return self.winner
         else:
-            print("This user is not a player of this match")
+            print("This player is not a player of this match")
             return None
 
-    def close_match(self):
+    def _close_match(self):
         self._open = False
 
     def get_winner(self):
@@ -679,7 +792,7 @@ class Match(models.Model):
 
     def return_winner(self):
         if not self._open and self._winner:
-            return self._winner.full_name()
+            return self._winner.user.full_name()
         else:
             print("Match still open or winner not yet determined")
 
@@ -706,3 +819,31 @@ class EliminationRoundMatch(Match):
         return winner
 
     objects = EliminationRoundMatchManager()
+
+
+class SmallPoolPhaseMatchManager(MatchManager):
+
+    def create_small_pool_match(self, tournament, player1, player2, pool):
+        match = super().create_match(tournament, player1, player2)
+        match.pool = pool
+        match.save(using=self._db)
+        return match
+
+
+class SmallPoolPhaseMatch(Match):
+    small_pool = models.ForeignKey(SmallPool, on_delete=models.CASCADE, related_name="small_pool_matches")
+
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+
+    def enter_result(self, result, winner=None):
+        if result:
+            true_winner = super(SmallPoolPhaseMatch, self).enter_winner(winner)
+            if true_winner is None:
+                print("Not valid")
+            else:
+                true_winner.update_points(1)
+        else:
+            super(SmallPoolPhaseMatch, self).enter_draw()
+
+    objects = SmallPoolPhaseMatchManager()
