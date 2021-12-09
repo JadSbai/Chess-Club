@@ -2,14 +2,14 @@
 {% block content %}
 <div class="container">
   <div class="row">
-    <div class="col-12">
-      <h1 class="mb-5">Sign up</h1>
+    <div class="col-sm-12 col-md-8 offset-md-2">
+      <h1 class="mb-3 mt-3">Sign Up</h1>
       <form action="{% url 'sign_up' %}" method="post">
         {% csrf_token %}
         {% include 'partials/bootstrap_form.html' with form=form %}
-          <div class="container d-flex justify-content-center">
-        <input type="submit" value="Sign up" class="btn btn-primary mb-5">
-          </div>
+        <div class="container d-flex justify-content-center">
+            <input type="submit" value="Sign Up" class="btn btn-primary">
+        </div>
       </form>
     </div>
   </div>

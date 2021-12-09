@@ -1,7 +1,6 @@
 """Forms for the chessclubs app."""
 from django import forms
 from django.forms.widgets import DateInput
-import datetime
 from django.core.validators import RegexValidator
 from .models import User, Club, Tournament
 
