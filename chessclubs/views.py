@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
+from django.urls import reverse
 
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
 from .models import User, Club, Tournament
@@ -435,10 +436,10 @@ def show_tournament(request,  club_name, tournament_name):
     is_participant = tournament.is_participant(request.user)
     is_co_organiser = tournament.is_co_organiser(request.user)
     is_organiser = tournament.is_organiser(request.user)
-    current_date = datetime.date.today()
-    print(current_date)
+    current_date = timezone.now()
     return render(request, 'show_tournament.html',
-                  {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club, 'is_participant': is_participant, 'is_co_organiser': is_co_organiser, 'is_organiser':is_organiser, 'current_date':current_date })
+                  {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club, 'is_participant': is_participant,
+                   'is_co_organiser': is_co_organiser, 'is_organiser':is_organiser, 'current_date':current_date})
 
 
 @login_required
@@ -446,18 +447,14 @@ def show_tournament(request,  club_name, tournament_name):
 def apply_tournament(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     target_user = request.user
-    club = Club.objects.get(name=club_name)
-    user_status = club.user_status(request.user)
     tournament.add_participant(target_user)
+    return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
-    return redirect('landing_page')
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 def withdraw_tournament(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     target_user = request.user
-    club = Club.objects.get(name=club_name)
-    user_status = club.user_status(request.user)
     tournament.remove_participant(target_user)
-    return redirect('landing_page')
+    return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
