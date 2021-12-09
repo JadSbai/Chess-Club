@@ -131,7 +131,7 @@ class TournamentForm(forms.ModelForm):
         model = Tournament
         fields = ['name', 'description', 'deadline', 'location', 'max_capacity']
         widgets = {
-            'deadline': DateInput(attrs={'type': 'date'}),
+            'deadline': forms.DateInput(attrs={'type': 'date'}),
             'description': forms.Textarea(),
             'max_capacity': forms.TextInput(attrs={'min': '2', 'max': '96', 'type': 'number', 'placeholder': 'Choose a value between 2 and 96'}),
         }
@@ -142,6 +142,7 @@ class TournamentForm(forms.ModelForm):
         super().save(commit=False)
         tournament = Tournament.objects.create(
             name=self.cleaned_data.get('name'),
+            description=self.cleaned_data.get('description'),
             deadline=self.cleaned_data.get('deadline'),
             location=self.cleaned_data.get('location'),
             max_capacity=self.cleaned_data.get('max_capacity'),

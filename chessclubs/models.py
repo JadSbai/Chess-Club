@@ -408,6 +408,7 @@ def validate_tournament_deadline(value):
 
 class Tournament(models.Model):
     """Model for representing  a club tournament"""
+
     name = models.CharField(max_length=50, blank=False, unique=True)
     description = models.CharField(max_length=240)
     location = models.CharField(max_length=50, blank=False)
