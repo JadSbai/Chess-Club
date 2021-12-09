@@ -27,7 +27,6 @@ class PasswordFormTestCase(TestCase):
         password_confirmation_field = form.fields['password']
         self.assertTrue(isinstance(password_confirmation_field.widget, forms.PasswordInput))
 
-
     def test_valid_form(self):
         form = PasswordForm(data=self.form_input)
         self.assertTrue(form.is_valid())
