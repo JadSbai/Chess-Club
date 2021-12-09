@@ -22,11 +22,15 @@
             </div>
         <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
                 <b>Co-Organisers</b><br>
-                {{ tournament.participants_list }}
+                {% for co_organiser in co_organisers %}
+                  {{co_organiser.full_name}}
+                {% endfor%}
             </div>
             <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
                 <b>Participants</b><br>
-                {{ tournament.participants_list }}
+                {% for participant in participants %}
+                  {{participant.full_name}}
+                {% endfor%}
             </div>
 
          {% if current_date < tournament.deadline %}
