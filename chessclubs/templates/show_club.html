@@ -1,67 +1,71 @@
 {% extends 'base_content.html' %}
 {% block body %}
-    {% include 'partials/navbar.html' with request=request%}
-  {% include 'partials/second_navbar.html' with request=request club=club%}
-  {% include 'partials/messages.html' %}
+    {% include 'partials/navbar.html' with request=request %}
+    {% include 'partials/second_navbar.html' with request=request club=club %}
+    {% include 'partials/messages.html' %}
 {% block content %}
 <div class="container fluid">
-  <div class="container d-flex justify-content-center">
-    <div class="container-fluid content">
-      <div class="profile-text">
-        <h3 class="profile-title">{{ club.name }}</h3>
-      </div>
-      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
-        <b>Description</b><br>
-        {{ club.description }}<br>
-      </div>
-      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
-        <b>Location</b><br>
-        {{ club.location }}<br>
-      </div>
-      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
-        <b>Statistics</b><br>
-        Number of members: {{ club.member_count }}<br>
-      </div>
-      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
-        <b>Club Owner</b><br>
-        <img src="{{ club.get_club_owner.gravatar }}" alt="Gravatar of {{ club.get_club_owner.full_name }}" class="rounded-circle"/><br>
-        {{ club.get_club_owner.full_name }}<br>
-        {{ club.get_club_owner.bio }}<br>
-      </div>
-      {% if user_status == 'authenticated_non_member_user'  %}
-      <div class="container d-flex justify-content-center mt-3">
-        <a href="{% url 'apply_club' club_name=club.name %}"  class="btn btn-outline-info">Apply to this club</a>
-      </div>
-          {% else %}
-          <div class="container d-flex justify-content-center mt-5">
-              <h5>For this club, your current status is :<strong> {{user_status}}</strong></h5>
-          </div>
-      {%endif%}
-        {% if user_status == "officer" or user_status == "owner" %}
-             <div class="container d-flex justify-content-center mt-3">
-            <a href="{% url 'create_tournament' club_name=club.name %}"  class="btn btn-outline-info">Create new tournament</a>
+    <div class="container d-flex justify-content-center">
+        <div class="container-fluid content">
+            <h1 class="mb-3 mt-2">{{ club.name }}</h1>
+            <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
+                <b>Description</b><br>
+                {{ club.description }}
             </div>
-    {% endif %}
-        {% if user_status == 'officer' or user_status == 'member' %}
-            <div class="container d-flex justify-content-center mt-3">
-        <a href="{% url 'leave' club_name=club.name %}"  class="btn btn-outline-danger" onclick="return leaveConfirmation()">Leave this club</a>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
+                <b>Location</b><br>
+                {{ club.location }}
             </div>
-        {% endif %}
-
-        <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
-          <b>Tournaments </b><br>
-          <table class="table">
-            <tr> <th> Name </th> <th> Deadline </th> <th> </th> </tr>
-              {% for tournament in tournaments %}
-                <tr>
-                  <td><a class = "btn btn-outline-primary" href="{% url 'show_tournament' tournament_name=tournament.name club_name=club.name%}">{{ tournament.name }}</a></td>
-                  <td>{{ tournament.deadline }}</td>
-                </tr>
-              {% endfor%}
-          </table>
-        </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
+                <b>Statistics</b><br>
+                Number of members: {{ club.member_count }}<br>
+            </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
+                <div class="row">
+                    <b>Club Owner</b><br>
+                    <div class="col-2">
+                        <img src="{{ club.get_club_owner.gravatar }}" alt="Gravatar of {{ club.get_club_owner.full_name }}" class="rounded-circle"/>
+                    </div>
+                    <div class="col-10">
+                        <i>{{ club.get_club_owner.full_name }}</i><br>
+                        {{ club.get_club_owner.bio }}
+                    </div>
+                </div>
+            </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
+                {% if user_status == 'authenticated_non_member_user'  %}
+                    <div class="d-flex justify-content-center mb-2">
+                        <a href="{% url 'apply_club' club_name=club.name %}" class="btn btn-outline-dark">Apply to this club</a>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-center">
+                        <h6>In this club, your current status is:<strong> {{ user_status }}</strong>.</h6>
+                    </div>
+                {%endif%}
+                {% if user_status == 'officer' or user_status == 'owner' %}
+                    <div class="d-flex justify-content-center mb-2">
+                        <a href="{% url 'create_tournament' club_name=club.name %}" class="btn btn-outline-dark">Create a new tournament</a>
+                    </div>
+                {% endif %}
+                {% if user_status == 'officer' or user_status == 'member' %}
+                    <div class="d-flex justify-content-center mb-2">
+                        <a href="{% url 'leave' club_name=club.name %}"  class="btn btn-outline-danger" onclick="return leaveConfirmation()">Leave this club</a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
+                <b>Tournaments</b><br>
+                <table class="table">
+                    <tr><th>Name</th><th>Deadline</th></tr>
+                    {% for tournament in tournaments %}
+                        <tr>
+                            <td><a class = "btn btn-outline-primary" href="{% url 'show_tournament' tournament_name=tournament.name club_name=club.name%}">{{ tournament.name }}</a></td>
+                            <td>{{ tournament.deadline }}</td>
+                        </tr>
+                    {% endfor%}
+                </table>
+            </div>
     </div>
-  </div>
 </div>
 {% endblock %}
 {% endblock %}

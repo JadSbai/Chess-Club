@@ -11,8 +11,7 @@ from notifications.utils import slug2id
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
 from .models import User, Club, Tournament
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required
-from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
-    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
+from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 

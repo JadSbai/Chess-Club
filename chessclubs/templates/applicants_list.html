@@ -7,10 +7,9 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1>Applicants</h1>
-    <br>
+      <h1 class="mb-3 mt-3">Applicants</h1>
     {% if count == 0 %}
-        <p>There is currently no application</p>
+        <p><i>There are currently no applications.</i></p>
     {% endif %}
       <table class="table">
         {% for applicant in applicants%}
