@@ -34,17 +34,17 @@
             </div>
 
          {% if current_date < tournament.deadline %}
-{% if user_status == 'member' and  not is_participant and not is_organiser and not is_co_organiser%}
-<div class="container d-flex justify-content-center mt-3">
-  <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}"  class="btn btn-outline-info">Apply to this tournament</a>
-</div>
-{% endif%}
-{% if user_status == 'member' and is_participant %}
-<div class="container d-flex justify-content-center mt-3">
-  <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
-</div>
-{%endif%}
-{%endif%}
+          {% if user_status == 'member' and  not is_participant and not is_organiser and not is_co_organiser%}
+            <div class="container d-flex justify-content-center mt-3">
+              <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}"  class="btn btn-outline-info">Apply to this tournament</a>
+            </div>
+          {% endif%}
+          {% if user_status == 'member' and is_participant %}
+          <div class="container d-flex justify-content-center mt-3">
+            <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
+          </div>
+          {%endif%}
+          {%endif%}
 
         </div>
     </div>

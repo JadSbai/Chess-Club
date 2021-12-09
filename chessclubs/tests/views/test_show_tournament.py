@@ -64,7 +64,7 @@ class ShowTournamentViewTestCase(TestCase):
 
     def test_owner_can_see_tournament_page(self):
         self.client.login(email=self.club.owner.email, password='Password123')
-        self.group_tester.make_officer(self.user)
+        #self.group_tester.make_officer(self.user)
         response = self.client.get(self.url, follow=True)
         self.assertEqual(response.status_code, 200)
         messages_list = list(response.context['messages'])
