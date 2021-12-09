@@ -10,24 +10,52 @@ class ClubFormTestCase(TestCase):
 
     def setUp(self):
         self.user = User.objects.get(email="johndoe@example.org")
+        self.form_input = {
+            'name': 'Test Club',
+            'description': 'This is a short description of the club',
+            'location': 'London',
+        }
 
     def test_valid_club_form(self):
-        input={'name': 'y'*40, 'description': 'x'*200, 'location': 'z'*20}
-        form = ClubForm(data=input)
+        form = ClubForm(data=self.form_input)
         self.assertTrue(form.is_valid())
 
-    def test_too_long_name_is_invalid(self):
-        input = {'name': 'y' * 70, 'description': 'x' * 200, 'location': 'z' * 20}
-        form = ClubForm(data=input)
+    def test_form_uses_model_validation(self):
+        self.form_input['name'] = 'y' * 60
+        form = ClubForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
-    def test_too_long_description_is_invalid(self):
-        input = {'name': 'y' * 40, 'description': 'x' * 700, 'location': 'z' * 20}
-        form = ClubForm(data=input)
-        self.assertFalse(form.is_valid())
+    def test_form_has_necessary_fields(self):
+        form = ClubForm()
+        self.assertIn('name', form.fields)
+        self.assertIn('description', form.fields)
+        description_widget = form.fields['description'].widget
+        self.assertTrue(isinstance(description_widget, forms.Textarea))
+        self.assertIn('location', form.fields)
 
-    def test_too_long_location_is_invalid(self):
-        input = {'name': 'y' * 40, 'description': 'x' * 200, 'location': 'z' * 70}
-        form = ClubForm(data=input)
-        self.assertFalse(form.is_valid())
+    def test_form_must_save_correctly(self):
+        form = ClubForm(data=self.form_input)
+        before_count = Club.objects.count()
+        form.save(self.user)
+        after_count = Club.objects.count()
+        self.assertEqual(after_count, before_count+1)
+        club = Club.objects.get(name='Test Club')
+        self.assertEqual(club.description, 'This is a short description of the club')
+        self.assertEqual(club.location, 'London')
+        self.assertEqual(club.owner, self.user)
+        self.assertEqual(club.member_count(), 1)
 
+    # def test_too_long_name_is_invalid(self):
+    #     input = {'name': 'y' * 70, 'description': 'x' * 200, 'location': 'z' * 20}
+    #     form = ClubForm(data=input)
+    #     self.assertFalse(form.is_valid())
+    #
+    # def test_too_long_description_is_invalid(self):
+    #     input = {'name': 'y' * 40, 'description': 'x' * 700, 'location': 'z' * 20}
+    #     form = ClubForm(data=input)
+    #     self.assertFalse(form.is_valid())
+    #
+    # def test_too_long_location_is_invalid(self):
+    #     input = {'name': 'y' * 40, 'description': 'x' * 200, 'location': 'z' * 70}
+    #     form = ClubForm(data=input)
+    #     self.assertFalse(form.is_valid())

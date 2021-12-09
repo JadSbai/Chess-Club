@@ -9,7 +9,7 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1>Members of club {{ club.name }}</h1>
+      <h1 class="mb-3 mt-3">Members of Club</h1>
     <br>
       <table class="table">
         {% for user in users %}
@@ -26,7 +26,7 @@
             <td><h6>{{ club|user_status:user }}</h6></td>
           </tr>
             {% endif %}
-        {% endfor%}
+        {% endfor %}
       </table>
     </div>
   </div>

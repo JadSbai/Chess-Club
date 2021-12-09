@@ -1,37 +1,49 @@
 {% extends 'base_content.html' %}
 {% block body %}
-    {% include 'partials/navbar.html' with request=request%}
-    {% include 'partials/second_navbar.html' with request=request club=club%}
+    {% include 'partials/navbar.html' with request=request %}
+    {% include 'partials/second_navbar.html' with request=request club=club %}
     {% include 'partials/messages.html' %}
 {% block content %}
 <div class="container fluid">
-  <div class="container d-flex justify-content-center">
-    <div class="container-fluid content">
-      <div class="profile-text">
-        <h3 class="profile-title">{{ tournament.name }}</h3>
-      </div>
-      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
-        <b>Deadline</b><br>
-        {{ tournament.deadline }}<br>
-      </div>
-      <div class="container mt-3 border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
-        <b>Maximum caapacity</b><br>
-        {{ tournament.max_capacity }}<br>
-      </div>
-      {%if current_date < tournament.deadline %}
-      {% if user_status == 'member' and  not is_participant and not is_organiser and not is_co_organiser%}
-      <div class="container d-flex justify-content-center mt-3">
-        <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}"  class="btn btn-outline-info">Apply to this tournament</a>
-      </div>
-      {% endif%}
-      {% if user_status == 'member' and is_participant %}
-      <div class="container d-flex justify-content-center mt-3">
-        <a href="{% url 'withdraw_tournament' tournament_name=tournament.name club_name=club.name %}"  class="btn btn-outline-info">withdraw from tournament</a>
-      </div>
-      {%endif%}
-      {%endif%}
+    <div class="container d-flex justify-content-center">
+        <div class="container-fluid content">
+            <h1 class="mb-3 mt-3">{{ tournament.name }}</h1>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
+                <b>Deadline</b><br>
+                {{ tournament.deadline }}
+            </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
+                <b>Maximum Capacity</b><br>
+                {{ tournament.max_capacity }}
+            </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
+                <b>Organiser</b><br>
+                {{ tournament.organiser.full_name }}
+            </div>
+        <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
+                <b>Co-Organisers</b><br>
+                {{ tournament.participants_list }}
+            </div>
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
+                <b>Participants</b><br>
+                {{ tournament.participants_list }}
+            </div>
+
+         {% if current_date < tournament.deadline %}
+{% if user_status == 'member' and  not is_participant and not is_organiser and not is_co_organiser%}
+<div class="container d-flex justify-content-center mt-3">
+  <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}"  class="btn btn-outline-info">Apply to this tournament</a>
+</div>
+{% endif%}
+{% if user_status == 'member' and is_participant %}
+<div class="container d-flex justify-content-center mt-3">
+  <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
+</div>
+{%endif%}
+{%endif%}
+
+        </div>
     </div>
-  </div>
 </div>
 {%endblock%}
 {%endblock%}
