@@ -2,9 +2,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import User, Club, Tournament
-from django.contrib import messages
 from chessclubs.tests.helpers import ClubGroupTester, TournamentGroupTester, reverse_with_next
-from django.core.exceptions import ObjectDoesNotExist
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class WithdrawTournamentTestCase(TestCase):
@@ -17,15 +15,13 @@ class WithdrawTournamentTestCase(TestCase):
                 ]
 
     def setUp(self):
-        self.club = Club.objects.get(name="Test_Club") # club
-        self.club_owner = User.objects.get(email='johndoe@example.org') # clubs owner john doe
-        self.user = User.objects.get(email='janedoe@example.org') # get a jane member and make it a club member
+        self.club = Club.objects.get(name="Test_Club")
+        self.club_owner = User.objects.get(email='johndoe@example.org')
+        self.user = User.objects.get(email='janedoe@example.org')
         self.group_tester = ClubGroupTester(self.club)
         self.tournament = Tournament.objects.get(name="Test_Tournament")
         self.tournament_tester = TournamentGroupTester(self.tournament)
-
         self.client.login(email=self.user.email, password='Password123')
-
         self.url = reverse('withdraw_tournament', kwargs={'club_name': self.club.name, 'tournament_name': self.tournament.name})
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
