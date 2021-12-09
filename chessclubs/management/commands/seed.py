@@ -86,6 +86,7 @@ class Command(BaseCommand):
                 continue
 
         for club in Command.SPECIFIC_CLUBS_LIST:
+            self._assign_random_users_to_club_groups(club)
             self._assign_existing_users_to_non_logged_in_group(club)
         print(f'Seeding complete: {club_count} clubs and {user_count} users')
 

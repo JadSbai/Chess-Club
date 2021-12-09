@@ -381,6 +381,5 @@ def search_user(request, club_name):
             dic[user.last_name.lower()] = user
         print(user_names)
         found_users = generate_corresponding_names(user_names, user_searched, dic)
-    return redirect('user_list', club_name=club_name)
-
-
+    # return redirect('user_list', club_name=club_name)
+    return render(request, 'user_list.html', {'user_names': user_names})
