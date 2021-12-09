@@ -15,6 +15,9 @@ from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
+from django.utils import timezone
+import datetime
+
 
 @login_required
 def my_profile(request):
@@ -429,6 +432,32 @@ def show_tournament(request,  club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     club = Club.objects.get(name=club_name)
     user_status = club.user_status(request.user)
-
+    is_participant = tournament.is_participant(request.user)
+    is_co_organiser = tournament.is_co_organiser(request.user)
+    is_organiser = tournament.is_organiser(request.user)
+    current_date = datetime.date.today()
+    print(current_date)
     return render(request, 'show_tournament.html',
-                  {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club})
+                  {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club, 'is_participant': is_participant, 'is_co_organiser': is_co_organiser, 'is_organiser':is_organiser, 'current_date':current_date })
+
+
+@login_required
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+def apply_tournament(request, club_name, tournament_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    target_user = request.user
+    club = Club.objects.get(name=club_name)
+    user_status = club.user_status(request.user)
+    tournament.add_participant(target_user)
+
+    return redirect('landing_page')
+
+@login_required
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+def withdraw_tournament(request, club_name, tournament_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    target_user = request.user
+    club = Club.objects.get(name=club_name)
+    user_status = club.user_status(request.user)
+    tournament.remove_participant(target_user)
+    return redirect('landing_page')

@@ -8,30 +8,27 @@
     <div class="container d-flex justify-content-center">
         <div class="container-fluid content">
             <h1 class="mb-3 mt-3">{{ tournament.name }}</h1>
-            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed ">
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
                 <b>Deadline</b><br>
                 {{ tournament.deadline }}
             </div>
-            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
                 <b>Maximum Capacity</b><br>
                 {{ tournament.max_capacity }}
             </div>
-            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
                 <b>Organiser</b><br>
                 {{ tournament.organiser.full_name }}
             </div>
-        <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+        <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7">
                 <b>Co-Organisers</b><br>
-                {% for co_organiser in co_organisers %}
-                {{ co_organiser.as_p }}
-                {% endfor %}
+                {{ tournament.participants_list }}
             </div>
-            <div class="container border border-light py-3" style="border-width: 2px; background-color: #bae1f7 ">
+            <div class="container border border-light py-3" style="border-width: 2px; background-color: #80c5ed">
                 <b>Participants</b><br>
-                {% for participant in participants %}
-                {{ participants.as_p }}
-                {% endfor %}
+                {{ tournament.participants_list }}
             </div>
+
         </div>
     </div>
 </div>
