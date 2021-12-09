@@ -4,6 +4,7 @@
     "pk": 2,
     "fields": {
       "name": "Test_Tournament2",
+      "description": "Short description",
       "location": "London",
       "max_capacity": 10,
       "deadline": "2024-04-08 11:30+00:00",
