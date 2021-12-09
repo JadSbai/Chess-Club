@@ -409,6 +409,7 @@ def validate_tournament_deadline(value):
 class Tournament(models.Model):
     """Model for representing  a club tournament"""
     name = models.CharField(max_length=50, blank=False, unique=True)
+    description = models.CharField(max_length=240)
     location = models.CharField(max_length=50, blank=False)
     max_capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
     deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])

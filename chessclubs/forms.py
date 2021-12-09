@@ -1,10 +1,9 @@
 """Forms for the chessclubs app."""
-from datetime import timedelta
-
 from django import forms
+from django.forms.widgets import DateInput
+import datetime
 from django.core.validators import RegexValidator
 from .models import User, Club, Tournament
-from django.utils import timezone
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
@@ -131,11 +130,12 @@ class TournamentForm(forms.ModelForm):
 
     class Meta:
         model = Tournament
-        fields = ['name', 'deadline', 'location', 'max_capacity']
-
-    widgets = {
-        'deadline': forms.DateTimeField(required=True, input_formats=['%d/%m/%Y %H:%M']),
-    }
+        fields = ['name', 'description', 'deadline', 'location', 'max_capacity']
+        widgets = {
+            'deadline': DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(),
+            'max_capacity': forms.TextInput(attrs={'min': '2', 'max': '96', 'type': 'number', 'placeholder': 'Choose a value between 2 and 96'}),
+        }
 
     def save(self, organiser, club):
         """Create a new tournament."""
