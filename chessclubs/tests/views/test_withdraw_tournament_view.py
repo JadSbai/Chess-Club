@@ -31,17 +31,20 @@ class WithdrawTournamentTestCase(TestCase):
     def test_club_members_can_withdraw_from_tournament(self):
         self.group_tester.make_member(self.user)
         self.tournament_tester.make_participant(self.user)
+        self.assertEqual(self.club.user_status(self.user), "member")
         self.client.get(self.url, follow=True)
         self.assertFalse(self.tournament.is_participant(self.user))
 
     def test_club_officers_can_withdraw_from_tournament(self):
         self.group_tester.make_officer(self.user)
+        self.assertEqual(self.club.user_status(self.user), "officer")
         self.tournament_tester.make_participant(self.user)
         self.client.get(self.url, follow=True)
         self.assertFalse(self.tournament.is_participant(self.user))
 
     def test_club_owner_can_withdraw_from_tournament(self):
         self.tournament_tester.make_participant(self.club_owner)
+        self.assertEqual(self.club.user_status(self.club_owner), "owner")
         self.client.get(self.url, follow=True)
         self.assertFalse(self.tournament.is_participant(self.club_owner))
 
