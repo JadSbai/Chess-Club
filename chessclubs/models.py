@@ -480,6 +480,14 @@ class Tournament(models.Model):
         self.add_to_participants_group(member)
         return new_player
 
+    def go_to_elimination_round(self, players):
+        self.elimination_round, created = EliminationRounds.objects.get_or_create(_tournament=self)
+        self.elimination_round.add_players(players)
+        self.elimination_round.set_phase()
+        schedule = self.elimination_round.generate_schedule()
+        self._current_phase = "Elimination-Rounds"
+        self.save()
+
     def remove_participant(self, member):
         self.players.remove(self.__player_instance_of_user(member))
         self.remove_from_participants_group(member)
@@ -683,16 +691,16 @@ class EliminationRounds(models.Model):
     _tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="elimination_round")
     phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eighth-Final", blank=False)
     _open = models.BooleanField(default=True)
-    _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_elimination_rounds",
-                                default=None,
-                                blank=True)
+    _winner = models.OneToOneField(Player, on_delete=models.CASCADE, null=True, related_name="won_elimination_rounds",
+                                   default=None,
+                                   blank=True)
 
     def set_phase(self):
-        if 16 >= self._players.count() >= 9:
+        if 16 >= self.EL_players.count() >= 9:
             self.phase = "Eighth-Final"
-        elif 8 >= self._players.count() >= 5:
+        elif 8 >= self.EL_players.count() >= 5:
             self.phase = "Quarter-Final"
-        elif 4 >= self._players.count() >= 3:
+        elif 4 >= self.EL_players.count() >= 3:
             self.phase = "Semi-Final"
         else:
             self.phase = "Final"
@@ -700,13 +708,13 @@ class EliminationRounds(models.Model):
 
     def add_players(self, new_players):
         for player in new_players:
-            self._players.add(player)
+            self.EL_players.add(player)
 
     def remove_player(self, player):
-        self._players.remove(player)
+        self.EL_players.remove(player)
 
     def remove_all_players(self):
-        self._players.all().delete()
+        self.EL_players.all().delete()
 
     def enter_winner(self, player, match):
         if self._open:
@@ -730,10 +738,10 @@ class EliminationRounds(models.Model):
             self.generate_schedule()
 
     def number_of_players(self):
-        return self._players.count()
+        return self.EL_players.count()
 
     def get_players(self):
-        return self._players.all()
+        return self.EL_players.all()
 
     def clean_schedule(self):
         self.schedule.all().delete()
@@ -742,12 +750,12 @@ class EliminationRounds(models.Model):
         if self.phase == "Final":
             self.generate_matches(1)
         elif self.phase == "Semi-Final":
-            if self._players.count() == 3:
+            if self.EL_players.count() == 3:
                 self.generate_matches(1)
             else:
                 self.generate_matches(2)
         elif self.phase == "Quarter-Final":
-            count = self._players.count()
+            count = self.EL_players.count()
             if count == 5:
                 self.generate_matches(2)
             elif count == 6 or count == 7:
@@ -755,7 +763,7 @@ class EliminationRounds(models.Model):
             elif count == 8:
                 self.generate_matches(4)
         else:
-            count = self._players.count()
+            count = self.EL_players.count()
             if count == 9:
                 self.generate_matches(4)
             elif count == 10 or count == 11:
@@ -997,6 +1005,13 @@ class Match(models.Model):
 
     def get_winner(self):
         return self._winner
+
+    def get_loser(self):
+        if self._winner:
+            if self._winner == self._player1:
+                return self._player2
+            else:
+                return self._player1
 
     def is_open(self):
         return self._open
