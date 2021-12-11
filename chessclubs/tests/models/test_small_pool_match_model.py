@@ -12,6 +12,7 @@ class SmallPoolMatchModelTestCase(TestCase):
                 'chessclubs/tests/fixtures/default_tournament.json',
                 'chessclubs/tests/fixtures/default_player.json',
                 'chessclubs/tests/fixtures/other_players.json',
+                'chessclubs/tests/fixtures/default_elimination_round.json',
                 'chessclubs/tests/fixtures/default_small_pool_phase.json',
                 'chessclubs/tests/fixtures/default_small_pool.json',
                 'chessclubs/tests/fixtures/default_match.json',

@@ -54,7 +54,7 @@ def tournament_permissions_required(perms_list):
                     if not request.user.has_tournament_perm(perm, tournament):
                         if perm == 'chessclubs.withdraw':
                             generate_withdraw_messages(request, tournament, target_user)
-                            redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+                            return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
                         else:
                             messages.add_message(request, messages.WARNING,
                                                  "Permission denied! You don't have the necessary tournament permission(s)")
@@ -73,6 +73,8 @@ def generate_withdraw_messages(request, tournament, target_user):
                              "You are the organiser of this tournament. "
                              "You cannot apply and withdraw from your own tournaments.")
     else:
+        # print(tournament.user_status(target_user))
+        print(tournament.check_user(target_user))
         messages.add_message(request, messages.WARNING,
                              "You are not a participant of this tournament.")
 
@@ -96,6 +98,6 @@ def must_be_non_participant(view_function):
                                      "You are the organiser of this tournament. You cannot apply.")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             else:
-                return view_function(request)
+                return view_function(request, *args, **kwargs)
 
     return modified_view_function

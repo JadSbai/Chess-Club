@@ -4,7 +4,10 @@
     "pk": 2,
     "fields": {
       "user": 3,
-      "tournament": 1
+      "tournament": 1,
+      "_small_pool_phase": 1,
+      "_elimination_round": 1,
+      "_small_pool": 1
     }
   },
 
@@ -13,7 +16,10 @@
     "pk": 3,
     "fields": {
       "user": 4,
-      "tournament": 1
+      "tournament": 1,
+      "_small_pool_phase": 1,
+      "_elimination_round": 1,
+      "_small_pool": 1
     }
   },
 
@@ -22,7 +28,10 @@
     "pk": 4,
     "fields": {
       "user": 5,
-      "tournament": 1
+      "tournament": 1,
+      "_small_pool_phase": 1,
+      "_elimination_round": 1,
+      "_small_pool": 1
     }
   }
 ]
