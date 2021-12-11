@@ -676,13 +676,13 @@ class SmallPoolPhase(models.Model):
         groups_of_4 = 0
         groups_of_3 = 0
         if remainder == 0:
-            groups_of_4 = number_of_players / 4
+            groups_of_4 = number_of_players // 4
         elif remainder == 1:
             groups_of_3 = 3
-            groups_of_4 = (number_of_players - 9) / 4
+            groups_of_4 = (number_of_players - 9) // 4
         elif remainder == 2:
             groups_of_3 = 2
-            groups_of_4 = (number_of_players - 6) / 4
+            groups_of_4 = (number_of_players - 6) // 4
         else:
             groups_of_3 = 1
             groups_of_4 = (number_of_players - 3) / 4
@@ -693,11 +693,21 @@ class SmallPoolPhase(models.Model):
         self.create_small_pools(groups_of_3, groups_of_4)
         return self.pools_schedule.all()
 
+    def __assign_matches_to_pools(self):
+        for pool in self.pools_schedule.all():
+            pool.create_matches()
+
 
 class SmallPool(models.Model):
     _players = models.ManyToManyField(Player, related_name="my_small_pools")
     _small_pool_phase = models.ForeignKey(SmallPoolPhase, on_delete=models.CASCADE, related_name="pools_schedule")
-    _all_matches_played = models.BooleanField(default=False)
+    all_matches_played = models.BooleanField(default=False)
+
+    def get_players_count(self):
+        return self._players.count()
+
+    def get_players(self):
+        return self._players.all()
 
     def add_players(self, players):
         for player in players:
@@ -766,6 +776,12 @@ class Match(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_matches")
 
     objects = MatchManager()
+
+    def get_player1(self):
+        return self._player1
+
+    def get_player2(self):
+        return self._player2
 
     def enter_winner(self, player):
         if not self._open:
