@@ -22,7 +22,7 @@ class TournamentViewTestCase(TestCase):
         self.group_tester.make_officer(self.user2)
         self.client.login(email=self.user2.email, password='Password123')
         self.url = reverse('create_tournament', kwargs={'club_name': self.club.name})
-        self.data = {'name': 'y'*40, 'location': 'x'*40, 'max_capacity':20, 'deadline':(timezone.now()+timezone.timedelta(days=1))}
+        self.data = {'name': 'y'*40, 'location': 'x'*40, 'max_capacity':20, 'deadline': (timezone.now()+timezone.timedelta(days=1))}
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
     def test_view_create_tournament_url(self):

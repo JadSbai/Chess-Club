@@ -15,6 +15,7 @@ from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner
     notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
+from django.utils import timezone
 
 
 @login_required
@@ -423,16 +424,22 @@ def leave(request, club_name):
     return redirect('landing_page')
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.appy_to_tournament'])
 def show_tournament(request,  club_name, tournament_name):
-    tournament = Tournament.objects.get(name=tournament_name)
-    club = Club.objects.get(name=club_name)
-    user_status = club.user_status(request.user)
-    return render(request, 'show_tournament.html',
-                  {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club})
-
-def temporary(request, club_name, tournament_name):
-    tournament = Tournament.objects.get(name=tournament_name)
+    try:
+        tournament = Tournament.objects.get(name=tournament_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
+        return redirect('show_club', club_name=club_name)
+    else:
+        club = Club.objects.get(name=club_name)
+        user_status = club.user_status(request.user)
+        for member in club.members.all():
+            if member != club.owner:
+                tournament.add_participant(member)
+        tournament.start_tournament()
+        return render(request, 'show_tournament.html',
+                      {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club})
 
 
 

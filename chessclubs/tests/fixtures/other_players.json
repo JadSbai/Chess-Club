@@ -1,0 +1,28 @@
+[
+  {
+    "model": "chessclubs.player",
+    "pk": 2,
+    "fields": {
+      "user": 3,
+      "tournament": 1
+    }
+  },
+
+  {
+    "model": "chessclubs.player",
+    "pk": 3,
+    "fields": {
+      "user": 4,
+      "tournament": 1
+    }
+  },
+
+  {
+    "model": "chessclubs.player",
+    "pk": 4,
+    "fields": {
+      "user": 5,
+      "tournament": 1
+    }
+  }
+]

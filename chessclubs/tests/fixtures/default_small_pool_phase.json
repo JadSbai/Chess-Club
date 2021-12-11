@@ -1,0 +1,10 @@
+[
+  {
+    "model": "chessclubs.smallpoolphase",
+    "pk": 1,
+    "fields": {
+      "tournament": 1,
+      "_players": [1,2,3,4]
+    }
+  }
+]
