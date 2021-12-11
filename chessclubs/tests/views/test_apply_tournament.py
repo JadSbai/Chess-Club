@@ -1,5 +1,4 @@
 """Tests of apply to the tournament view."""
-
 from django.contrib import messages
 from chessclubs.models import User, Club, Tournament
 from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next, TournamentGroupTester
@@ -18,14 +17,13 @@ class ApplyTournamentViewTestCase(TestCase):
                 ]
 
     def setUp(self):
-        self.user = User.objects.get(email='johndoe@example.org')
-        self.member = User.objects.get(email='janedoe@example.org')
         self.club = Club.objects.get(name="Test_Club")
-        self.group_tester = ClubGroupTester(self.club)
-        #self.group_tester.make_officer(self.user2)
+        self.club_owner = User.objects.get(email='johndoe@example.org') # also tournament organiser
+        self.user = User.objects.get(email='janedoe@example.org')
         self.tournament = Tournament.objects.get(name="Test_Tournament")
+        self.group_tester = ClubGroupTester(self.club)
         self.tournament_tester = TournamentGroupTester(self.tournament)
-        self.client.login(email=self.member.email, password='Password123')
+        self.client.login(email=self.user.email, password='Password123')
         self.url = reverse('apply_tournament', kwargs={'club_name': self.club.name, 'tournament_name': self.tournament.name})
         self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
 
@@ -33,42 +31,55 @@ class ApplyTournamentViewTestCase(TestCase):
     def test_view_apply_tournament_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/tournament/{self.tournament.name}/apply/')
 
-    def test_members_can_apply(self):
-        self.group_tester.make_member(self.member)
-        #self.tournament_tester.make_participant(self.user2)
-        response = self.client.get(self.url, follow=True)
-        self.assertTrue(self.tournament.is_participant(self.member))
+    def test_club_members_can_apply(self):
+        # self.group_tester.make_member(self.user)
+        # response = self.client.get(self.url, follow=True)
+        # self.assertTrue(self.tournament.is_participant(self.member))
+        pass
 
-    def test_organiser_cannot_apply(self):
-        self.client.login(email=self.user.email, password='Password123')
-        self.tournament_tester.make_organiser(self.user)
-        response = self.client.get(self.url, follow=True)
-        self.assertFalse(self.tournament.is_participant(self.user))
+    def test_club_officers_can_apply(self):
+        # self.group_tester.make_officer(self.member)
+        # response = self.client.get(self.url, follow=True)
+        # self.assertTrue(self.tournament.is_participant(self.member))
+        pass
 
-    # def test_co_organiser_cannot_apply(self):
+    def test_club_owner_can_apply(self):
+    #     self.client.login(email=self.club_owner.email, password='Password123')
+    #     response = self.client.get(self.url, follow=True)
+    #     self.assertTrue(self.tournament.is_participant(self.club.owner))
+        pass
+
+    def test_co_organiser_can_apply(self):
     #     self.client.login(email=self.user.email, password='Password123')
     #     self.tournament_tester.make_organiser(self.user)
     #     response = self.client.get(self.url, follow=True)
     #     self.assertFalse(self.tournament.is_participant(self.user))
+        pass
 
-    # def test_authinticated_non_members_cannot_apply(self):
+    def test_organiser_cannot_apply(self):
+        # self.client.login(email=self.club_owner.email, password='Password123')
+        # response = self.client.get(self.url, follow=True)
+        # self.assertFalse(self.tournament.is_participant(self.user))
+        pass
+
+    def test_non_members_cannot_apply(self):
     #     self.client.login(email=self.user.email, password='Password123')
     #     self.group_tester.make_authenticated_non_member(self.user)
     #     response = self.client.get(self.url, follow=True)
     #     self.assertFalse(self.tournament.is_participant(self.user))
+        pass
+
+    def test_can_apply_before_deadline(self):
+        pass
+
+    def test_cannot_apply_after_deadline(self):
+        pass
+
+    def cannot_apply_if_exceeds_maximum_capacity(self):
+        pass
 
     def test_non_logged_in_redirects(self):
         self.client.logout()
         response = self.client.get(self.url)
         redirect_url = reverse_with_next('log_in',reverse('apply_tournament', kwargs={'club_name': self.club.name, 'tournament_name': self.tournament.name}))
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-
-    def test_officer_can_apply(self):
-        self.group_tester.make_officer(self.member)
-        response = self.client.get(self.url, follow=True)
-        self.assertTrue(self.tournament.is_participant(self.member))
-
-    def test_owner_can_apply(self):
-        self.client.login(email=self.club.owner.email, password='Password123')
-        response = self.client.get(self.url, follow=True)
-        self.assertTrue(self.tournament.is_participant(self.club.owner))
