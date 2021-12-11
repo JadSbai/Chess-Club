@@ -9,7 +9,7 @@ from notifications.models import Notification
 from notifications.utils import slug2id
 from django.urls import reverse
 
-from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
+from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, EditClubInformationForm
 from .models import User, Club, Tournament
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
@@ -320,6 +320,34 @@ def create_club(request):
     else:
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
+
+@login_required
+def edit_club(request, club_name):
+    current_club = Club.objects.get(name=club_name)
+    if request.method == 'POST':
+        form = EditClubInformationForm(instance=current_club, data=request.POST)
+        if form.is_valid():
+            messages.add_message(request, messages.SUCCESS, "Club information updated!")
+            form.save()
+            return redirect('show_club', club_name=club_name)
+        else:
+            return render(request, 'edit_club_info.html', {'form': form})
+    else:
+        form = EditClubInformationForm(instance=current_club)
+        return render(request, 'edit_club_info.html', {'form': form, 'club': current_club})
+
+@login_required
+def change_profile(request):
+    current_user = request.user
+    if request.method == 'POST':
+        form = UserForm(instance=current_user, data=request.POST)
+        if form.is_valid():
+            messages.add_message(request, messages.SUCCESS, "Profile updated!")
+            form.save()
+            return redirect('my_profile')
+    else:
+        form = UserForm(instance=current_user)
+    return render(request, 'change_profile.html', {'form': form})
 
 
 @login_required

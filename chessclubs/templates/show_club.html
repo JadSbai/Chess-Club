@@ -44,7 +44,7 @@
               {% endif %}
               {% if user_status == 'owner' %}
                   <div class="d-flex justify-content-center mb-2">
-                      <a href="#" class="btn btn-outline-dark">Edit club info</a>
+                      <a href="{% url 'edit_club' club_name=club.name %}" class="btn btn-outline-dark">Edit club info</a>
                   </div>
               {% endif %}
               {% if user_status == 'officer' or user_status == 'member' %}
