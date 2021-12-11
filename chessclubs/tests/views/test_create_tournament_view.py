@@ -1,4 +1,5 @@
 from django.contrib import messages
+
 from chessclubs.models import User, Club, Tournament
 from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next
 from django.test import TestCase
@@ -7,7 +8,7 @@ from chessclubs.forms import TournamentForm
 from django.utils import timezone
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
-class TournamentViewTestCase(TestCase):
+class CreateTournamentViewTestCase(TestCase):
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json'
@@ -43,13 +44,12 @@ class TournamentViewTestCase(TestCase):
         self.assertEqual(tournament_count_after, tournament_count_before + 1)
         new_tournament = Tournament.objects.last()
         self.assertEqual(self.user, new_tournament.organiser)
-        # response_url = reverse('') Update URL
-        # self.assertRedirects(
-        #     response, response_url,
-        #     status_code=302, target_status_code=200,
-        #     fetch_redirect_response=True
-        # )
-        # UPDATE THE TESTS
+        response_url = reverse('show_tournament', kwargs={'club_name': self.club.name, 'tournament_name': new_tournament.name})
+        self.assertRedirects(
+            response, response_url,
+            status_code=302, target_status_code=200,
+            fetch_redirect_response=True
+        )
 
     def test_unsuccessful_new_tournament(self):
         self.client.login(email=self.user.email, password='Password123')
@@ -133,3 +133,8 @@ class TournamentViewTestCase(TestCase):
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.WARNING)
+
+
+
+
+

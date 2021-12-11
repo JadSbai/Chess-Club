@@ -19,6 +19,8 @@ class TournamentModelTestCase(TestCase):
     def setUp(self):
         super(TestCase, self).setUp()
         self.tournament = Tournament.objects.get(name="Test_Tournament")
+        # self.tournament.deadline = timezone.now()
+        # self.tournament.start_tournament()
         self.second_tournament = Tournament.objects.get(name="Test_Tournament2")
 
     def test_organiser_must_not_be_blank(self):
@@ -72,6 +74,18 @@ class TournamentModelTestCase(TestCase):
     def test_deadline_cannot_be_blank(self):
         self.tournament.deadline = ""
         self._assert_tournament_is_invalid()
+
+    def test_current_phase_cannot_be_blank(self):
+        self.tournament._set_current_phase("")
+        self._assert_tournament_is_invalid()
+
+    def test_current_phase_must_be_among_choices(self):
+        self.tournament._set_current_phase("bad_choice")
+        self._assert_tournament_is_invalid()
+
+    def test_successful_change_current_phase(self):
+        self.tournament._set_current_phase("Small-Pool-Phase")
+        self._assert_tournament_is_valid()
 
     def _assert_tournament_is_valid(self):
         try:

@@ -86,6 +86,7 @@ class Command(BaseCommand):
                 continue
 
         for club in Command.SPECIFIC_CLUBS_LIST:
+            self._assign_random_users_to_club_groups(club)
             self._assign_existing_users_to_non_logged_in_group(club)
         print(f'Seeding complete: {club_count} clubs and {user_count} users')
 
@@ -141,11 +142,10 @@ class Command(BaseCommand):
     def _assign_random_users_to_club_groups(self, club):
         GROUP_CHOICES = club.get_seeder_groups()
         for user in Command.RANDOM_USERS_LIST:
-            group=random.choice(GROUP_CHOICES)
+            group = random.choice(GROUP_CHOICES)
             if user == club.owner:
                 continue
             elif group == "applicant":
-                club.members.add(user)
                 club.add_to_applicants_group(user)
             elif group == "officer":
                 club.members.add(user)
@@ -154,7 +154,8 @@ class Command(BaseCommand):
                 club.add_member(user)
             elif group == "logged_in_non_member":
                 club.add_to_logged_in_non_members_group(user)
-            else: print("No group assigned")
+            else:
+                print("No group assigned")
 
     def _assign_existing_users_to_non_logged_in_group(self, club):
         for user in User.objects.all():

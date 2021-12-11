@@ -1,6 +1,7 @@
 """Models in the chessclubs app."""
-from django.contrib import auth
 
+from django.contrib import auth
+import random
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -307,15 +308,15 @@ class Club(models.Model):
         apply_to_club, created = ClubPermission.objects.get_or_create(club=self,
                                                                       base_permission=apply_to_club_perm)
         ban, created = ClubPermission.objects.get_or_create(club=self,
-                                                                      base_permission=ban_perm)
+                                                            base_permission=ban_perm)
         leave, created = ClubPermission.objects.get_or_create(club=self,
-                                                            base_permission=leave_perm)
+                                                              base_permission=leave_perm)
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                            base_permission=tournament_perm)
+                                                                          base_permission=tournament_perm)
         apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=apply_tournament_perm)
+                                                                         base_permission=apply_tournament_perm)
         withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=withdraw_tournament_perm)
+                                                                            base_permission=withdraw_tournament_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -418,22 +419,111 @@ def validate_tournament_deadline(value):
 
 class Tournament(models.Model):
     """Model for representing  a club tournament"""
+    _PHASE_CHOICES = [
+        ('Elimination-Rounds', 'Elimination-Rounds'),
+        ('Small-Pool-Phase', 'Small-Pool-Phase'),
+        ('Large-Pool-Phase', 'Large-Pool-Phase'),
+    ]
 
     name = models.CharField(max_length=50, blank=False, unique=True)
     description = models.CharField(max_length=240, blank=False)
     location = models.CharField(max_length=50, blank=False)
-    max_capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
+    max_capacity = models.IntegerField(default=2, validators=[
+        MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),
+        MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
     deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="all_tournaments")
-    participants = models.ManyToManyField(User, related_name="tournaments")
+    _current_phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Elimination-Rounds", blank=False)
+    _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_tournaments", default=None,
+                                blank=True)
+    _started = models.BooleanField(default=False)
+    _finished = models.BooleanField(default=False)
+
+    def add_participant(self, member):
+        new_player = Player.objects.create(user=member, tournament=self)
+        self.players.add(new_player)
+        self.add_to_participants_group(member)
+        return new_player
+
+    def remove_participant(self, member):
+        self.players.remove(self.__player_instance_of_user(member))
+        self.remove_from_participants_group(member)
+
+    def add_co_organiser(self, officer):
+        if officer in self.__co_organisers_group().user_set.all():
+            print("You are already a co_organiser")
+        elif officer == self.organiser:
+            print("The organiser cannot be a co_organiser")
+        else:
+            self.co_organisers.add(officer)
+            self.add_to_co_organisers_group(officer)
+
+    def user_status(self, user):
+        if user == self.organiser:
+            return "organiser"
+        elif user in self.co_organisers:
+            return "co_organiser"
+        elif self.__player_instance_of_user(user):
+            return "participant"
+        else:
+            return "non_participant"
+
+    def remove_co_organiser(self, member):
+        self.co_organisers.remove(member)
+        self.remove_from_organisers_group(member)
+
+    def start_tournament(self):
+        if timezone.now() >= self.deadline:
+            self._started = True
+            schedule = self.launch()
+            self.save()
+            return schedule
+        else:
+            print("The deadline is not yet passed")
+
+    def launch(self):
+        if 2 <= self.players.count() <= 16:
+            self._current_phase = "Elimination-Rounds"
+            self.elimination_round = EliminationRounds.objects.get_or_create(_tournament=self)
+            self.elimination_round.add_players(self.players)
+            schedule = self.elimination_round.generate_schedule()
+        elif 16 < self.players.count() <= 32:
+            self._current_phase = "Small-Pool-Phase"
+            self.small_pool_phase, created = SmallPoolPhase.objects.get_or_create(tournament=self)
+            self.small_pool_phase.add_players(self.players.all())
+            schedule = self.small_pool_phase.generate_schedule()
+        else:
+            self._current_phase = "Large-Pool-Phase"
+            schedule = None
+
+        return schedule
+
+    def has_started(self):
+        return self._started
+
+    def _set_current_phase(self, phase):
+        self._current_phase = phase
+        self.save()
+
+    def announce_winner(self, winner):
+        self._winner = winner.user
+        self._finished = True
+        self.save()
+        # Close the tournament so no more actions are allowed
 
     def participants_list(self):
-        return self.participants.all()
+        return self.players.all()
 
     def is_participant(self, member):
-        return member in self.participants.all()
+        return self.__player_instance_of_user(member) is not None
+
+    def __player_instance_of_user(self, member):
+        for player_profile in member.player_profiles.all():
+            if player_profile in self.players.all():
+                return player_profile
+        return None
 
     def is_organiser(self, member):
         return member == self.organiser
@@ -442,10 +532,10 @@ class Tournament(models.Model):
         return member in self.co_organisers.all()
 
     def is_max_capacity_reached(self):
-        return self.participants.count() == self.max_capacity
+        return self.players.count() == self.max_capacity
 
     def is_min_capacity_attained(self):
-        return self.participants.count() == TOURNAMENT_MIN_CAPACITY
+        return self.players.count() == TOURNAMENT_MIN_CAPACITY
 
     def co_organisers_list(self):
         return self.co_organisers.all()
@@ -454,35 +544,28 @@ class Tournament(models.Model):
         participants_group, created = Group.objects.get_or_create(name=f"{self.name}_participants")
         return participants_group
 
-    def __organisers_group(self):
-        participants_group, created = Group.objects.get_or_create(name=f"{self.name}_organisers")
+    def __co_organisers_group(self):
+        participants_group, created = Group.objects.get_or_create(name=f"{self.name}_co_organisers")
         return participants_group
 
     def add_to_participants_group(self, user):
         self.__participants_group().user_set.add(user)
 
-    def add_participant(self, member):
-        self.participants.add(member)
-        self.add_to_participants_group(member)
-
-    def remove_participant(self, member):
-        self.participants.remove(member)
-        self.remove_from_participants_group(member)
-
-    def add_to_organisers_group(self, user):
-        self.__organisers_group().user_set.add(user)
+    def add_to_co_organisers_group(self, user):
+        self.__co_organisers_group().user_set.add(user)
 
     def remove_from_participants_group(self, user):
         self.__participants_group().user_set.remove(user)
 
     def remove_from_organisers_group(self, user):
-        self.__organisers_group().user_set.remove(user)
+        self.__co_organisers_group().user_set.remove(user)
 
     def assign_tournament_permissions_and_groups(self):
         # Get the base permissions from the Tournament model Meta class
         play_matches_perm = Permission.objects.get(codename="play_matches")
         enter_match_results_perm = Permission.objects.get(codename="enter_match_results")
         see_tournament_private_info_perm = Permission.objects.get(codename="see_tournament_private_info")
+        withdraw_perm = Permission.objects.get(codename="withdraw")
 
         # Create the club-specific permissions using the TournamentPermission Model
         play_matches, created = TournamentPermission.objects.get_or_create(tournament=self,
@@ -491,16 +574,19 @@ class Tournament(models.Model):
                                                                                   base_permission=enter_match_results_perm)
         see_tournament_private_info, created = TournamentPermission.objects.get_or_create(tournament=self,
                                                                                           base_permission=see_tournament_private_info_perm)
+        withdraw, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                       base_permission=withdraw_perm)
 
         # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
-        groups = [self.__participants_group()]
+        groups = [self.__participants_group(), self.__co_organisers_group()]
         play_matches.set_groups(groups)
-        groups = [self.__participants_group(), self.__organisers_group()]
+        withdraw.set_groups(groups)
         see_tournament_private_info.set_groups(groups)
-        org_group = self.__organisers_group()
-        org_group.user_set.add(self.organiser)
-        groups = [self.__organisers_group()]
+        groups = [self.__co_organisers_group()]
         enter_match_results.set_groups(groups)
+        # Permissions specific to the organiser of the tournament
+        enter_match_results.add_user(self.organiser)
+        see_tournament_private_info.add_user(self.organiser)
 
     class Meta:
         """Set of base permissions associated with tournaments"""
@@ -508,12 +594,12 @@ class Tournament(models.Model):
             ("play_matches", "Can play matches"),
             ("enter_match_results", "Can enter match results"),
             ("see_tournament_private_info", "Can see tournament private info"),
+            ("withdraw", "Can withdraw"),
         ]
 
 
 class TournamentPermission(models.Model):
     """A permission that is valid for a specific tournament."""
-
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     base_permission = models.ForeignKey(
         Permission, on_delete=models.CASCADE, related_name="tournament_permission"
@@ -547,3 +633,381 @@ def _user_has_tournament_perm(user, perm, tournament):
         except PermissionDenied:
             return False
     return False
+
+
+class Player(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_profiles")
+    tournament = models.ForeignKey(Tournament, on_delete=models.SET_NULL, related_name="players", null=True)
+    _points = models.FloatField(validators=[MinValueValidator(float(0.0))], default=float(0.0))
+
+    def get_points(self):
+        return self._points
+
+    def win(self):
+        self._points += float(1.0)
+        self.save()
+
+    def draw(self):
+        self._points += float(0.5)
+        self.save()
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "tournament"])]
+        unique_together = ["user", "tournament"]
+        ordering = ['-_points']
+
+
+class EliminationRounds(models.Model):
+    """Model for Elimination rounds of the tournament"""
+    _PHASE_CHOICES = [
+        ('Final', 'Final'),
+        ('Semi-Final', 'Semi-Final'),
+        ('Quarter-Final', 'Quarter_Final'),
+        ('Eighth-Final', 'Eighth-Final'),
+    ]
+    _tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="elimination_round")
+    _players = models.ManyToManyField(Player, related_name="elimination_rounds")
+    phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Eighth-Final", blank=False)
+    _open = models.BooleanField(default=True)
+    _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_elimination_rounds",
+                                default=None,
+                                blank=True)
+
+    def set_phase(self):
+        if 16 >= self._players.count() >= 9:
+            self.phase = "Eighth-Final"
+        elif 8 >= self._players.count() >= 5:
+            self.phase = "Quarter-Final"
+        elif 4 >= self._players.count() >= 3:
+            self.phase = "Semi-Final"
+        else:
+            self.phase = "Final"
+        self.save()
+
+    def add_players(self, new_players):
+        for player in new_players:
+            self._players.add(player)
+
+    def remove_player(self, player):
+        self._players.remove(player)
+
+    def remove_all_players(self):
+        self._players.all().delete()
+
+    def enter_winner(self, player, match):
+        winner = match.enter_winner(player)
+        if self.phase == "Final" and winner:
+            self._winner = winner
+            self._open = False
+            self.save()
+            self._tournament.announce_winner(winner)
+        else:
+            print("Invalid entry")
+
+    def number_of_players(self):
+        return self._players.count()
+
+    def get_players(self):
+        return self._players.all()
+
+    def clean_schedule(self):
+        self.schedule.all().delete()
+
+    def generate_schedule(self):
+        if self.phase == "Final":
+            self.generate_matches(1)
+        elif self.phase == "Semi-Final":
+            if self._players.count() == 3:
+                self.generate_matches(1)
+            else:
+                self.generate_matches(2)
+        elif self.phase == "Quarter-Final":
+            count = self._players.count()
+            if count == 5:
+                self.generate_matches(2)
+            elif count == 6 or count == 7:
+                self.generate_matches(3)
+            elif count == 8:
+                self.generate_matches(4)
+        else:
+            count = self._players.count()
+            if count == 9:
+                self.generate_matches(4)
+            elif count == 10 or count == 11:
+                self.generate_matches(5)
+            elif count == 12 or count == 13:
+                self.generate_matches(6)
+            elif count == 14 or count == 15:
+                self.generate_matches(7)
+            else:
+                self.generate_matches(8)
+
+        return self.schedule.all()
+
+    def generate_matches(self, num):
+        i = 0
+        counter = 0
+        while counter < num:
+            new_match = EliminationMatch.objects.create_elimination_match(player1=self._players.all()[i],
+                                                                          player2=self._players.all()[i + 1],
+                                                                          tournament=self._tournament,
+                                                                          elimination_round=self)
+            self.schedule.add(new_match)
+            i += 2
+            counter += 1
+
+
+class SmallPoolPhase(models.Model):
+    tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="small_pool_phase")
+    _qualified_players = models.ManyToManyField(Player, related_name="won_SPPhases")
+    _players = models.ManyToManyField(Player, related_name="my_SPPhases")
+
+    def add_players(self, players):
+        for player in players:
+            self._players.add(player)
+
+    def add_qualified_players(self, qualified_players):
+        for player in qualified_players:
+            self._qualified_players.add(player)
+        self.save()
+
+    def get_players(self):
+        return self._players.all()
+
+    def get_players_count(self):
+        return self._players.count()
+
+    def get_pool_of_player(self, player):
+        for pool in self.pools_schedule.all():
+            if pool in player.my_small_pools.all():
+                return pool
+
+    def __create_small_pools(self, groups_of_3, groups_of_4):
+
+        not_yet_selected_players = {0}
+        not_yet_selected_players.remove(0)
+        not_yet_selected_players.update(self._players.all())
+
+        for i in range(groups_of_4):
+            new_pool = SmallPool.objects.create(_small_pool_phase=self)
+            pool_players = random.sample(not_yet_selected_players, 4)
+            for player in pool_players:
+                not_yet_selected_players.remove(player)
+            new_pool.add_players(pool_players)
+
+        for i in range(groups_of_3):
+            new_pool = SmallPool.objects.create(_small_pool_phase=self)
+            pool_players = random.sample(not_yet_selected_players, 3)
+            for player in pool_players:
+                not_yet_selected_players.remove(player)
+            new_pool.add_players(pool_players)
+
+    def generate_schedule(self):
+        number_of_players = self._players.count()
+        remainder = number_of_players % 4
+        groups_of_4 = 0
+        groups_of_3 = 0
+        if remainder == 0:
+            groups_of_4 = number_of_players // 4
+        elif remainder == 1:
+            groups_of_3 = 3
+            groups_of_4 = (number_of_players - 9) // 4
+        elif remainder == 2:
+            groups_of_3 = 2
+            groups_of_4 = (number_of_players - 6) // 4
+        else:
+            groups_of_3 = 1
+            groups_of_4 = (number_of_players - 3) // 4
+
+        if self.pools_schedule.count() != groups_of_4 + groups_of_3:
+            self.__create_small_pools(groups_of_3, groups_of_4)
+            self.__assign_matches_to_pools()
+        return self.pools_schedule.all()
+
+    def __assign_matches_to_pools(self):
+        for pool in self.pools_schedule.all():
+            pool.create_matches()
+
+
+class SmallPool(models.Model):
+    _players = models.ManyToManyField(Player, related_name="my_small_pools")
+    _small_pool_phase = models.ForeignKey(SmallPoolPhase, on_delete=models.CASCADE, related_name="pools_schedule")
+    all_matches_played = models.BooleanField(default=False)
+
+    def get_players_count(self):
+        return self._players.count()
+
+    def get_players(self):
+        return self._players.all()
+
+    def add_players(self, players):
+        for player in players:
+            if player not in self._small_pool_phase.get_players():
+                raise ValidationError("One of the players is not part of the tournament")
+        for player in players:
+            if player not in self._players.all():
+                self._players.add(player)
+        self.save()
+
+    def create_matches(self):
+        for i in range(self._players.count()):
+            for j in range(i + 1, self._players.count()):
+                player1 = self._players.all()[i]
+                player2 = self._players.all()[j]
+                new_match = SmallPoolMatch.objects.create_small_pool_match(player1=player1, player2=player2,
+                                                                           tournament=self._small_pool_phase.tournament,
+                                                                           pool=self)
+                self.small_pool_matches.add(new_match)
+                self.save()
+
+    def enter_result(self, match, result, winner=None):
+        match.enter_result(result, winner)
+        self._are_all_matches_played()
+        if self.all_matches_played:
+            self.__set_qualified_players()
+
+    def _are_all_matches_played(self):
+        self.all_matches_played = all(not m.is_open() for m in self.small_pool_matches.all())
+        self.save()
+
+    def __set_qualified_players(self):
+        qualified_players = self.__get_qualified_players()
+        self._small_pool_phase.add_qualified_players(qualified_players)
+
+    def __get_qualified_players(self):
+        return [self._players.all()[0], self._players.all()[1]]
+
+
+class MatchManager(models.Manager):
+    """Custom user manager used for creation of users and superusers"""
+
+    def create_match(self, tournament, player1, player2):
+        """Create a match according to User model"""
+        if not tournament:
+            raise ValueError("Match must be part of a tournament")
+        if not player2:
+            raise ValueError("Match must have a player2")
+        if not player1:
+            raise ValueError("Match must have a player1")
+        if player2 == player1:
+            raise ValueError("Players of a match must be distinct")
+        if player1 == tournament.organiser or player2 == tournament.organiser:
+            raise ValueError("The organiser cannot play matches")
+
+        match = self.model()
+        match._player1 = player1
+        match._player2 = player2
+        match.tournament = tournament
+        return match
+
+
+class Match(models.Model):
+    _player1 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="matches")
+    _player2 = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="my_matches")
+    _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_matches", default=None,
+                                blank=True)
+    _open = models.BooleanField(default=True)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_matches")
+
+    objects = MatchManager()
+
+    def get_player1(self):
+        return self._player1
+
+    def get_player2(self):
+        return self._player2
+
+    def enter_winner(self, player):
+        if not self._open:
+            raise ValidationError("This match is closed")
+        if player == self._player1 or player == self._player2:
+            self._winner = player
+            self.__close_match()
+            self.save()
+            return self._winner
+        else:
+            raise ValueError("This player is not a player of this match")
+
+    def enter_draw(self):
+        if not self._open:
+            raise ValidationError("This match is closed")
+        else:
+            self.__close_match()
+            self.save()
+
+    def __close_match(self):
+        self._open = False
+
+    def get_winner(self):
+        return self._winner
+
+    def is_open(self):
+        return self._open
+
+    def return_winner(self):
+        if not self._open and self._winner is not None:
+            return self._winner.user.full_name()
+        else:
+            raise ValidationError("Match still open or winner not yet determined")
+
+
+class EliminationMatchManager(MatchManager):
+
+    def create_elimination_match(self, tournament, player1, player2, elimination_round):
+        match = super().create_match(tournament, player1, player2)
+        match.elimination_round = elimination_round
+        match.save(using=self._db)
+        return match
+
+
+class EliminationMatch(Match):
+    elimination_round = models.ForeignKey(EliminationRounds, on_delete=models.CASCADE, related_name="schedule")
+
+    def enter_winner(self, player):
+        winner = super(EliminationMatch, self).enter_winner(player)
+        if winner is not None:
+            self.elimination_round.remove_player(player)
+        return winner
+
+    objects = EliminationMatchManager()
+
+
+class SmallPoolMatchManager(MatchManager):
+
+    def create_small_pool_match(self, tournament, player1, player2, pool):
+        match = super().create_match(tournament, player1, player2)
+        match.small_pool = pool
+        match.save(using=self._db)
+        return match
+
+
+class SmallPoolMatch(Match):
+    small_pool = models.ForeignKey(SmallPool, on_delete=models.CASCADE, related_name="small_pool_matches")
+
+    def enter_result(self, result, winner=None):
+        if result:
+            self.__enter_winner(winner)
+        else:
+            self.__enter_draw_result()
+
+    def __enter_winner(self, winner):
+        true_winner = super(SmallPoolMatch, self).enter_winner(winner)
+        self.__set_win_points(true_winner)
+
+    def __enter_draw_result(self):
+        super(SmallPoolMatch, self).enter_draw()
+        self.__set_draw_points()
+
+    def __set_draw_points(self):
+        self._player1.draw()
+        self._player2.draw()
+        self.save()
+
+    def __set_win_points(self, player):
+        if player == self._player1:
+            self._player1.win()
+        else:
+            self._player2.win()
+        self.save()
+
+    objects = SmallPoolMatchManager()
