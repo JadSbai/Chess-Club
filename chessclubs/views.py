@@ -452,13 +452,21 @@ def show_tournament(request, club_name, tournament_name):
 def apply_tournament(request, club_name, tournament_name):
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    # TODO: Deadline constraints, maximum capacity reached constraints
-    if tournament.is_participant(target_user):
-        messages.add_message(request, messages.WARNING, "You are already a participant.")
-    elif tournament.is_organiser(target_user):
-        messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. You cannot apply.")
+    if tournament.deadline > timezone.now():
+        if not tournament.is_max_capacity_reached():
+            if tournament.is_participant(target_user):
+                messages.add_message(request, messages.WARNING, "You are already a participant.")
+            elif tournament.is_organiser(target_user):
+                messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. You cannot apply.")
+            else:
+                tournament.add_participant(target_user)
+        else:
+            messages.add_message(request, messages.WARNING, "Maximum capacity of participants is reached. "
+                                                            "Come back next time.")
     else:
-        tournament.add_participant(target_user)
+        messages.add_message(request, messages.WARNING, "You cannot apply after the deadline.")
+
+
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
 
@@ -467,12 +475,15 @@ def apply_tournament(request, club_name, tournament_name):
 def withdraw_tournament(request, club_name, tournament_name):
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    # TODO: Deadline constraints, maximum capacity reached constraints
-    if tournament.is_participant(target_user):
-        tournament.remove_participant(target_user)
-    elif tournament.is_organiser(target_user):
-        messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. "
-                                                        "You cannot apply and withdraw from your own tournaments.")
-    elif not tournament.is_participant(target_user):
-        messages.add_message(request, messages.WARNING, "You are not a participant of this tournament.")
+    if tournament.deadline > timezone.now():
+        if tournament.is_participant(target_user):
+            tournament.remove_participant(target_user)
+        elif tournament.is_organiser(target_user):
+            messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. "
+                                                            "You cannot apply and withdraw from your own tournaments.")
+        elif not tournament.is_participant(target_user):
+            messages.add_message(request, messages.WARNING, "You are not a participant of this tournament.")
+    else:
+        messages.add_message(request, messages.WARNING, "You cannot withdraw after the deadline.")
+
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)

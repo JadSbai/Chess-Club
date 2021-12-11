@@ -39,7 +39,7 @@
                 There are no participants.
                 {% endif %}
                 {% for participant in participants %}
-                  {{ participant.full_name }}
+                {{ participant.full_name }}
                 {% endfor %}
               </p>
 
@@ -54,7 +54,11 @@
                 If you change your mind, you can withdraw any time before the deadline.
                 <hr>
                 {% if not is_participant %}
+                {% if not tournament.is_max_capacity_reached %}
                   <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
+                {% else %}
+                Unfortunately, maximum capacity of participants was reached. Come back next time to see if any spot has freed up.
+                {% endif %}
                 {% else %}
                   <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
                 {% endif %}
