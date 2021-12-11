@@ -435,6 +435,7 @@ def show_tournament(request, club_name, tournament_name):
         messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
         return redirect('show_club', club_name=club_name)
     else:
+        print(tournament.user_status(request.user))
         return render(request, 'show_tournament.html', {'tournament': tournament, 'user': request.user})
 
 

@@ -3,8 +3,7 @@
     "model": "chessclubs.smallpool",
     "pk": 1,
     "fields": {
-      "_small_pool_phase": 1,
-      "_players": [1,2,3,4]
+      "_small_pool_phase": 1
     }
   }
 ]
