@@ -463,7 +463,7 @@ class Tournament(models.Model):
     def user_status(self, user):
         if user == self.organiser:
             return "organiser"
-        elif user in self.co_organisers:
+        elif user in self.co_organisers.all():
             return "co_organiser"
         elif self.__player_instance_of_user(user):
             return "participant"
