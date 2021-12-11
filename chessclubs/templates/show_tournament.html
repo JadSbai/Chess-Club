@@ -1,9 +1,11 @@
 {% extends 'base_content.html' %}
 {% block body %}
     {% include 'partials/navbar.html' with request=request %}
-    {% include 'partials/second_navbar.html' with request=request club=club %}
+    {% include 'partials/second_navbar.html' with request=request club=tournament.club %}
     {% include 'partials/messages.html' %}
+    {% load custom_template_tags %}
 {% block content %}
+    {% current_time as the_time %}
 <div class="container fluid">
     <div class="container d-flex justify-content-center">
         <div class="container-fluid content">
@@ -16,6 +18,7 @@
               <p class="p-2">{{ tournament.description }}</p>
 
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Deadline</h5>
+
               <p class="p-2">{{ tournament.deadline }}</p>
 
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Maximum Capacity</h5>
@@ -26,47 +29,47 @@
 
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Co-Organisers</h5>
               <p class="p-2">
-                {% if not co_organisers %}
+                {% if not tournament.co_organisers_list %}
                 There are no co-organisers.
                 {% endif %}
-                {% for co_organiser in co_organisers %}
+                {% for co_organiser in tournament.co_organisers_list %}
                 {{ co_organiser.full_name }}
                 {% endfor %}
               </p>
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Participants</h5>
               <p class="p-2">
-                {% if not participants %}
+                {% if not tournament.participants_list %}
                 There are no participants.
                 {% endif %}
-                {% for participant in participants %}
-                  {{ participant.full_name }}
+                {% for participant in tournament.participants_list %}
+                  {{ participant.user.full_name }}
                 {% endfor %}
               </p>
 
             </div>
 
-            {% if not is_organiser %}
+            {% if tournament|tournament_user_status:user != "organiser" %}
             <div class="card text-center bg-light m-5">
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Apply</h5>
               <div class="card-body">
-                {% if current_date < tournament.deadline %}
+                {% if the_time < tournament.deadline %}
                 Applications for this tournament are open. You can apply by <b>{{ tournament.deadline }}</b>.<br>
                 If you change your mind, you can withdraw any time before the deadline.
                 <hr>
-                {% if not is_participant %}
-                  <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
+                {% if tournament|tournament_user_status:user != "participant" %}
+                  <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
                 {% else %}
-                  <a href="{% url 'withdraw_tournament' club_name=club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
+                  <a href="{% url 'withdraw_tournament' club_name=tournament.club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
                 {% endif %}
                 {% else %}
+                    <p>
                 Deadline for the applications was <b>{{ tournament.deadline }}</b>.<br />
-                Currently, it is <b>{{ current_date }}</b> <br/>
+                Currently, it is <b>{{ the_time }}</b> <br/>
                 Registration is now closed.</p>
                 {% endif %}
               </div>
             </div>
             {% endif %}
-
         </div>
     </div>
 </div>

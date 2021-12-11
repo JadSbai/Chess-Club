@@ -8,17 +8,14 @@ from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
 from django.urls import reverse
-
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
 from .models import User, Club, Tournament
-from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required
+from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, must_be_non_participant
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from django.utils import timezone
 
-from django.utils import timezone
-import datetime
 
 
 @login_required
@@ -431,7 +428,6 @@ def leave(request, club_name):
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
-#@tournament_permissions_required(perms_list=['chessclubs.see_tournament_private_info'])
 def show_tournament(request, club_name, tournament_name):
     try:
         tournament = Tournament.objects.get(name=tournament_name)
@@ -439,45 +435,26 @@ def show_tournament(request, club_name, tournament_name):
         messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
         return redirect('show_club', club_name=club_name)
     else:
-        club = Club.objects.get(name=club_name)
-        user_status = club.user_status(request.user)
-        is_participant = tournament.is_participant(request.user)
-        is_co_organiser = tournament.is_co_organiser(request.user)
-        is_organiser = tournament.is_organiser(request.user)
-        current_date = timezone.now()
-        participants = tournament.participants_list()
-        co_organisers = tournament.co_organisers_list()
-        return render(request, 'show_tournament.html',
-                      {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club, 'is_participant': is_participant,
-                       'is_co_organiser': is_co_organiser, 'is_organiser':is_organiser, 'current_date':current_date, 'participants': participants, 'co_organisers': co_organisers})
+        return render(request, 'show_tournament.html', {'tournament': tournament, 'user': request.user})
 
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.apply_tournament'])
+@must_be_non_participant
 def apply_tournament(request, club_name, tournament_name):
+    # TODO: Deadline constraints, maximum capacity reached constraints
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    # TODO: Deadline constraints, maximum capacity reached constraints
-    if tournament.is_participant(target_user):
-        messages.add_message(request, messages.WARNING, "You are already a participant.")
-    elif tournament.is_organiser(target_user):
-        messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. You cannot apply.")
-    else:
-        tournament.add_participant(target_user)
+    tournament.add_participant(target_user)
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.withdraw_tournament'])
+@tournament_permissions_required(perms_list=['chessclubs.withdraw'])
 def withdraw_tournament(request, club_name, tournament_name):
+    # TODO: Deadline constraints, maximum capacity reached constraints
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    # TODO: Deadline constraints, maximum capacity reached constraints
-    if tournament.is_participant(target_user):
-        tournament.remove_participant(target_user)
-    elif tournament.is_organiser(target_user):
-        messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. "
-                                                        "You cannot apply and withdraw from your own tournaments.")
-    elif not tournament.is_participant(target_user):
-        messages.add_message(request, messages.WARNING, "You are not a participant of this tournament.")
+    tournament.remove_participant(target_user)
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)

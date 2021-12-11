@@ -22,19 +22,23 @@ class TournamentGroupPermissionsTestCase(TestCase):
         self.player = User.objects.get(email='janedoe@example.org')
         self.group_tester = TournamentGroupTester(self.tournament)
         self.group_tester.make_participant(self.player)
-        self.group_tester.make_organiser(self.co_organiser)
+        self.group_tester.make_co_organiser(self.co_organiser)
 
-    def test_player_can_play_matches(self):
+    def test_participant_can_play_matches(self):
         if not self.player.has_tournament_perm('chessclubs.play_matches', self.tournament):
             self.fail('Participant should be allowed to play matches')
 
-    def test_player_cannot_enter_match_results(self):
+    def test_participant_cannot_enter_match_results(self):
         if self.player.has_tournament_perm('chessclubs.enter_match_results', self.tournament):
             self.fail('Participant should not be allowed to enter match results')
 
-    def test_player_can_see_tournament_private_info(self):
+    def test_participant_can_see_tournament_private_info(self):
         if not self.player.has_tournament_perm('chessclubs.see_tournament_private_info', self.tournament):
             self.fail('Participant should be allowed to see tournament private info')
+
+    def test_participant_can_withdraw(self):
+        if not self.player.has_tournament_perm('chessclubs.withdraw', self.tournament):
+            self.fail('Participant should be able to withdraw')
 
     def test_organiser_cannot_play_matches(self):
         if self.organiser.has_tournament_perm('chessclubs.play_matches', self.tournament):
@@ -48,8 +52,12 @@ class TournamentGroupPermissionsTestCase(TestCase):
         if not self.organiser.has_tournament_perm('chessclubs.see_tournament_private_info', self.tournament):
             self.fail('Organiser should be allowed to see tournament private info')
 
-    def test_co_organiser_cannot_play_matches(self):
-        if self.co_organiser.has_tournament_perm('chessclubs.play_matches', self.tournament):
+    def test_organiser_cannot_withdraw(self):
+        if self.organiser.has_tournament_perm('chessclubs.withdraw', self.tournament):
+            self.fail('Organiser should not be able to withdraw')
+
+    def test_co_organiser_can_play_matches(self):
+        if not self.co_organiser.has_tournament_perm('chessclubs.play_matches', self.tournament):
             self.fail('Co_Organiser should not be allowed to play matches')
 
     def test_co_organiser_can_enter_match_results(self):
@@ -59,3 +67,7 @@ class TournamentGroupPermissionsTestCase(TestCase):
     def test_co_organiser_can_see_tournament_private_info(self):
         if not self.co_organiser.has_tournament_perm('chessclubs.see_tournament_private_info', self.tournament):
             self.fail('Co_Organiser should be allowed to see tournament private info')
+
+    def test_co_organiser_can_withdraw(self):
+        if not self.co_organiser.has_tournament_perm('chessclubs.withdraw', self.tournament):
+            self.fail('Co-organiser should be able to withdraw')

@@ -8,7 +8,7 @@ from chessclubs.forms import TournamentForm
 from django.utils import timezone
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
-class TournamentViewTestCase(TestCase):
+class CreateTournamentViewTestCase(TestCase):
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json'
@@ -44,7 +44,7 @@ class TournamentViewTestCase(TestCase):
         self.assertEqual(tournament_count_after, tournament_count_before + 1)
         new_tournament = Tournament.objects.last()
         self.assertEqual(self.user, new_tournament.organiser)
-        response_url = reverse('landing_page')
+        response_url = reverse('show_tournament', kwargs={'club_name': self.club.name, 'tournament_name': new_tournament.name})
         self.assertRedirects(
             response, response_url,
             status_code=302, target_status_code=200,

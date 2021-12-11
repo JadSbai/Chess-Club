@@ -1,5 +1,6 @@
 from django.urls import reverse
 from chessclubs.models import User
+from django.contrib.auth.models import Group
 
 
 def reverse_with_next(url_name, next_url):
@@ -21,23 +22,27 @@ class ClubGroupTester:
         self.club.assign_club_groups_permissions()
         if self.club.owner not in self.club.members.all():
             self.club.members.add(self.club.owner)
+        self.names = [f"{self.club.name}_members", f"{self.club.name}_applicants",
+                      f"{self.club.name}_denied_applicants",
+                      f"{self.club.name}_officers", f"{self.club.name}_authenticated_non_members",
+                      f"{self.club.name}_accepted_applicants"]
 
     def make_applicant(self, user):
-        user.groups.clear()
+        self.remove_from_other_club_groups(user)
         self.club.add_to_applicants_group(user)
 
     def make_denied_applicant(self, user):
-        user.groups.clear()
+        self.remove_from_other_club_groups(user)
         self.club.add_to_denied_applicants_group(user)
 
     def make_accepted_applicant(self, user):
-        user.groups.clear()
+        self.remove_from_other_club_groups(user)
         self.club.add_to_accepted_applicants_group(user)
 
     def make_member(self, user):
         if user not in self.club.members.all():
             self.club.members.add(user)
-        user.groups.clear()
+        self.remove_from_other_club_groups(user)
         self.club.add_to_members_group(user)
 
     def make_members(self, users):
@@ -47,12 +52,17 @@ class ClubGroupTester:
     def make_officer(self, user):
         if user not in self.club.members.all():
             self.club.members.add(user)
-        user.groups.clear()
+        self.remove_from_other_club_groups(user)
         self.club.add_to_officers_group(user)
 
     def make_authenticated_non_member(self, user):
-        user.groups.clear()
+        self.remove_from_other_club_groups(user)
         self.club.add_to_logged_in_non_members_group(user)
+
+    def remove_from_other_club_groups(self, user):
+        club_groups = Group.objects.filter(name__in=self.names)
+        for group in club_groups:
+            user.groups.remove(group)
 
 
 class TournamentGroupTester:
@@ -61,13 +71,30 @@ class TournamentGroupTester:
     def __init__(self, tournament):
         self.tournament = tournament
         self.tournament.assign_tournament_permissions_and_groups()
+        self.names = [f"{self.tournament.name}_co_organisers", f"{self.tournament.name}_participants"]
 
     def make_participant(self, user):
-        self.tournament.add_to_participants_group(user)
+        if not self.tournament.is_organiser(user):
+            if self.tournament.is_co_organiser(user):
+                self.tournament.remove_co_organiser(user)
+            if not self.tournament.is_participant(user):
+                self.tournament.add_participant(user)
+        else:
+            raise ValueError("The organiser cannot become a participant")
 
-    def make_organiser(self, user):
-        # user.groups.clear()
-        self.tournament.add_to_participants_group(user)
+    def make_co_organiser(self, user):
+        if not self.tournament.is_organiser(user):
+            if self.tournament.is_participant(user):
+                self.tournament.remove_participant(user)
+            if not self.tournament.is_co_organiser(user):
+                self.tournament.add_co_organiser(user)
+        else:
+            raise ValueError("The organiser cannot become a co-organiser")
+
+    def remove_from_other_tournament_groups(self, user):
+        club_groups = Group.objects.filter(name__in=self.names)
+        for group in club_groups:
+            user.groups.remove(group)
 
 
 def _create_test_players(user_count, club, tournament):

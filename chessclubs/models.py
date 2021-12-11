@@ -6,11 +6,9 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
-from django.db.models import F
 from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
-from django.core.exceptions import ObjectDoesNotExist
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
@@ -314,10 +312,11 @@ class Club(models.Model):
         leave, created = ClubPermission.objects.get_or_create(club=self,
                                                               base_permission=leave_perm)
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                            base_permission=tournament_perm)
+                                                                          base_permission=tournament_perm)
         apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=apply_tournament_perm)
+                                                                         base_permission=apply_tournament_perm)
         withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
+                                                                            base_permission=withdraw_tournament_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -443,18 +442,37 @@ class Tournament(models.Model):
     _finished = models.BooleanField(default=False)
 
     def add_participant(self, member):
-        if member in self.__participants_group().user_set.all():
-            print("You have already joined this tournament")
-        elif member == self.organiser:
-            print("The organiser cannot join the ")
-        elif timezone.now() < self.deadline:
-            new_player = Player.objects.create(user=member, tournament=self)
-            self.players.add(new_player)
-            self.add_to_participants_group(member)
-            return new_player
+        new_player = Player.objects.create(user=member, tournament=self)
+        self.players.add(new_player)
+        self.add_to_participants_group(member)
+        return new_player
+
+    def remove_participant(self, member):
+        self.players.remove(self.__player_instance_of_user(member))
+        self.remove_from_participants_group(member)
+
+    def add_co_organiser(self, officer):
+        if officer in self.__co_organisers_group().user_set.all():
+            print("You are already a co_organiser")
+        elif officer == self.organiser:
+            print("The organiser cannot be a co_organiser")
         else:
-            self._started = True
-            print("The tournament has already started")
+            self.co_organisers.add(officer)
+            self.add_to_co_organisers_group(officer)
+
+    def user_status(self, user):
+        if user == self.organiser:
+            return "organiser"
+        elif user in self.co_organisers:
+            return "co_organiser"
+        elif self.__player_instance_of_user(user):
+            return "participant"
+        else:
+            return "non_participant"
+
+    def remove_co_organiser(self, member):
+        self.co_organisers.remove(member)
+        self.remove_from_organisers_group(member)
 
     def start_tournament(self):
         if timezone.now() >= self.deadline:
@@ -499,7 +517,13 @@ class Tournament(models.Model):
         return self.players.all()
 
     def is_participant(self, member):
-        return member in self.participants.all()
+        return self.__player_instance_of_user(member) is not None
+
+    def __player_instance_of_user(self, member):
+        for player_profile in member.player_profiles.all():
+            if player_profile in self.players.all():
+                return player_profile
+        return None
 
     def is_organiser(self, member):
         return member == self.organiser
@@ -520,35 +544,28 @@ class Tournament(models.Model):
         participants_group, created = Group.objects.get_or_create(name=f"{self.name}_participants")
         return participants_group
 
-    def __organisers_group(self):
-        participants_group, created = Group.objects.get_or_create(name=f"{self.name}_organisers")
+    def __co_organisers_group(self):
+        participants_group, created = Group.objects.get_or_create(name=f"{self.name}_co_organisers")
         return participants_group
 
     def add_to_participants_group(self, user):
         self.__participants_group().user_set.add(user)
 
-    def add_participant(self, member):
-        self.participants.add(member)
-        self.add_to_participants_group(member)
-
-    def remove_participant(self, member):
-        self.participants.remove(member)
-        self.remove_from_participants_group(member)
-
-    def add_to_organisers_group(self, user):
-        self.__organisers_group().user_set.add(user)
+    def add_to_co_organisers_group(self, user):
+        self.__co_organisers_group().user_set.add(user)
 
     def remove_from_participants_group(self, user):
         self.__participants_group().user_set.remove(user)
 
     def remove_from_organisers_group(self, user):
-        self.__organisers_group().user_set.remove(user)
+        self.__co_organisers_group().user_set.remove(user)
 
     def assign_tournament_permissions_and_groups(self):
         # Get the base permissions from the Tournament model Meta class
         play_matches_perm = Permission.objects.get(codename="play_matches")
         enter_match_results_perm = Permission.objects.get(codename="enter_match_results")
         see_tournament_private_info_perm = Permission.objects.get(codename="see_tournament_private_info")
+        withdraw_perm = Permission.objects.get(codename="withdraw")
 
         # Create the club-specific permissions using the TournamentPermission Model
         play_matches, created = TournamentPermission.objects.get_or_create(tournament=self,
@@ -557,16 +574,19 @@ class Tournament(models.Model):
                                                                                   base_permission=enter_match_results_perm)
         see_tournament_private_info, created = TournamentPermission.objects.get_or_create(tournament=self,
                                                                                           base_permission=see_tournament_private_info_perm)
+        withdraw, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                       base_permission=withdraw_perm)
 
         # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
-        groups = [self.__participants_group()]
+        groups = [self.__participants_group(), self.__co_organisers_group()]
         play_matches.set_groups(groups)
-        groups = [self.__participants_group(), self.__organisers_group()]
+        withdraw.set_groups(groups)
         see_tournament_private_info.set_groups(groups)
-        org_group = self.__organisers_group()
-        org_group.user_set.add(self.organiser)
-        groups = [self.__organisers_group()]
+        groups = [self.__co_organisers_group()]
         enter_match_results.set_groups(groups)
+        # Permissions specific to the organiser of the tournament
+        enter_match_results.add_user(self.organiser)
+        see_tournament_private_info.add_user(self.organiser)
 
     class Meta:
         """Set of base permissions associated with tournaments"""
@@ -574,12 +594,12 @@ class Tournament(models.Model):
             ("play_matches", "Can play matches"),
             ("enter_match_results", "Can enter match results"),
             ("see_tournament_private_info", "Can see tournament private info"),
+            ("withdraw", "Can withdraw"),
         ]
 
 
 class TournamentPermission(models.Model):
     """A permission that is valid for a specific tournament."""
-
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     base_permission = models.ForeignKey(
         Permission, on_delete=models.CASCADE, related_name="tournament_permission"
@@ -617,7 +637,7 @@ def _user_has_tournament_perm(user, perm, tournament):
 
 class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_profiles")
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="players")
+    tournament = models.ForeignKey(Tournament, on_delete=models.SET_NULL, related_name="players", null=True)
     _points = models.FloatField(validators=[MinValueValidator(float(0.0))], default=float(0.0))
 
     def get_points(self):

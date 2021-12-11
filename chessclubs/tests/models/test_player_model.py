@@ -53,3 +53,18 @@ class PlayerModelTestCase(TestCase):
         self.assertTrue(players[2], self.player2)
         self.assertTrue(players[3], self.player)
 
+    def test_tournament_can_be_null(self):
+        new_player = Player.objects.create(user=self.user, tournament=self.tournament)
+        self.tournament.remove_participant(self.user)
+        self._assert_player_is_valid(new_player)
+
+    def _assert_player_is_valid(self, player):
+        try:
+            player.full_clean()
+        except ValidationError:
+            self.fail('Test match should be valid')
+
+    def _assert_player_is_invalid(self, player):
+        with self.assertRaises(ValidationError):
+            player.full_clean()
+
