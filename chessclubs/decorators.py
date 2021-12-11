@@ -55,6 +55,3 @@ def tournament_permissions_required(perms_list):
                 return view_func(request, *args, **kwargs)
         return wrapped
     return wrapper
-
-
-

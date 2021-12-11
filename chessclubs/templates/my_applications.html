@@ -3,13 +3,12 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1>My applications</h1>
-    <br>
+      <h1 class="mb-3 mt-3">My applications</h1>
     {% if count == 0 %}
-        <p>You currently have no application undergoing</p>
+        <p><i>You currently have no application undergoing.</i></p>
     {% endif %}
       <table class="table">
-      {% for accepted_application in accepted_applications%}
+      {% for accepted_application in accepted_applications %}
           <tr>
               <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=accepted_application.name %}">{{ accepted_application.name }}</a></td>
               <td><p style="color:green;"> <strong>Notice: </strong>Your application has been accepted</p></td>
@@ -19,13 +18,13 @@
         {% for application in applications%}
           <tr>
               <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=application.name %}">{{ application.name }}</a></td>
-              <td><p style="color:sandybrown;"><strong>Notice: </strong>Your application is now under review</p></td>
+              <td><p style="color:sandybrown;"><strong>Notice: </strong>Your application is now under review.</p></td>
           </tr>
         {% endfor%}
         {% for denied_application in denied_applications%}
           <tr>
                 <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=denied_application.name %}">{{ denied_application.name }}</a></td>
-                <td><p style="color:red;"> <strong>Notice: </strong>Your application has been denied</p></td>
+                <td><p style="color:red;"> <strong>Notice: </strong>Your application has been denied.</p></td>
                 <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=denied_application.name %}">OK</a></td>
           </tr>
         {% endfor%}

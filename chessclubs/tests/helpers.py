@@ -66,7 +66,8 @@ class TournamentGroupTester:
         self.tournament.add_to_participants_group(user)
 
     def make_organiser(self, user):
-        self.tournament.add_to_organisers_group(user)
+        # user.groups.clear()
+        self.tournament.add_to_participants_group(user)
 
 
 def _create_test_players(user_count, club, tournament):

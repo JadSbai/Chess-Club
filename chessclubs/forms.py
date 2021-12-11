@@ -1,25 +1,13 @@
 """Forms for the chessclubs app."""
-from datetime import timedelta
-
 from django import forms
+from django.forms.widgets import DateInput
 from django.core.validators import RegexValidator
 from .models import User, Club, Tournament
-from django.utils import timezone
-
-
-
-EXPERIENCE_CHOICES = [
-    ('Novice', 'Novice'),
-    ('Beginner', 'Beginner'),
-    ('Intermediate', 'Intermediate'),
-    ('Advanced', 'Advanced'),
-    ('Expert', 'Expert'),
-]
-
 
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
-    email = forms.CharField(label="Email")
+
+    email = forms.EmailField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
 
@@ -27,8 +15,6 @@ class UserForm(forms.ModelForm):
     """Form to update user profiles."""
 
     class Meta:
-        """Form options."""
-
         model = User
         fields = ['first_name', 'last_name', 'bio', 'chess_experience', 'personal_statement']
         widgets = {'bio': forms.Textarea(attrs={"rows": 5, "cols": 20}), 'personal_statement': forms.Textarea()}
@@ -119,21 +105,21 @@ class ClubForm(forms.ModelForm):
 
     def save(self, owner):
         """Create a new club."""
+
         super().save(commit=False)
-        club_created = Club.objects.create(
+        club = Club.objects.create(
             name=self.cleaned_data.get('name'),
             description=self.cleaned_data.get('description'),
             location=self.cleaned_data.get('location'),
             owner=owner
         )
-        club_created.members.add(owner)
-        club_created.assign_club_groups_permissions()
-        return club_created
+        club.members.add(owner)
+        club.assign_club_groups_permissions()
+        return club
 
 
 class NewOwnerForm(forms.ModelForm):
     class Meta:
-        """Form options."""
         model = Club
         fields = ['owner']
 
@@ -143,21 +129,24 @@ class TournamentForm(forms.ModelForm):
 
     class Meta:
         model = Tournament
-        fields = ['name', 'deadline', 'location', 'max_capacity']
-
-    widgets = {
-        'deadline': forms.DateTimeField(required=True, input_formats=['%d/%m/%Y %H:%M']),
-    }
+        fields = ['name', 'description', 'deadline', 'location', 'max_capacity']
+        widgets = {
+            'deadline': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(),
+            'max_capacity': forms.TextInput(attrs={'min': '2', 'max': '96', 'type': 'number', 'placeholder': 'Choose a value between 2 and 96'}),
+        }
 
     def save(self, organiser, club):
-        """Create a new club."""
+        """Create a new tournament."""
+
         super().save(commit=False)
-        tournament_created = Tournament.objects.create(
+        tournament = Tournament.objects.create(
             name=self.cleaned_data.get('name'),
+            description=self.cleaned_data.get('description'),
             deadline=self.cleaned_data.get('deadline'),
             location=self.cleaned_data.get('location'),
             max_capacity=self.cleaned_data.get('max_capacity'),
             organiser=organiser,
             club=club
         )
-        return tournament_created
+        return tournament
