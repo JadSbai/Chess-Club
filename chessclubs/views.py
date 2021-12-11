@@ -422,3 +422,23 @@ def leave(request, club_name):
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
 
+@login_required
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.appy_to_tournament'])
+def show_tournament(request,  club_name, tournament_name):
+    try:
+        tournament = Tournament.objects.get(name=tournament_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
+        return redirect('show_club', club_name=club_name)
+    else:
+        club = Club.objects.get(name=club_name)
+        user_status = club.user_status(request.user)
+        for member in club.members.all():
+            if member != club.owner:
+                tournament.add_participant(member)
+        tournament.start_tournament()
+        return render(request, 'show_tournament.html',
+                      {'tournament': tournament, 'user': request.user, 'user_status': user_status, 'club': club})
+
+
+

@@ -1,6 +1,6 @@
 [
   {
-    "model": "chessclubs.eliminationroundmatch",
+    "model": "chessclubs.eliminationmatch",
     "pk": 1,
     "fields": {
       "_player1": 2,

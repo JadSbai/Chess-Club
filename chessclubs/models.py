@@ -420,7 +420,6 @@ class Tournament(models.Model):
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="all_tournaments")
-    participants = models.ManyToManyField(User, related_name="tournaments")
     _current_phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Elimination-Rounds", blank=False)
     _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_tournaments", default=None,
                                 blank=True)
