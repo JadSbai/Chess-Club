@@ -55,9 +55,9 @@ class TournamentGroupTester:
         self.tournament.assign_tournament_permissions_and_groups()
 
     def make_participant(self, user):
-        user.groups.clear()
+        # user.groups.clear()
         self.tournament.add_to_participants_group(user)
 
     def make_organiser(self, user):
-        user.groups.clear()
+        # user.groups.clear()
         self.tournament.add_to_organisers_group(user)

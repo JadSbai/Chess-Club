@@ -1,3 +1,4 @@
+from django import forms
 from django.test import TestCase
 from chessclubs.models import User
 from chessclubs.forms import PasswordForm
@@ -17,8 +18,14 @@ class PasswordFormTestCase(TestCase):
     def test_form_has_necessary_fields(self):
         form = PasswordForm()
         self.assertIn('password', form.fields)
+        password_field = form.fields['password']
+        self.assertTrue(isinstance(password_field.widget, forms.PasswordInput))
         self.assertIn('new_password', form.fields)
+        new_password_field = form.fields['password']
+        self.assertTrue(isinstance(new_password_field.widget, forms.PasswordInput))
         self.assertIn('password_confirmation', form.fields)
+        password_confirmation_field = form.fields['password']
+        self.assertTrue(isinstance(password_confirmation_field.widget, forms.PasswordInput))
 
     def test_valid_form(self):
         form = PasswordForm(data=self.form_input)

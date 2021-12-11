@@ -284,6 +284,8 @@ class Club(models.Model):
         ban_perm = Permission.objects.get(codename='ban')
         leave_perm = Permission.objects.get(codename='leave')
         tournament_perm = Permission.objects.get(codename='create_tournament')
+        apply_tournament_perm = Permission.objects.get(codename="apply_tournament")
+        withdraw_tournament_perm = Permission.objects.get(codename="withdraw_tournament")
 
         # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -310,6 +312,10 @@ class Club(models.Model):
                                                             base_permission=leave_perm)
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                             base_permission=tournament_perm)
+        apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
+                                                                           base_permission=apply_tournament_perm)
+        withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
+                                                                           base_permission=withdraw_tournament_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -322,6 +328,8 @@ class Club(models.Model):
         groups = [self.__denied_applicants_group(), self.__accepted_applicants_group()]
         acknowledge_response.set_groups(groups)
         groups = [self.__officers_group(), self.__members_group(), self.__owner_group()]
+        apply_tournament.set_groups(groups)
+        withdraw_tournament.set_groups(groups)
         members_list.set_groups(groups)
         public.set_groups(groups)
         groups = [self.__officers_group(), self.__owner_group()]
@@ -356,7 +364,9 @@ class Club(models.Model):
             ("apply_to_club", "Can apply to club"),
             ("ban", "Can ban a user from the club"),
             ("leave", "Can leave a club"),
-            ("create_tournament", "Can create a tournament")
+            ("create_tournament", "Can create a tournament"),
+            ("apply_tournament", "Can apply to a tournament"),
+            ("withdraw_tournament", "Can withdraw from a tournament")
         ]
 
 
@@ -408,7 +418,9 @@ def validate_tournament_deadline(value):
 
 class Tournament(models.Model):
     """Model for representing  a club tournament"""
+
     name = models.CharField(max_length=50, blank=False, unique=True)
+    description = models.CharField(max_length=240, blank=False)
     location = models.CharField(max_length=50, blank=False)
     max_capacity = models.IntegerField(default=2, validators=[MaxValueValidator(TOURNAMENT_MAX_CAPACITY, "The max capacity needs to be less than 96."),MinValueValidator(TOURNAMENT_MIN_CAPACITY, "The max capacity needs to be at least 2.")])
     deadline = models.DateTimeField(blank=False, validators=[validate_tournament_deadline])
@@ -419,6 +431,15 @@ class Tournament(models.Model):
 
     def participants_list(self):
         return self.participants.all()
+
+    def is_participant(self, member):
+        return member in self.participants.all()
+
+    def is_organiser(self, member):
+        return member == self.organiser
+
+    def is_co_organiser(self, member):
+        return member in self.co_organisers.all()
 
     def is_max_capacity_reached(self):
         return self.participants.count() == self.max_capacity
@@ -439,6 +460,14 @@ class Tournament(models.Model):
 
     def add_to_participants_group(self, user):
         self.__participants_group().user_set.add(user)
+
+    def add_participant(self, member):
+        self.participants.add(member)
+        self.add_to_participants_group(member)
+
+    def remove_participant(self, member):
+        self.participants.remove(member)
+        self.remove_from_participants_group(member)
 
     def add_to_organisers_group(self, user):
         self.__organisers_group().user_set.add(user)
