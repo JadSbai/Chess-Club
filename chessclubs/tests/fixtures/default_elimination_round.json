@@ -3,7 +3,7 @@
     "model": "chessclubs.eliminationrounds",
     "pk": 1,
     "fields": {
-      "tournament": 1
+      "_tournament": 1
     }
   }
 ]

@@ -1,6 +1,6 @@
 from notifications.signals import notify
 from django.shortcuts import redirect
-from chessclubs.models import User, Club
+from chessclubs.models import User, Club, Match
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 import re
 
@@ -75,14 +75,6 @@ def get_appropriate_redirect(notification):
         # Not going to be kept in production
         print("Action name is not valid")
         raise BaseException
-
-
-def generate_schedule(phase, players):
-    schedule = {}
-    if phase == "Final":
-        schedule[1] = Match(players[0], players[1])
-
-
 
 
 
