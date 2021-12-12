@@ -5,10 +5,11 @@ import random
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import models
+from django.db import models, IntegrityError
 from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
@@ -421,20 +422,17 @@ class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_profiles")
     tournament = models.ForeignKey('Tournament', on_delete=models.SET_NULL, related_name="players", null=True)
     _points = models.FloatField(validators=[MinValueValidator(float(0.0))], default=float(0.0))
-    _small_pool_phase = models.ForeignKey('SmallPoolPhase', on_delete=models.CASCADE, related_name="SPP_players",
-                                          null=True, default=None)
-    _won_small_pool_phase = models.ForeignKey('SmallPoolPhase', on_delete=models.CASCADE,
-                                              related_name="SPP_qualified_players", null=True, default=None)
+    _won_pool_phases = models.ManyToManyField('PoolPhase', related_name="PP_qualified_players")
     _elimination_round = models.ForeignKey('EliminationRounds', on_delete=models.CASCADE,
-                                           related_name="EL_players", null=True, default=None)
-    _small_pool = models.ForeignKey('SmallPool', on_delete=models.SET_NULL, related_name="small_pool_players",
-                                    null=True, default=None)
+                                           related_name="EL_players", null=True, blank=True)
+    _pool_phases = models.ManyToManyField('PoolPhase', related_name="PP_players")
+    _pools = models.ManyToManyField('Pool', related_name="pool_players")
 
     def get_points(self):
         return self._points
 
-    def get_small_pool(self):
-        return self._small_pool
+    def get_pools(self):
+        return self._pools.all()
 
     def win(self):
         self._points += float(1.0)
@@ -478,25 +476,75 @@ class Tournament(models.Model):
         new_player = Player.objects.create(user=member, tournament=self)
         self.players.add(new_player)
         self.add_to_participants_group(member)
+
         return new_player
 
-    def go_to_elimination_round(self, players):
-        self.elimination_round, created = EliminationRounds.objects.get_or_create(_tournament=self)
-        self.elimination_round.add_players(players)
-        self.elimination_round.set_phase()
-        schedule = self.elimination_round.generate_schedule()
-        self._current_phase = "Elimination-Rounds"
+    def set_deadline_now(self):
+        for member in self.club.members.all():
+            self.add_participant(member)
+        self.deadline = timezone.now()-timezone.timedelta(days=1)
         self.save()
+
+    def go_to_next_phase(self, winner=None, qualified_players=None):
+        if self._current_phase == "Small-Pool-Phase":
+            self.__go_to_elimination_round(qualified_players)
+            self._current_phase = "Elimination-Rounds"
+            self.save()
+        elif self._current_phase == "Large-Pool-Phase":
+            self.__go_to_small_pool_phase(qualified_players)
+            self._current_phase = "Small-Pool-Phase"
+            self.save()
+        elif self._current_phase == "Elimination-Rounds":
+            self.__announce_winner(winner)
+        else:
+            raise ValidationError("Invalid phase")
+
+    def __go_to_elimination_round(self, qualified_players):
+        self.__create_elimination_round(qualified_players)
+        self.elimination_round.generate_schedule()
+
+    def get_current_schedule(self):
+        schedule = []
+        for match in self.tournament_schedule.all():
+            if match.is_open():
+                schedule.append(match)
+        return schedule
+
+    def __go_to_small_pool_phase(self, qualified_players):
+        small_pool_phase = self.__create_pool_phase(qualified_players=qualified_players, name="Small-Pool-Phase")
+        small_pool_phase.generate_schedule()
+
+    def __create_elimination_round(self, qualified_players):
+        self.elimination_round, created = EliminationRounds.objects.get_or_create(_tournament=self)
+        self.elimination_round.add_players(qualified_players)
+        self.elimination_round.set_phase()
+        self.save()
+
+    def __create_pool_phase(self, qualified_players, name):
+        try:
+            new_pool_phase = PoolPhase.objects.create(tournament=self, name=name)
+        except IntegrityError:
+            raise ValidationError("A pool phase with the same name already exists")
+        else:
+            new_pool_phase.add_players(qualified_players)
+            self.pool_phases.add(new_pool_phase)
+            self.save()
+            return PoolPhase.objects.get(name=name)
 
     def remove_participant(self, member):
         self.players.remove(self.__player_instance_of_user(member))
         self.remove_from_participants_group(member)
 
-    def check_user(self, user):
-        print(user.has_tournament_perm('chessclubs.withdraw', self))
-        return user in self.__participants_group().user_set.all()
+    def get_current_pool_phase(self):
+        try:
+            current_pool_phase = PoolPhase.objects.get(name=self._current_phase)
+        except ObjectDoesNotExist:
+            return None
+        else:
+            return current_pool_phase
 
     def add_co_organiser(self, officer):
+        # Checks should be done beforehand in the views
         if officer in self.__co_organisers_group().user_set.all():
             print("You are already a co_organiser")
         elif officer == self.organiser:
@@ -515,44 +563,58 @@ class Tournament(models.Model):
         else:
             return "non_participant"
 
+    def __set_current_phase(self):
+        if 2 <= self.players.count() <= 16:
+            self._current_phase = "Elimination-Rounds"
+        elif 16 < self.players.count() <= 32:
+            self._current_phase = "Small-Pool-Phase"
+        elif 32 < self.players.count() <= 96:
+            self._current_phase = "Large-Pool-Phase"
+        else:
+            raise ValueError("Invalid number of players")
+
     def remove_co_organiser(self, member):
+        # Checks should be done beforehand in the views
         self.co_organisers.remove(member)
         self.remove_from_organisers_group(member)
 
-    def start_tournament(self):
-        if timezone.now() >= self.deadline:
-            self._started = True
-            schedule = self.launch()
-            self.save()
-            return schedule
-        else:
-            print("The deadline is not yet passed")
 
-    def launch(self):
-        if 2 <= self.players.count() <= 16:
-            self._current_phase = "Elimination-Rounds"
-            self.elimination_round = EliminationRounds.objects.get_or_create(_tournament=self)
-            self.elimination_round.add_players(self.players)
-            schedule = self.elimination_round.generate_schedule()
-        elif 16 < self.players.count() <= 32:
-            self._current_phase = "Small-Pool-Phase"
-            self.small_pool_phase, created = SmallPoolPhase.objects.get_or_create(tournament=self)
-            self.small_pool_phase.add_players(self.players.all())
-            schedule = self.small_pool_phase.generate_schedule()
+
+    def start_tournament(self):
+        self.set_deadline_now()
+        if not self._started:
+            if timezone.now() >= self.deadline:
+                self._started = True
+                schedule = self.__launch()
+                self.save()
+                return schedule
+            else:
+                print("The deadline is not yet passed")
         else:
-            self._current_phase = "Large-Pool-Phase"
-            schedule = None
+            raise ValidationError("The tournament has already started")
+
+    def __launch(self):
+        self.__set_current_phase()
+        if self._current_phase == "Elimination-Rounds":
+            self.__create_elimination_round(self.players.all())
+            schedule = self.elimination_round.generate_schedule()
+        elif self._current_phase == "Small-Pool-Phase":
+            small_pool_phase = self.__create_pool_phase(qualified_players=self.players.all(), name="Small-Pool-Phase")
+            schedule = small_pool_phase.generate_schedule()
+        else:
+            large_pool_phase = self.__create_pool_phase(qualified_players=self.players.all(), name="Large-Pool-Phase")
+            schedule = large_pool_phase.generate_schedule()
 
         return schedule
 
     def has_started(self):
         return self._started
 
-    def _set_current_phase(self, phase):
-        self._current_phase = phase
-        self.save()
+    def add_all_members_to_tournament(self):
+        for member in self.club.members.all():
+            self.add_participant(member)
 
-    def announce_winner(self, winner):
+    def __announce_winner(self, winner):
         self._winner = winner.user
         self._finished = True
         self.save()
@@ -713,24 +775,24 @@ class EliminationRounds(models.Model):
     def remove_player(self, player):
         self.EL_players.remove(player)
 
-    def remove_all_players(self):
-        self.EL_players.all().delete()
-
     def enter_winner(self, player, match):
+        # The checks will be done at views level
         if self._open:
             winner = match.enter_winner(player)
             loser = match.get_loser()
             self.EL_players.remove(loser)
-            self.set_phase()
+            self.__check_new_phase()
             if self.phase == "Final" and winner:
                 self._winner = winner
                 self._open = False
                 self.save()
-                self._tournament.announce_winner(winner)
+                self._tournament.go_to_next_phase(winner=winner)
             else:
                 print("Invalid entry")
+        else:
+            raise ValueError("The match is already closed")
 
-    def check_new_phase(self):
+    def __check_new_phase(self):
         before_phase = self.phase
         self.set_phase()
         if before_phase != self.phase:
@@ -748,36 +810,36 @@ class EliminationRounds(models.Model):
 
     def generate_schedule(self):
         if self.phase == "Final":
-            self.generate_matches(1)
+            self.__generate_matches(1)
         elif self.phase == "Semi-Final":
             if self.EL_players.count() == 3:
-                self.generate_matches(1)
+                self.__generate_matches(1)
             else:
-                self.generate_matches(2)
+                self.__generate_matches(2)
         elif self.phase == "Quarter-Final":
             count = self.EL_players.count()
             if count == 5:
-                self.generate_matches(2)
+                self.__generate_matches(2)
             elif count == 6 or count == 7:
-                self.generate_matches(3)
+                self.__generate_matches(3)
             elif count == 8:
-                self.generate_matches(4)
+                self.__generate_matches(4)
         else:
             count = self.EL_players.count()
             if count == 9:
-                self.generate_matches(4)
+                self.__generate_matches(4)
             elif count == 10 or count == 11:
-                self.generate_matches(5)
+                self.__generate_matches(5)
             elif count == 12 or count == 13:
-                self.generate_matches(6)
+                self.__generate_matches(6)
             elif count == 14 or count == 15:
-                self.generate_matches(7)
+                self.__generate_matches(7)
             else:
-                self.generate_matches(8)
+                self.__generate_matches(8)
 
         return self.schedule.all()
 
-    def generate_matches(self, num):
+    def __generate_matches(self, num):
         i = 0
         counter = 0
         not_yet_selected_players = {0}
@@ -788,9 +850,10 @@ class EliminationRounds(models.Model):
             player = random.sample(not_yet_selected_players, 1)[0]
             forbidden_players = {0}
             forbidden_players.remove(0)
-            player_pool = player.get_small_pool()
-            if player_pool:
-                forbidden_players.update(player_pool.small_pool_players.all())
+            player_pools = player.get_pools()
+            if player_pools:
+                for player_pool in player_pools:
+                    forbidden_players.update(player_pool.pool_players.all())
 
             not_yet_selected_players.remove(player)
             choices = not_yet_selected_players - forbidden_players
@@ -801,71 +864,115 @@ class EliminationRounds(models.Model):
 
             new_match = EliminationMatch.objects.create_elimination_match(tournament=self._tournament, player1=player,
                                                                           player2=random_player, elimination_round=self)
-
             not_yet_selected_players.remove(random_player)
-
             self.schedule.add(new_match)
             i += 1
             counter += 1
 
 
-class SmallPoolPhase(models.Model):
-    tournament = models.OneToOneField(Tournament, on_delete=models.CASCADE, related_name="small_pool_phase")
+class PoolPhase(models.Model):
+    _POOL_PHASE_NAME_CHOICES = [
+        ('Small-Pool-Phase', 'Small-Pool-Phase'),
+        ('Large-Pool-Phase', 'Large-Pool-Phase'),
+    ]
+    name = models.CharField(max_length=50, unique=True, choices=_POOL_PHASE_NAME_CHOICES)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="pool_phases")
     _closed = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ["name", "tournament"]
 
     def add_players(self, players):
         for player in players:
-            self.SPP_players.add(player)
+            self.PP_players.add(player)
 
     def add_qualified_players(self, qualified_players):
-        for player in qualified_players:
-            self.SPP_qualified_players.add(player)
-        self.save()
-        all_pools_finished = self.check_all_pools()
-        if all_pools_finished:
-            self._closed = True
-            self.tournament.go_to_elimination_round(self.SPP_qualified_players.all())
+        if not self._closed:
+            self.__add_qualified_players(qualified_players)
+            all_pools_finished = self.__check_all_pools()
+            if all_pools_finished:
+                self.__go_to_next_phase()
 
-    def check_all_pools(self):
-        for pool in self.pools_schedule.all():
+    def __add_qualified_players(self, qualified_players):
+        for player in qualified_players:
+            self.PP_qualified_players.add(player)
+        self.save()
+
+    def __go_to_next_phase(self):
+        self._closed = True
+        self.tournament.go_to_next_phase(qualified_players=self.PP_qualified_players.all())
+
+    def __check_all_pools(self):
+        for pool in self.pools.all():
             if not pool.all_matches_played:
                 print("There are still pool matches to be played")
                 return False
         return True
 
     def get_players(self):
-        return self.SPP_players.all()
+        return self.PP_players.all()
 
     def get_players_count(self):
-        return self.SPP_players.count()
+        return self.PP_players.count()
 
     def get_pool_of_player(self, player):
-        for pool in self.pools_schedule.all():
+        for pool in self.pools.all():
             if pool in player.my_small_pools.all():
                 return pool
+
+    def __assign_matches_to_pools(self):
+        for pool in self.pools.all():
+            pool.create_matches()
 
     def __create_small_pools(self, groups_of_3, groups_of_4):
 
         not_yet_selected_players = {0}
         not_yet_selected_players.remove(0)
-        not_yet_selected_players.update(self.SPP_players.all())
+        not_yet_selected_players.update(self.PP_players.all())
 
         for i in range(groups_of_4):
-            new_pool = SmallPool.objects.create(_small_pool_phase=self)
+            new_pool = Pool.objects.create(pool_phase=self)
             pool_players = random.sample(not_yet_selected_players, 4)
             for player in pool_players:
                 not_yet_selected_players.remove(player)
             new_pool.add_players(pool_players)
 
         for i in range(groups_of_3):
-            new_pool = SmallPool.objects.create(_small_pool_phase=self)
+            new_pool = Pool.objects.create(pool_phase=self)
             pool_players = random.sample(not_yet_selected_players, 3)
             for player in pool_players:
                 not_yet_selected_players.remove(player)
             new_pool.add_players(pool_players)
 
-    def generate_schedule(self):
-        number_of_players = self.SPP_players.count()
+    def __create_large_pools(self, groups_of_5, groups_of_6):
+        not_yet_selected_players = {0}
+        not_yet_selected_players.remove(0)
+        not_yet_selected_players.update(self.PP_players.all())
+
+        for i in range(groups_of_5):
+            new_pool = Pool.objects.create(pool_phase=self)
+            pool_players = random.sample(not_yet_selected_players, 5)
+            for player in pool_players:
+                not_yet_selected_players.remove(player)
+            new_pool.add_players(pool_players)
+
+        for i in range(groups_of_6):
+            new_pool = Pool.objects.create(pool_phase=self)
+            pool_players = random.sample(not_yet_selected_players, 6)
+            for player in pool_players:
+                not_yet_selected_players.remove(player)
+            new_pool.add_players(pool_players)
+
+    def __generate_small_pool_schedule(self):
+        number_of_players = self.PP_players.count()
+        groups_of_3, groups_of_4 = self.__small_groups(number_of_players)
+
+        if self.pools.count() != groups_of_4 + groups_of_3:
+            self.__create_small_pools(groups_of_3, groups_of_4)
+            self.__assign_matches_to_pools()
+        return self.pools.all()
+
+    def __small_groups(self, number_of_players):
         remainder = number_of_players % 4
         groups_of_4 = 0
         groups_of_3 = 0
@@ -881,66 +988,131 @@ class SmallPoolPhase(models.Model):
             groups_of_3 = 1
             groups_of_4 = (number_of_players - 3) // 4
 
-        if self.pools_schedule.count() != groups_of_4 + groups_of_3:
-            self.__create_small_pools(groups_of_3, groups_of_4)
+        return groups_of_3, groups_of_4
+
+    def __large_groups(self, number_of_players):
+        remainder = number_of_players % 5
+        groups_of_5 = 0
+        groups_of_6 = 0
+        if remainder == 0:
+            groups_of_5 = number_of_players // 5
+        elif remainder == 1:
+            groups_of_6 = 1
+            groups_of_5 = (number_of_players - 6) // 5
+        elif remainder == 2:
+            groups_of_6 = 2
+            groups_of_5 = (number_of_players - 12) // 5
+        elif remainder == 3:
+            groups_of_6 = 3
+            groups_of_5 = (number_of_players - 18) // 5
+        elif remainder == 4:
+            groups_of_6 = 4
+            groups_of_5 = (number_of_players - 24) // 5
+
+        return groups_of_5, groups_of_6
+
+    def __super_large_groups(self, number_of_players):
+        remainder = number_of_players % 6
+        groups_of_5 = 0
+        groups_of_6 = 0
+        if remainder == 0:
+            groups_of_6 = number_of_players // 6
+        elif remainder == 1:
+            groups_of_5 = 5
+            groups_of_6 = (number_of_players - 25) // 6
+        elif remainder == 2:
+            groups_of_5 = 4
+            groups_of_6 = (number_of_players - 20) // 6
+        elif remainder == 3:
+            groups_of_5 = 3
+            groups_of_6 = (number_of_players - 15) // 6
+        elif remainder == 4:
+            groups_of_5 = 2
+            groups_of_6 = (number_of_players - 10) // 6
+        else:
+            groups_of_5 = 1
+            groups_of_6 = (number_of_players - 5) // 6
+
+        return groups_of_5, groups_of_6
+
+
+    def __generate_large_pool_schedule(self):
+        number_of_players = self.PP_players.count()
+        remainder = number_of_players % 9
+        groups_of_3 = 0
+        groups_of_4 = 0
+        groups_of_5 = 0
+        groups_of_6 = 0
+        if 33 <= number_of_players < 45:
+            groups_of_3, groups_of_4 = self.__small_groups(number_of_players)
+        elif 45 <= number_of_players <= 84:
+            groups_of_5, groups_of_6 = self.__large_groups(number_of_players)
+        elif 85 <= number_of_players <= 96:
+            groups_of_5, groups_of_6 = self.__super_large_groups(number_of_players)
+
+        if self.pools.count() != groups_of_5 + groups_of_6:
+            self.__create_large_pools(groups_of_5, groups_of_6)
             self.__assign_matches_to_pools()
-        return self.pools_schedule.all()
+        return self.pools.all()
 
-    def __assign_matches_to_pools(self):
-        for pool in self.pools_schedule.all():
-            pool.create_matches()
+    def generate_schedule(self):
+        if 17 <= self.PP_players.count() <= 32:
+            self.__generate_small_pool_schedule()
+        elif 33 <= self.PP_players.count() <= 96:
+            self.__generate_large_pool_schedule()
+        else:
+            raise ValueError("The number of players is invalid")
 
 
-class SmallPool(models.Model):
-    _small_pool_phase = models.ForeignKey(SmallPoolPhase, on_delete=models.CASCADE, related_name="pools_schedule")
+class Pool(models.Model):
+    pool_phase = models.ForeignKey(PoolPhase, on_delete=models.CASCADE, related_name="pools", null=True)
     all_matches_played = models.BooleanField(default=False)
 
     def get_players_count(self):
-        return self.small_pool_players.count()
-
+        return self.pool_players.count()
 
     def get_players(self):
-        return self.small_pool_players.all()
+        return self.pool_players.all()
 
     def add_players(self, players):
         for player in players:
-            if player not in self._small_pool_phase.get_players():
+            if player not in self.pool_phase.get_players():
                 raise ValidationError("One of the players is not part of the tournament")
         for player in players:
-            if player not in self.small_pool_players.all():
-                self.small_pool_players.add(player)
+            if player not in self.pool_players.all():
+                self.pool_players.add(player)
         self.save()
 
     def create_matches(self):
-        for i in range(self.small_pool_players.count()):
-            for j in range(i + 1, self.small_pool_players.count()):
-                player1 = self.small_pool_players.all()[i]
-                player2 = self.small_pool_players.all()[j]
-                new_match = SmallPoolMatch.objects.create_small_pool_match(player1=player1, player2=player2,
-                                                                           tournament=self._small_pool_phase.tournament,
-                                                                           pool=self)
-                self.small_pool_matches.add(new_match)
+        for i in range(self.pool_players.count()):
+            for j in range(i + 1, self.pool_players.count()):
+                player1 = self.pool_players.all()[i]
+                player2 = self.pool_players.all()[j]
+                new_match = PoolMatch.objects.create_pool_match(player1=player1, player2=player2,
+                                                                tournament=self.pool_phase.tournament,
+                                                                pool=self)
+                self.pool_matches.add(new_match)
                 self.save()
 
     def enter_result(self, match, result, winner=None):
         if not self.all_matches_played:
             match.enter_result(result, winner)
-            self._are_all_matches_played()
+            self.__are_all_matches_played()
             if self.all_matches_played:
                 self.__set_qualified_players()
         else:
             print("All matches are played")
 
-    def _are_all_matches_played(self):
-        self.all_matches_played = all(not m.is_open() for m in self.small_pool_matches.all())
+    def __are_all_matches_played(self):
+        self.all_matches_played = all(not m.is_open() for m in self.pool_matches.all())
         self.save()
 
     def __set_qualified_players(self):
         qualified_players = self.__get_qualified_players()
-        self._small_pool_phase.add_qualified_players(qualified_players)
+        self.pool_phase.add_qualified_players(qualified_players)
 
     def __get_qualified_players(self):
-        return [self.small_pool_players.all()[0], self.small_pool_players.all()[1]]
+        return [self.pool_players.all()[0], self.pool_players.all()[1]]
 
 
 class MatchManager(models.Manager):
@@ -972,7 +1144,7 @@ class Match(models.Model):
     _winner = models.ForeignKey(Player, on_delete=models.CASCADE, null=True, related_name="won_matches", default=None,
                                 blank=True)
     _open = models.BooleanField(default=True)
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_matches")
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_schedule")
 
     objects = MatchManager()
 
@@ -1023,38 +1195,17 @@ class Match(models.Model):
             raise ValidationError("Match still open or winner not yet determined")
 
 
-class EliminationMatchManager(MatchManager):
+class PoolMatchManager(MatchManager):
 
-    def create_elimination_match(self, tournament, player1, player2, elimination_round):
+    def create_pool_match(self, tournament, player1, player2, pool):
         match = super().create_match(tournament, player1, player2)
-        match.elimination_round = elimination_round
+        match.pool = pool
         match.save(using=self._db)
         return match
 
 
-class EliminationMatch(Match):
-    elimination_round = models.ForeignKey(EliminationRounds, on_delete=models.CASCADE, related_name="schedule", null=True)
-
-    def enter_winner(self, player):
-        winner = super(EliminationMatch, self).enter_winner(player)
-        if winner is not None:
-            self.elimination_round.remove_player(player)
-        return winner
-
-    objects = EliminationMatchManager()
-
-
-class SmallPoolMatchManager(MatchManager):
-
-    def create_small_pool_match(self, tournament, player1, player2, pool):
-        match = super().create_match(tournament, player1, player2)
-        match.small_pool = pool
-        match.save(using=self._db)
-        return match
-
-
-class SmallPoolMatch(Match):
-    small_pool = models.ForeignKey(SmallPool, on_delete=models.CASCADE, related_name="small_pool_matches")
+class PoolMatch(Match):
+    pool = models.ForeignKey(Pool, on_delete=models.CASCADE, related_name="pool_matches")
 
     def enter_result(self, result, winner=None):
         if result:
@@ -1063,11 +1214,11 @@ class SmallPoolMatch(Match):
             self.__enter_draw_result()
 
     def __enter_winner(self, winner):
-        true_winner = super(SmallPoolMatch, self).enter_winner(winner)
+        true_winner = super(PoolMatch, self).enter_winner(winner)
         self.__set_win_points(true_winner)
 
     def __enter_draw_result(self):
-        super(SmallPoolMatch, self).enter_draw()
+        super(PoolMatch, self).enter_draw()
         self.__set_draw_points()
 
     def __set_draw_points(self):
@@ -1082,4 +1233,26 @@ class SmallPoolMatch(Match):
             self._player2.win()
         self.save()
 
-    objects = SmallPoolMatchManager()
+    objects = PoolMatchManager()
+
+
+class EliminationMatchManager(MatchManager):
+
+    def create_elimination_match(self, tournament, player1, player2, elimination_round):
+        match = super().create_match(tournament, player1, player2)
+        match.elimination_round = elimination_round
+        match.save(using=self._db)
+        return match
+
+
+class EliminationMatch(Match):
+    elimination_round = models.ForeignKey(EliminationRounds, on_delete=models.CASCADE, related_name="schedule",
+                                          null=True)
+
+    def enter_winner(self, player):
+        winner = super(EliminationMatch, self).enter_winner(player)
+        if winner is not None:
+            self.elimination_round.remove_player(player)
+        return winner
+
+    objects = EliminationMatchManager()

@@ -42,9 +42,11 @@
                 There are no participants.
                 {% endif %}
                 {% for participant in tournament.participants_list %}
-                  {{ participant.user.full_name }}
+                    {{ participant.user.full_name }}/
                 {% endfor %}
               </p>
+                <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Number of participants</h5>
+              <p class="p-2">{{ tournament.participants_list.count }}</p>
 
             </div>
 
@@ -60,16 +62,25 @@
                   <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
                 {% else %}
                   <a href="{% url 'withdraw_tournament' club_name=tournament.club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
+
                 {% endif %}
                 {% else %}
                     <p>
                 Deadline for the applications was <b>{{ tournament.deadline }}</b>.<br />
                 Currently, it is <b>{{ the_time }}</b> <br/>
                 Registration is now closed.</p>
+
                 {% endif %}
+
               </div>
             </div>
             {% endif %}
+                    <div>
+                    <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
+                    </div>
+                    <div>
+                    <a href="{% url 'set_deadline_now' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">set deadline now</a>
+                   </div>
         </div>
     </div>
 </div>

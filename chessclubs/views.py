@@ -459,3 +459,23 @@ def withdraw_tournament(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.remove_participant(target_user)
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+
+@login_required
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+def show_schedule(request, club_name, tournament_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    schedule = tournament.get_current_schedule()
+    pools = tournament.get_current_pool_phase().pools.all()
+    try:
+        club = Club.objects.get(name=club_name)
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+    return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule':schedule, 'pools':pools})
+
+@login_required
+def set_deadline_now(request, tournament_name, club_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    tournament.start_tournament()
+    print(tournament.deadline)
+    return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)

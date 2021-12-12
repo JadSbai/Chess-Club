@@ -1,0 +1,37 @@
+{% extends 'base_content.html' %}
+{% block body %}
+    {% include 'partials/navbar.html' with request=request %}
+    {% include 'partials/second_navbar.html' with request=request club=tournament.club %}
+    {% include 'partials/messages.html' %}
+    {% load custom_template_tags %}
+{% block content %}
+    {% current_time as the_time %}
+    <div class="row">
+    <div class="col-6">
+    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Pools</h5>
+    {% with i=pools.count %}
+    {% for pool in pools %}
+        {% decrement i as i %}
+        {% with count=pools.count|pool_number:i %}
+        <p><strong>Pool {{ count }}</strong></p>
+        {% endwith %}
+        {% for player in pool.get_players %}
+        <p class="p-2">{{player.user.full_name}}</p>
+
+        {% endfor %}
+    {% endfor %}
+    {% endwith %}
+
+    </div>
+    <div class="col-6">
+    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Matches</h5>
+    {% for match in schedule %}
+        <div>
+            <p class="p-2">{{ match.get_player1.user.full_name}} <strong>vs</strong> {{ match.get_player2.user.full_name}}</p><br>
+        </div>
+    {% endfor %}
+    </div>
+    </div>
+
+{%endblock%}
+{%endblock%}

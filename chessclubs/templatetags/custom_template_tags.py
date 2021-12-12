@@ -17,3 +17,12 @@ def tournament_user_status(tournament, user):
 @register.simple_tag
 def current_time():
     return timezone.now()
+
+
+@register.filter(name='pool_number')
+def get_pool_number(pools_count, i):
+    return pools_count - i
+
+@register.simple_tag
+def decrement(i):
+    return i - 1
