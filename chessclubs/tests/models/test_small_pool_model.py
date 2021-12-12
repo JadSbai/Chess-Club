@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.test import TestCase
-from chessclubs.models import User, Club, Tournament, Player, SmallPool, SmallPoolMatch
+from chessclubs.models import User, Club, Tournament, Player, Pool, PoolMatch
 from chessclubs.tests.helpers import ClubGroupTester
 
 
@@ -27,18 +27,18 @@ class SmallPoolModelTestCase(TestCase):
         self.tournament = Tournament.objects.get(name="Test_Tournament")
         self.group_tester = ClubGroupTester(self.club)
         self.group_tester.make_members([self.player1.user, self.player2.user, self.player3.user, self.player4.user])
-        self.small_pool = SmallPool.objects.get(pk=1)
+        self.small_pool = Pool.objects.get(pk=1)
         self.small_pool.create_matches()
 
     def test_create_matches(self):
         num = self.small_pool.get_players_count()
-        pool_matches = self.small_pool.small_pool_matches.all()
+        pool_matches = self.small_pool.pool_matches.all()
         self.assertEqual(pool_matches.count(), (num * (num - 1)) / 2)
         for player in self.small_pool.get_players():
             for other_player in self.small_pool.get_players():
                 if player != other_player:
                     count = 0
-                    for match in self.small_pool.small_pool_matches.all():
+                    for match in self.small_pool.pool_matches.all():
                         if (match.get_player1() == player and match.get_player2() == other_player) or (
                                 match.get_player1() == other_player and match.get_player2() == player):
                             count += 1
@@ -46,7 +46,6 @@ class SmallPoolModelTestCase(TestCase):
 
     def test_enter_all_results(self):
         players = self.small_pool.get_players()
-
         match1 = self._get_match(self.player1, self.player2)
         self.small_pool.enter_result(match1, True, self.player1)
 
@@ -84,10 +83,10 @@ class SmallPoolModelTestCase(TestCase):
 
     def _get_match(self, player1, player2):
         try:
-            match = SmallPoolMatch.objects.get(_player1=player1, _player2=player2)
+            match = PoolMatch.objects.get(_player1=player1, _player2=player2)
             return match
         except ObjectDoesNotExist:
-            return SmallPoolMatch.objects.get(_player1=player2, _player2=player1)
+            return PoolMatch.objects.get(_player1=player2, _player2=player1)
 
     def _assert_match_is_valid(self):
         try:

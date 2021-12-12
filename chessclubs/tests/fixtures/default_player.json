@@ -5,9 +5,8 @@
     "fields": {
       "user": 2,
       "tournament": 1,
-      "_small_pool_phase": 1,
       "_elimination_round": 1,
-      "_small_pool": 1
+      "_pools": [1]
     }
   }
 ]

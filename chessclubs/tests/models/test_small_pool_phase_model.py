@@ -1,7 +1,7 @@
 """Unit tests for the Elimination rounds model."""
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from chessclubs.models import Tournament, Club, SmallPoolPhase
+from chessclubs.models import Tournament, Club, PoolPhase
 from chessclubs.tests.helpers import generate_pools_list, get_right_number_of_pools
 
 class SmallPoolPhaseModelTestCase(TestCase):
@@ -21,7 +21,7 @@ class SmallPoolPhaseModelTestCase(TestCase):
         self.MAX = 32
         self.tournament = Tournament.objects.get(name="Test_Tournament")
         self.club = Club.objects.get(name="Test_Club")
-        self.small_pool_phase = SmallPoolPhase.objects.get(pk=2)
+        self.small_pool_phase = PoolPhase.objects.get(pk=2)
         self.right_answers = get_right_number_of_pools()
 
     def test_generate_accurate_schedule(self):
@@ -53,4 +53,4 @@ class SmallPoolPhaseModelTestCase(TestCase):
     def _clean(self):
         for player in self.small_pool_phase.get_players():
             player.user.delete()
-        self.small_pool_phase.pools_schedule.all().delete()
+        self.small_pool_phase.pools.all().delete()

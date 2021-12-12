@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from chessclubs.models import User, Club, Tournament, EliminationMatch, Player
+from chessclubs.models import User, Club, Tournament, EliminationMatch, Player, EliminationRounds
 from chessclubs.tests.helpers import ClubGroupTester
 
 
@@ -9,13 +9,13 @@ class EliminationMatchModelTestCase(TestCase):
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
                 'chessclubs/tests/fixtures/default_tournament.json',
-                'chessclubs/tests/fixtures/default_small_pool_phase.json',
-                'chessclubs/tests/fixtures/default_small_pool.json',
                 'chessclubs/tests/fixtures/default_player.json',
                 'chessclubs/tests/fixtures/other_players.json',
                 'chessclubs/tests/fixtures/default_elimination_round.json',
                 'chessclubs/tests/fixtures/default_match.json',
                 'chessclubs/tests/fixtures/default_elimination_match.json',
+                'chessclubs/tests/fixtures/default_small_pool_phase.json',
+                'chessclubs/tests/fixtures/default_small_pool.json',
                 ]
 
     def setUp(self):
@@ -29,6 +29,8 @@ class EliminationMatchModelTestCase(TestCase):
         self.group_tester.make_member(self.player1.user)
         self.group_tester.make_member(self.player2.user)
         self.elimination_match = EliminationMatch.objects.get(pk=1)
+        # self.elimination_round = EliminationRounds.objects.get(pk=1)
+        # self.elimination_round.add_players(new_players=[self.player1, self.player2])
 
     def test_cannot_create_match_with_same_players(self):
         with self.assertRaises(ValueError):

@@ -1,6 +1,6 @@
 [
   {
-    "model": "chessclubs.smallpoolphase",
+    "model": "chessclubs.poolphase",
     "pk": 1,
     "fields": {
       "tournament": 1

@@ -1,7 +1,7 @@
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from chessclubs.models import User, Club, Tournament, Player, SmallPoolMatch
+from chessclubs.models import User, Club, Tournament, Player, PoolMatch
 from chessclubs.tests.helpers import ClubGroupTester
 
 
@@ -28,15 +28,15 @@ class SmallPoolMatchModelTestCase(TestCase):
         self.tournament = Tournament.objects.get(name="Test_Tournament")
         self.group_tester = ClubGroupTester(self.club)
         self.group_tester.make_members([self.player1.user, self.player2.user])
-        self.small_pool_match = SmallPoolMatch.objects.get(pk=1)
+        self.small_pool_match = PoolMatch.objects.get(pk=1)
 
     def test_cannot_create_match_with_same_players(self):
         with self.assertRaises(ValueError):
-            SmallPoolMatch.objects.create_match(tournament=self.tournament, player1=self.player1, player2=self.player1)
+            PoolMatch.objects.create_match(tournament=self.tournament, player1=self.player1, player2=self.player1)
 
     def test_cannot_create_match_with_organiser(self):
         with self.assertRaises(ValueError):
-            SmallPoolMatch.objects.create_match(tournament=self.tournament, player1=self.tournament.organiser,
+            PoolMatch.objects.create_match(tournament=self.tournament, player1=self.tournament.organiser,
                                                   player2=self.player1)
 
     def test_enter_result_while_closed(self):

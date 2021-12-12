@@ -1,9 +1,9 @@
 [
   {
-    "model": "chessclubs.smallpool",
+    "model": "chessclubs.pool",
     "pk": 1,
     "fields": {
-      "_small_pool_phase": 1
+      "pool_phase": 1
     }
   }
 ]
