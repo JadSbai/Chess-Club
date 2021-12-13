@@ -465,17 +465,20 @@ def withdraw_tournament(request, club_name, tournament_name):
 def show_schedule(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     schedule = tournament.get_current_schedule()
-    pools = tournament.get_current_pool_phase().pools.all()
-    try:
-        club = Club.objects.get(name=club_name)
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
-        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
-    return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule':schedule, 'pools':pools})
+    pool_phase = tournament.get_current_pool_phase()
+    club = Club.objects.get(name=club_name)
+    if pool_phase:
+        pools = tournament.get_current_pool_phase().pools.all()
+        return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule': schedule, 'pools': pools})
+    else:
+        return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule': schedule})
+
 
 @login_required
 def set_deadline_now(request, tournament_name, club_name):
+
     tournament = Tournament.objects.get(name=tournament_name)
+    tournament.set_deadline_now()
     tournament.start_tournament()
     print(tournament.deadline)
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
@@ -484,7 +487,9 @@ def set_deadline_now(request, tournament_name, club_name):
 @login_required
 def my_matches(request):
     matches = []
+    tournaments = {}
     my_tournaments = request.user.get_all_tournaments()
     for tournament in my_tournaments:
+        tournaments[tournament]= tournament.get_matches_of_player(request.user)
         matches.extend(tournament.get_matches_of_player(request.user))
-    return render(request, 'my_matches.html', {'matches': matches})
+    return render(request, 'my_matches.html', {'matches': matches,'tournaments': tournaments})

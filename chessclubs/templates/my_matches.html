@@ -9,12 +9,14 @@
 {#    {% endif %}#}
         </div>
         <div class="col-6">
-    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Matches</h5>
-    {% for match in matches %}
+    {% for tournament, list_matches in tournaments.items %}
+    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.name }}</h5>
+    {% for match in list_matches %}
         <div>
             <p class="p-2">{{ match.get_player1.user.full_name}} <strong>vs</strong> {{ match.get_player2.user.full_name}}</p><br>
         </div>
     {% endfor %}
+        {% endfor %}
     </div>
     </div>
     </div>
