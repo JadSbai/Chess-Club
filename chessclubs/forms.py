@@ -149,4 +149,5 @@ class TournamentForm(forms.ModelForm):
             organiser=organiser,
             club=club
         )
+        tournament.assign_tournament_permissions_and_groups()
         return tournament

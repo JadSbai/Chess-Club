@@ -1,9 +1,0 @@
-[
-  {
-    "model": "chessclubs.smallpoolphase",
-    "pk": 1,
-    "fields": {
-      "tournament": 1
-    }
-  }
-]
