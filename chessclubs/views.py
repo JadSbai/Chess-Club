@@ -14,6 +14,7 @@ from .decorators import login_prohibited, club_permissions_required, tournament_
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 

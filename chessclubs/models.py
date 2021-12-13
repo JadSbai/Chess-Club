@@ -9,6 +9,7 @@ from django.db import models, IntegrityError
 from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
