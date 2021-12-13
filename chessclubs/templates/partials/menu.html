@@ -8,6 +8,9 @@
       <a class="nav-link" href="{% url 'my_applications' %}">My Applications</a>
     </li>
       {% include 'my_tournaments.html' with user=user tournaments=user.get_all_tournaments %}
+      <li class="nav-item">
+      <a class="nav-link" href="{% url 'my_applications' %}">My Matches</a>
+    </li>
   </ul>
 {% include 'partials/notifications.html' with user=user%}
   <ul class="navbar-nav mb-2 mb-lg-0">
