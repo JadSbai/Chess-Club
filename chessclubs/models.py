@@ -99,10 +99,10 @@ class User(AbstractUser):
         return self.clubs.all()
 
     def get_all_tournaments(self):
-        tournaments =[]
+        tournaments1 = []
         for player_profile in self.player_profiles.all():
-            tournaments.append(player_profile.tournament)
-        return tournaments
+            tournaments1.append(player_profile.tournament)
+        return tournaments1
 
 
     def gravatar(self, size=120):
@@ -488,7 +488,8 @@ class Tournament(models.Model):
 
     def set_deadline_now(self):
         for member in self.club.members.all():
-            self.add_participant(member)
+            if member != self.organiser:
+                self.add_participant(member)
         self.deadline = timezone.now()-timezone.timedelta(days=1)
         self.save()
 
@@ -517,6 +518,14 @@ class Tournament(models.Model):
                 schedule.append(match)
         return schedule
 
+    def get_matches_of_player(self, member):
+        matches = []
+        player = self.__player_instance_of_user(member)
+        for match in self.get_current_schedule():
+            if match.get_player1() == player or match.get_player2() == player:
+                matches.append(match)
+        return matches
+
     def __go_to_small_pool_phase(self, qualified_players):
         small_pool_phase = self.__create_pool_phase(qualified_players=qualified_players, name="Small-Pool-Phase")
         small_pool_phase.generate_schedule()
@@ -536,7 +545,7 @@ class Tournament(models.Model):
             new_pool_phase.add_players(qualified_players)
             self.pool_phases.add(new_pool_phase)
             self.save()
-            return PoolPhase.objects.get(name=name)
+            return PoolPhase.objects.get(name=name, tournament=self)
 
     def remove_participant(self, member):
         self.players.remove(self.__player_instance_of_user(member))
@@ -544,7 +553,7 @@ class Tournament(models.Model):
 
     def get_current_pool_phase(self):
         try:
-            current_pool_phase = PoolPhase.objects.get(name=self._current_phase)
+            current_pool_phase = PoolPhase.objects.get(name=self._current_phase, tournament=self)
         except ObjectDoesNotExist:
             return None
         else:
@@ -882,7 +891,7 @@ class PoolPhase(models.Model):
         ('Small-Pool-Phase', 'Small-Pool-Phase'),
         ('Large-Pool-Phase', 'Large-Pool-Phase'),
     ]
-    name = models.CharField(max_length=50, unique=True, choices=_POOL_PHASE_NAME_CHOICES)
+    name = models.CharField(max_length=50, choices=_POOL_PHASE_NAME_CHOICES)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="pool_phases")
     _closed = models.BooleanField(default=False)
 

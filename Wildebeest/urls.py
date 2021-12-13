@@ -54,6 +54,7 @@ urlpatterns = [
     path('<club_name>/tournament/<tournament_name>/withdraw/', views.withdraw_tournament, name='withdraw_tournament'),
     path('<club_name>/tournament/<tournament_name>/set_deadline_now/', views.set_deadline_now, name='set_deadline_now'),
     path('<club_name>/tournament/<tournament_name>/show_schedule/', views.show_schedule, name='show_schedule'),
+    path('my_matches/', views.my_matches, name='my_matches'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
 handler404 = "chessclubs.views.page_not_found_view"

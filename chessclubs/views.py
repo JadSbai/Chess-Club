@@ -479,3 +479,12 @@ def set_deadline_now(request, tournament_name, club_name):
     tournament.start_tournament()
     print(tournament.deadline)
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+
+
+@login_required
+def my_matches(request):
+    matches = []
+    my_tournaments = request.user.get_all_tournaments()
+    for tournament in my_tournaments:
+        matches.extend(tournament.get_matches_of_player(request.user))
+    return render(request, 'my_matches.html', {'matches': matches})
