@@ -1,6 +1,7 @@
 from django.urls import reverse
 from chessclubs.models import User
 from django.contrib.auth.models import Group
+import random
 
 
 def reverse_with_next(url_name, next_url):
@@ -115,19 +116,42 @@ def _create_test_players(user_count, club, tournament):
     return participants
 
 
-def generate_pools_list(num, club, tournament, SPP):
-    players = _create_test_players(num, club, tournament)
-    SPP.add_players(players)
-    pools_list = SPP.generate_schedule()
+def generate_pools_list(players, PP):
+    PP.add_players(players)
+    pools_list = PP.generate_schedule()
     return pools_list
 
 
-def generate_elimination_matches_schedule(num, club, tournament, ER):
-    participants = _create_test_players(num, club, tournament)
-    ER.add_players(participants)
+def remove_all_players(PP):
+    for player in PP.PP_players.all():
+        PP.PP_players.remove(player)
+
+
+def generate_elimination_matches_schedule(players, ER):
+    ER.add_players(players)
     ER.set_phase()
     schedule = ER.generate_schedule()
     return schedule
+
+
+def enter_results_to_elimination_round_matches(ER):
+    for match in ER.schedule.all():
+        ER.enter_winner(match=match, winner=match.get_player1())
+
+
+def enter_results_to_all_matches(tournament):
+    pool_phase = tournament.get_current_pool_phase()
+    if pool_phase:
+        for pool in pool_phase.get_pools():
+            for match in pool.get_pool_matches():
+                rand = random.choice([True, False])
+                if rand:
+                    pool.enter_result(match=match, result=rand, winner=match.get_player1())
+                else:
+                    pool.enter_result(match=match, result=rand)
+    else:
+        elimination_round = tournament.elimination_round
+        enter_results_to_elimination_round_matches(elimination_round)
 
 
 def get_right_number_of_pools():

@@ -9,19 +9,15 @@ class MatchModelTestCase(TestCase):
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
                 'chessclubs/tests/fixtures/default_tournament.json',
-                'chessclubs/tests/fixtures/default_player.json',
-                'chessclubs/tests/fixtures/other_players.json',
-                'chessclubs/tests/fixtures/default_elimination_round.json',
-                'chessclubs/tests/fixtures/default_small_pool_phase.json',
-                'chessclubs/tests/fixtures/default_small_pool.json',
+                'chessclubs/tests/fixtures/default_players.json',
                 'chessclubs/tests/fixtures/default_match.json',
                 ]
 
     def setUp(self):
         self.organiser = User.objects.get(email='johndoe@example.org')
-        self.player1 = Player.objects.get(pk=1)
-        self.player2 = Player.objects.get(pk=2)
-        self.other_player = Player.objects.get(pk=3)
+        self.player1 = Player.objects.get(pk=8)
+        self.player2 = Player.objects.get(pk=9)
+        self.other_player = Player.objects.get(pk=1)
         self.club = Club.objects.get(name="Test_Club")
         self.tournament = Tournament.objects.get(name="Test_Tournament")
         self.group_tester = ClubGroupTester(self.club)

@@ -3,8 +3,8 @@
     "model": "chessclubs.match",
     "pk": 1,
     "fields": {
-      "_player1": 1,
-      "_player2": 2,
+      "_player1": 8,
+      "_player2": 9,
       "tournament": 1
     }
   }

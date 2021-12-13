@@ -9,11 +9,12 @@ from notifications.models import Notification
 from notifications.utils import slug2id
 from django.urls import reverse
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
-from .models import User, Club, Tournament
+from .models import User, Club, Tournament, ClubPermission
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, must_be_non_participant
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 
@@ -435,7 +436,6 @@ def show_tournament(request, club_name, tournament_name):
         messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
         return redirect('show_club', club_name=club_name)
     else:
-        print(tournament.user_status(request.user))
         return render(request, 'show_tournament.html', {'tournament': tournament, 'user': request.user})
 
 

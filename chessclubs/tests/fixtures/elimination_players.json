@@ -1,0 +1,21 @@
+[
+  {
+    "model": "chessclubs.player",
+    "pk": 2,
+    "fields": {
+      "user": 3,
+      "tournament": 1,
+      "_elimination_round": 1
+    }
+  },
+
+  {
+    "model": "chessclubs.player",
+    "pk": 3,
+    "fields": {
+      "user": 4,
+      "tournament": 1,
+      "_elimination_round": 1
+    }
+  }
+]
