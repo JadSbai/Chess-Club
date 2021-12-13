@@ -493,3 +493,4 @@ def my_matches(request):
         tournaments[tournament]= tournament.get_matches_of_player(request.user)
         matches.extend(tournament.get_matches_of_player(request.user))
     return render(request, 'my_matches.html', {'matches': matches,'tournaments': tournaments})
+
