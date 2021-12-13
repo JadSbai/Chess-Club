@@ -505,6 +505,13 @@ class Tournament(models.Model):
         else:
             return None
 
+    def get_current_phase(self):
+        pool_phase = self.get_current_pool_phase()
+        if pool_phase:
+            return pool_phase.name
+        else:
+            return "Elimination Round"
+
     def go_to_next_phase(self, winner=None, qualified_players=None):
         if qualified_players:
             if 17 <= qualified_players.count() <= 32:
@@ -1199,6 +1206,7 @@ class Match(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_schedule")
 
     objects = MatchManager()
+
 
     def get_player1(self):
         return self._player1

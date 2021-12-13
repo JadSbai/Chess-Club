@@ -26,3 +26,7 @@ def get_pool_number(pools_count, i):
 @register.simple_tag
 def decrement(i):
     return i - 1
+
+@register.simple_tag
+def increment(i):
+    return i + 1
