@@ -98,6 +98,13 @@ class User(AbstractUser):
     def get_all_clubs(self):
         return self.clubs.all()
 
+    def get_all_tournaments(self):
+        tournaments1 = []
+        for player_profile in self.player_profiles.all():
+            tournaments1.append(player_profile.tournament)
+        return tournaments1
+
+
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
         gravatar_object = Gravatar(self.email)
@@ -475,10 +482,18 @@ class Tournament(models.Model):
         new_player = Player.objects.create(user=member, tournament=self)
         self.players.add(new_player)
         self.add_to_participants_group(member)
+
         return new_player
 
+    def set_deadline_now(self):
+        for member in self.club.members.all():
+            if member != self.organiser:
+                self.add_participant(member)
+        self.deadline = timezone.now()-timezone.timedelta(days=1)
+        self.save()
+
     def _set_deadline_now(self):
-        self.deadline = timezone.now()
+        self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
     def has_finished(self):
@@ -517,6 +532,14 @@ class Tournament(models.Model):
                 schedule.append(match)
         return schedule
 
+    def get_matches_of_player(self, member):
+        matches = []
+        player = self.__player_instance_of_user(member)
+        for match in self.get_current_schedule():
+            if match.get_player1() == player or match.get_player2() == player:
+                matches.append(match)
+        return matches
+      
     def __go_to_small_pool_phase(self, qualified_players):
         small_pool_phase = self.__create_pool_phase(qualified_players=qualified_players, name="Small-Pool-Phase")
         small_pool_phase.generate_schedule()
@@ -536,7 +559,7 @@ class Tournament(models.Model):
             new_pool_phase.add_players(qualified_players)
             self.pool_phases.add(new_pool_phase)
             self.save()
-            return PoolPhase.objects.get(name=name)
+            return PoolPhase.objects.get(name=name, tournament=self)
 
     def remove_participant(self, member):
         player = self.__player_instance_of_user(member)
@@ -584,6 +607,8 @@ class Tournament(models.Model):
         # Checks should be done beforehand in the views
         self.co_organisers.remove(member)
         self.remove_from_organisers_group(member)
+
+
 
     def start_tournament(self):
         if not self._started:
@@ -881,7 +906,8 @@ class PoolPhase(models.Model):
         ('Small-Pool-Phase', 'Small-Pool-Phase'),
         ('Large-Pool-Phase', 'Large-Pool-Phase'),
     ]
-    name = models.CharField(max_length=50, unique=True, choices=_POOL_PHASE_NAME_CHOICES, blank=False, null=False)
+
+    name = models.CharField(max_length=50, choices=_POOL_PHASE_NAME_CHOICES)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="pool_phases")
     _closed = models.BooleanField(default=False)
 
@@ -1058,6 +1084,7 @@ class PoolPhase(models.Model):
 
         return groups_of_5, groups_of_6
 
+
     def __generate_large_pool_schedule(self):
         number_of_players = self.PP_players.count()
         groups_of_3 = 0
@@ -1085,7 +1112,6 @@ class PoolPhase(models.Model):
             return self.__generate_large_pool_schedule()
         else:
             raise ValueError("The number of players is invalid")
-
 
 class Pool(models.Model):
     pool_phase = models.ForeignKey(PoolPhase, on_delete=models.CASCADE, related_name="pools", null=True)

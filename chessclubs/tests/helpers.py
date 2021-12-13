@@ -166,3 +166,5 @@ def get_right_phase():
            8: "Quarter-Final", 9: "Eighth-Final", 10: "Eighth-Final", 11: "Eighth-Final", 12: "Eighth-Final",
            13: "Eighth-Final", 14: "Eighth-Final", 15: "Eighth-Final", 16: "Eighth-Final"}
     return dic
+
+
