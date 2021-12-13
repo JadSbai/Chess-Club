@@ -98,6 +98,13 @@ class User(AbstractUser):
     def get_all_clubs(self):
         return self.clubs.all()
 
+    def get_all_tournaments(self):
+        tournaments =[]
+        for player_profile in self.player_profiles.all():
+            tournaments.append(player_profile.tournament)
+        return tournaments
+
+
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
         gravatar_object = Gravatar(self.email)
