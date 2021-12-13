@@ -74,7 +74,7 @@ def generate_withdraw_messages(request, tournament, target_user):
                              "You cannot apply and withdraw from your own tournaments.")
     else:
         # print(tournament.user_status(target_user))
-        print(tournament.check_user(target_user))
+        # print(tournament.check_user(target_user))
         messages.add_message(request, messages.WARNING,
                              "You are not a participant of this tournament.")
 

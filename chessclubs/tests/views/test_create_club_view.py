@@ -5,7 +5,7 @@ from chessclubs.tests.helpers import reverse_with_next
 from django.contrib import messages
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
-class CreateClubTest(TestCase):
+class CreateClubTestCase(TestCase):
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
         'chessclubs/tests/fixtures/other_users.json'
@@ -22,7 +22,7 @@ class CreateClubTest(TestCase):
         self.assertEqual(self.url, '/create_club/')
 
     def test_get_create_club_is_forbidden(self):
-        self.client.login(email=self.user.email, password= 'Password123')
+        self.client.login(email=self.user.email, password='Password123')
         club_count_before = Club.objects.count()
         response = self.client.get(self.url, follow=True)
         club_count_after = Club.objects.count()

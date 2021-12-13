@@ -5,8 +5,7 @@
     "fields": {
       "user": 3,
       "tournament": 1,
-      "_elimination_round": 1,
-      "_pools": [1]
+      "_elimination_round": 1
     }
   },
 
@@ -16,17 +15,7 @@
     "fields": {
       "user": 4,
       "tournament": 1,
-      "_pools": [1]
-    }
-  },
-
-  {
-    "model": "chessclubs.player",
-    "pk": 4,
-    "fields": {
-      "user": 5,
-      "tournament": 1,
-      "_pools": [1]
+      "_elimination_round": 1
     }
   }
 ]

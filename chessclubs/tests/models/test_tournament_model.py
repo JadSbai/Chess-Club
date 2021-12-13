@@ -1,8 +1,10 @@
 """Unit tests for the tournament model at creation time."""
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from chessclubs.models import Tournament
+from chessclubs.models import Tournament, Player, Club
 from django.utils import timezone
+from chessclubs.tests.helpers import _create_test_players, enter_results_to_all_matches
+
 
 class TournamentModelTestCase(TestCase):
     """Unit tests for the tournament model at creation time."""
@@ -10,18 +12,23 @@ class TournamentModelTestCase(TestCase):
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
         'chessclubs/tests/fixtures/other_users.json',
+        'chessclubs/tests/fixtures/default_players.json',
         'chessclubs/tests/fixtures/default_club.json',
         'chessclubs/tests/fixtures/other_clubs.json',
         'chessclubs/tests/fixtures/default_tournament.json',
         'chessclubs/tests/fixtures/other_tournaments.json',
+        'chessclubs/tests/fixtures/empty_tournament.json',
     ]
 
     def setUp(self):
+        self.MAX = 96
         super(TestCase, self).setUp()
         self.tournament = Tournament.objects.get(name="Test_Tournament")
-        # self.tournament.deadline = timezone.now()
-        # self.tournament.start_tournament()
         self.second_tournament = Tournament.objects.get(name="Test_Tournament2")
+        self.new_tournament = Tournament.objects.get(name="Empty_Tournament")
+        self.club = Club.objects.get(name="Test_Club")
+        self.player = Player.objects.get(pk=1)
+        self.list_of_participants = _create_test_players(self.MAX, self.club, self.new_tournament)
 
     def test_organiser_must_not_be_blank(self):
         self.tournament.organiser = None
@@ -75,17 +82,63 @@ class TournamentModelTestCase(TestCase):
         self.tournament.deadline = ""
         self._assert_tournament_is_invalid()
 
-    def test_current_phase_cannot_be_blank(self):
-        self.tournament._set_current_phase("")
-        self._assert_tournament_is_invalid()
-
-    def test_current_phase_must_be_among_choices(self):
-        self.tournament._set_current_phase("bad_choice")
-        self._assert_tournament_is_invalid()
-
-    def test_successful_change_current_phase(self):
-        self.tournament._set_current_phase("Small-Pool-Phase")
+    def test_winner_may_be_blank(self):
+        self.tournament._winner = None
         self._assert_tournament_is_valid()
+
+    def test_description_cannot_be_blank(self):
+        self.tournament.description = ""
+        self._assert_tournament_is_invalid()
+
+    def test_phase_transitions(self):
+        self.new_tournament._set_deadline_now()
+        self.new_tournament.start_tournament()
+        self.assertTrue(self.new_tournament.has_started())
+        large_pool_phase = self.new_tournament.get_current_pool_phase()
+        self.assertFalse(large_pool_phase is None)
+        self.assertEqual(large_pool_phase.get_players_count(), self.MAX)
+        self.assertEqual(len(self.new_tournament.get_current_schedule()), len(large_pool_phase.get_all_matches()))
+        enter_results_to_all_matches(self.new_tournament)
+        self.assertEqual(len(large_pool_phase.get_all_matches()), 0)
+        small_pool_phase = self.new_tournament.get_current_pool_phase()
+        self.assertFalse(small_pool_phase is None)
+        self.assertEqual(small_pool_phase.get_players_count(), 32)
+        enter_results_to_all_matches(self.new_tournament)
+        self.assertEqual(len(small_pool_phase.get_all_matches()), 0)
+        elimination_round = self.new_tournament.elimination_round
+        self.assertFalse(elimination_round is None)
+        self.assertEqual(elimination_round.get_players_count(), 16)
+        self.assertEqual(len(self.new_tournament.get_current_schedule()), elimination_round.schedule.count())
+        self.assertEqual(elimination_round.phase, "Eighth-Final")
+        enter_results_to_all_matches(self.new_tournament)
+        elimination_round.refresh_from_db()
+        self.assertEqual(elimination_round.phase, "Quarter-Final")
+        enter_results_to_all_matches(self.new_tournament)
+        elimination_round.refresh_from_db()
+        self.assertEqual(elimination_round.phase, "Semi-Final")
+        enter_results_to_all_matches(self.new_tournament)
+        elimination_round.refresh_from_db()
+        self.assertEqual(elimination_round.phase, "Final")
+        enter_results_to_all_matches(self.new_tournament)
+        self.new_tournament.refresh_from_db()
+        self.assertTrue(self.new_tournament._started)
+        self.assertTrue(self.new_tournament._finished)
+        self.assertFalse(self.new_tournament.return_winner() is None)
+
+    def test_get_current_schedule_is_accurate(self):
+        self.new_tournament._set_deadline_now()
+        self.new_tournament.start_tournament()
+        before = len(self.new_tournament.get_current_schedule())
+        pool = self.new_tournament.get_current_pool_phase().get_pools()[0]
+        pool_match = pool.get_pool_matches()[0]
+        pool.enter_result(match=pool_match, result=True, winner=pool_match.get_player1())
+        after = len(self.new_tournament.get_current_schedule())
+        self.assertEqual(before, after + 1)
+
+    def test_get_current_pool_phase(self):
+        self.new_tournament._set_deadline_now()
+        self.new_tournament.start_tournament()
+        self.assertFalse(self.new_tournament.get_current_pool_phase() is None)
 
     def _assert_tournament_is_valid(self):
         try:

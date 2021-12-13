@@ -2,7 +2,7 @@
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
-from chessclubs.models import User, Player, Tournament
+from chessclubs.models import User, Player, Tournament, EliminationRounds
 
 class PlayerModelTestCase(TestCase):
     """Unit tests for the Player model."""
@@ -10,21 +10,17 @@ class PlayerModelTestCase(TestCase):
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
         'chessclubs/tests/fixtures/other_users.json',
-        'chessclubs/tests/fixtures/default_player.json',
+        'chessclubs/tests/fixtures/default_players.json',
         'chessclubs/tests/fixtures/default_club.json',
         'chessclubs/tests/fixtures/default_tournament.json',
-        'chessclubs/tests/fixtures/other_players.json',
-        'chessclubs/tests/fixtures/default_elimination_round.json',
-        'chessclubs/tests/fixtures/default_small_pool_phase.json',
-        'chessclubs/tests/fixtures/default_small_pool.json',
     ]
 
     def setUp(self):
         self.user = User.objects.get(email='johndoe@example.org')
         self.player = Player.objects.get(pk=1)
-        self.player2 = Player.objects.get(pk=2)
-        self.player3 = Player.objects.get(pk=3)
-        self.player4 = Player.objects.get(pk=4)
+        self.player2 = Player.objects.get(pk=8)
+        self.player3 = Player.objects.get(pk=9)
+        self.player4 = Player.objects.get(pk=10)
         self.tournament = Tournament.objects.get(name="Test_Tournament")
 
     def test_unique_combination(self):
@@ -56,30 +52,16 @@ class PlayerModelTestCase(TestCase):
         self.assertTrue(players[2], self.player2)
         self.assertTrue(players[3], self.player)
 
-    # def test_tournament_can_be_null(self):
-    #     new_player = Player.objects.create(user=self.user, tournament=self.tournament)
-    #     self.tournament.remove_participant(self.user)
-    #     self._assert_player_is_valid(new_player)
-    #
-    # def test_small_pool_phase_can_be_null(self):
-    #     new_player = Player.objects.create(user=self.user, tournament=self.tournament)
-    #     self.tournament.remove_participant(self.user)
-    #     self._assert_player_is_valid(new_player)
-    #
-    # def test_small_pool_be_null(self):
-    #     new_player = Player.objects.create(user=self.user, tournament=self.tournament)
-    #     self.tournament.remove_participant(self.user)
-    #     self._assert_player_is_valid(new_player)
-    #
-    # def test_elimination_round_can_be_null(self):
-    #     new_player = Player.objects.create(user=self.user, tournament=self.tournament)
-    #     self.tournament.remove_participant(self.user)
-    #     self._assert_player_is_valid(new_player)
-    #
-    # def test_won_small_pool_phase_can_be_null(self):
-    #     new_player = Player.objects.create(user=self.user, tournament=self.tournament)
-    #     self.tournament.remove_participant(self.user)
-    #     self._assert_player_is_valid(new_player)
+    def test_elimination_round_can_be_null(self):
+        elimination_round = EliminationRounds.objects.create(_tournament=self.tournament)
+        new_player = Player.objects.create(user=self.user, tournament=self.tournament)
+        elimination_round.add_players([new_player])
+        elimination_round.remove_player(new_player)
+        self._assert_player_is_valid(new_player)
+
+    def test_elimination_can_be_blank(self):
+        new_player = Player.objects.create(user=self.user, tournament=self.tournament)
+        self._assert_player_is_valid(new_player)
 
     def _assert_player_is_valid(self, player):
         try:
