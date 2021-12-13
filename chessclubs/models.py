@@ -492,6 +492,10 @@ class Tournament(models.Model):
         self.deadline = timezone.now()-timezone.timedelta(days=1)
         self.save()
 
+    def _set_deadline_now(self):
+        self.deadline = timezone.now() - timezone.timedelta(days=1)
+        self.save()
+
     def has_finished(self):
         return self._finished
 
