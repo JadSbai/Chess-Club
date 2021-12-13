@@ -493,3 +493,16 @@ def my_matches(request):
         matches.extend(tournament.get_matches_of_player(request.user))
     return render(request, 'my_matches.html', {'matches': matches,'tournaments': tournaments})
 
+def enter_result(request, tournament_name,match_id, result):
+    tournament = Tournament.objects.get(name=tournament_name)
+    match = Match.objects.get(id=match_id)
+    if result== "draw":
+        if tournament.is_pool_phase():
+            match.enter_draw()
+        else:
+            messages.add_message(request, messages.WARNING,"You cannot enter a draw result for an elimination round")
+    elif result=="player1":
+        match.enter_winner(match.get_player1())
+    else:
+        match.enter_winner(match.get_player2())
+
