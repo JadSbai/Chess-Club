@@ -334,7 +334,7 @@ def edit_club(request, club_name):
             return render(request, 'edit_club_info.html', {'form': form})
     else:
         form = EditClubInformationForm(instance=current_club)
-        return render(request, 'edit_club_info.html', {'form': form, 'club': current_club})
+        return render(request, 'SHOW_.html', {'form': form, 'club': current_club})
 
 @login_required
 def change_profile(request):

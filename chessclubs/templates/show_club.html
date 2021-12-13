@@ -11,8 +11,8 @@
       <h1 class="mb-3 mt-2">{{ club.name }}</h1>
       <div class="border">
 
-        <h5 class="mb-1 p-2 " style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Description</h5>
-        <p class="p-2 text-break" style="text-align: justify;">{{ club.description }}</p>
+        <h5 class="mb-1 p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Description</h5>
+        <p class="p-2" style="text-align: justify;">{{ club.description }}</p>
 
         <h5 class="mb-1 p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Location</h5>
         <p class="p-2">{{ club.location }}</p>
@@ -23,9 +23,9 @@
         <div class="row">
           <div class="col-6">
             <h5 class="mb-1 p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Club Owner</h5>
-            <h6 class="text-muted" style="text-align: center;">{{ club.get_club_owner.full_name }}</h6>
+            <h6 class="d-flex justify-content-center text-muted">{{ club.get_club_owner.full_name }}</h6>
             <div class="d-flex justify-content-center"><img src="{{ club.get_club_owner.gravatar }}" alt="Gravatar of {{ club.get_club_owner.full_name }}" class="rounded-circle" style="box-shadow: 1px 3px 6px #888888;"/></div>
-            <p class="p-2 text-break" style="text-align: justify; text-align-last: center;">{{ club.get_club_owner.bio }}</p>
+            <p class="p-2" style="text-align: justify; text-align-last: center;">{{ club.get_club_owner.bio }}</p>
           </div>
           <div class="col-6">
             <h5 class="mb-2 p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Controls</h5>
@@ -44,7 +44,7 @@
               {% endif %}
               {% if user_status == 'owner' %}
                   <div class="d-flex justify-content-center mb-2">
-                      <a href="{% url 'edit_club' club_name=club.name %}" class="btn btn-outline-dark">Edit club info</a>
+                      <a href="#" class="btn btn-outline-dark">Edit club info</a>
                   </div>
               {% endif %}
               {% if user_status == 'officer' or user_status == 'member' %}
