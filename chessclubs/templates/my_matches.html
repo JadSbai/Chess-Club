@@ -1,0 +1,23 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1 class="mb-3 mt-3">My Matches</h1>
+{#    {% if count == 0 %}#}
+{#        <p><i>You currently have no application undergoing.</i></p>#}
+{#    {% endif %}#}
+        </div>
+        <div class="col-6">
+    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Matches</h5>
+    {% for match in matches %}
+        <div>
+            <p class="p-2">{{ match.get_player1.user.full_name}} <strong>vs</strong> {{ match.get_player2.user.full_name}}</p><br>
+        </div>
+    {% endfor %}
+    </div>
+    </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

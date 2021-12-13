@@ -1,0 +1,20 @@
+<ul class="navbar-nav mb-2 mb-lg-0">
+  <li class="nav-item dropdown">
+    <a class="nav-link" href="#" id="my-clubs-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> My Tournaments </a>
+  {% if tournaments.count != 0 %}
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-account-dropdown">
+        {% for tournament in tournaments %}
+            <li>
+          <a class="dropdown-item" href="{% url 'show_tournament' club_name=tournament.club.name tournament_name=tournament.name %}"> {{tournament.name}} </a>
+            </li>
+        {% endfor%}
+      </ul>
+      {% else %}
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
+        <li >
+	    <p class="dropdown-item disabled">You are currently part of no tournaments</p>
+		</li>
+        </ul>
+    {% endif %}
+    </li>
+</ul>
