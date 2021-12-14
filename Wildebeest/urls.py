@@ -57,6 +57,7 @@ urlpatterns = [
     path('<club_name>/tournament/<tournament_name>/show_schedule/', views.show_schedule, name='show_schedule'),
     path('<club_name>/tournament/<tournament_name>/add_co_organiser/<int:user_id>', views.add_to_co_organiser, name='add_to_co_organiser'),
     path('<club_name>/tournament/<tournament_name>/<match_id>/enter_result/<result>/', views.enter_result, name='enter_result'),
+    path('<club_name>/tournament/<tournament_name>/publish_schedule/', views.publish_schedule, name='publish_schedule'),
     path('my_matches/', views.my_matches, name='my_matches'),
     path('<club_name>/tournament/<tournament_name>/start_tournament/', views.start_tournament, name='start_tournament'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))

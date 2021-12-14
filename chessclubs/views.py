@@ -560,20 +560,32 @@ def add_to_co_organiser(request, tournament_name, club_name, user_id):
 def enter_result(request, tournament_name, match_id, result, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     match = Match.objects.get(id=match_id)
-    print(club_name)
-    print(tournament_name)
     if result == "draw":
         if tournament.get_current_phase()!="Elimination Round":
             tournament.enter_result(match, result=False)
+            if tournament.has_finished():
+                return show_tournament(request, club_name=club_name, tournament_name=tournament_name)
             return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
         else:
             messages.add_message(request, messages.WARNING, "You cannot enter a draw result for an elimination round")
     elif result == "player1":
         tournament.enter_result(match, winner=match.get_player1())
+        if tournament.has_finished():
+            return show_tournament(request, club_name=club_name, tournament_name=tournament_name)
         return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
     else:
         tournament.enter_result(match, winner=match.get_player2())
+        if tournament.has_finished():
+            return show_tournament(request, club_name=club_name, tournament_name=tournament_name)
         return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
+
+
+
+def publish_schedule(request, tournament_name, club_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    tournament.publish_schedule()
+    return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
+
 
 @login_required
 def start_tournament(request, tournament_name, club_name):
