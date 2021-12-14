@@ -173,6 +173,7 @@ class Command(BaseCommand):
     def enter_results_until_finished(self, tournament):
         while not tournament.has_finished():
             enter_results_to_all_matches(tournament)
+            tournament.refresh_from_db()
 
     def _create_specific_user(self, first_name, last_name, email):
         """Creating users specified in requirements with different roles for testing purposes."""

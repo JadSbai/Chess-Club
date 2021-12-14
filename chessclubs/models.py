@@ -827,6 +827,12 @@ class EliminationRounds(models.Model):
         self.EL_players.remove(player)
         self.save()
 
+    def __are_all_matches_played(self):
+        for match in self.schedule.all():
+            if match.is_open():
+                return False
+        return True
+
     def enter_winner(self, winner, match):
         # The checks will be done at views level
         if self._open:
@@ -836,7 +842,7 @@ class EliminationRounds(models.Model):
                 self._open = False
                 self.save()
                 self._tournament.go_to_next_phase(winner=round_winner)
-            else:
+            elif self.__are_all_matches_played():
                 self.__check_new_phase()
         else:
             raise ValueError("All matches have already been played")
