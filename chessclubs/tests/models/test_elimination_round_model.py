@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from chessclubs.models import User, Club, Tournament, EliminationRounds
 from chessclubs.tests.helpers import ClubGroupTester, generate_elimination_matches_schedule, get_right_phase, \
-    _create_test_players, enter_results_to_elimination_round_matches
+    _create_test_players, enter_results_to_elimination_round_matches, encounter_all, encounter_half
 
 
 class EliminationRoundTestCase(TestCase):
@@ -59,6 +59,29 @@ class EliminationRoundTestCase(TestCase):
         self.elimination_round.phase = ''
         self._assert_elimination_round_is_invalid()
 
+    def test_players_encounter_as_late_as_possible(self):
+        players = random.sample(self.players_list, 2)
+        encounter_all(players)
+        generate_elimination_matches_schedule(players, self.elimination_round)
+        self.assertEqual(1, self.elimination_round.schedule.count())
+        self._clean()
+        for count in range(self.MIN, self.MAX):
+            players = random.sample(self.players_list, count)
+            print(count)
+            encounter_half(players)
+            generate_elimination_matches_schedule(players, self.elimination_round)
+            anomalies = 0
+            for match in self.elimination_round.schedule.all():
+                if match.get_player1() in match.get_player2().get_encountered_players():
+                    anomalies += 1
+            # Sometimes, due to random selection of non_encountered players, 2 players who have encountered themselves before end up playing against each other
+            self.assertTrue(anomalies <= 1)
+            self._clean()
+            encounter_all(players)
+            generate_elimination_matches_schedule(players, self.elimination_round)
+            self.assertEqual(count//2, self.elimination_round.schedule.count())
+            self._clean()
+
     def test_set_phase_is_accurate(self):
         for count in range(2, 17):
             players = random.sample(self.players_list, count)
@@ -79,4 +102,5 @@ class EliminationRoundTestCase(TestCase):
     def _clean(self):
         for player in self.elimination_round.get_players():
             self.elimination_round.remove_player(player)
+            player._clean_encountered_players()
         self.elimination_round.clean_schedule()

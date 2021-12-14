@@ -480,7 +480,6 @@ def set_deadline_now(request, tournament_name, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.set_deadline_now()
     tournament.start_tournament()
-    print(tournament.deadline)
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
 

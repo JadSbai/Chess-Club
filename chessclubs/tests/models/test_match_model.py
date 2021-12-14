@@ -83,6 +83,10 @@ class MatchModelTestCase(TestCase):
         winner = self.match.return_winner()
         self.assertEqual(self.player1.user.full_name(), winner)
 
+    def test_player1_and_player2_have_encountered_each_other(self):
+        self.match.enter_winner(self.player1)
+        self.assertTrue(self.player2 in self.player1.get_encountered_players())
+        self.assertTrue(self.player1 in self.player2.get_encountered_players())
 
     def _assert_match_is_valid(self):
         try:
