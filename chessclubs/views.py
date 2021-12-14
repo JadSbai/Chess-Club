@@ -508,14 +508,14 @@ def enter_result(request, tournament_name, match_id, result, club_name):
     print(club_name)
     print(tournament_name)
     if result == "draw":
-        if tournament.is_pool_phase():
+        if tournament.get_current_phase()!="Elimination Round":
             tournament.enter_result(match, result=False)
-            return show_schedule(request, club_name, tournament_name)
+            return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
         else:
             messages.add_message(request, messages.WARNING, "You cannot enter a draw result for an elimination round")
     elif result == "player1":
         tournament.enter_result(match, winner=match.get_player1())
-        return show_tournament(request, club_name, tournament_name)
+        return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
     else:
         tournament.enter_result(match, winner=match.get_player2())
-        return show_schedule(request, club_name, tournament_name)
+        return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
