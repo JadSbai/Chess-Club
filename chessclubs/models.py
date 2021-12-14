@@ -485,7 +485,7 @@ class Tournament(models.Model):
     organiser = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organised_tournaments")
     co_organisers = models.ManyToManyField(User, related_name="co_organised_tournaments")
     club = models.ForeignKey(Club, on_delete=models.CASCADE, related_name="all_tournaments")
-    _start_phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Elimination-Rounds", blank=False)
+    _start_phase = models.CharField(max_length=50, choices=_PHASE_CHOICES, default="Elimination-Rounds")
     _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_tournaments", blank=True)
     _started = models.BooleanField(default=False)
     _finished = models.BooleanField(default=False)
@@ -730,11 +730,13 @@ class Tournament(models.Model):
 
         # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
         groups = [self.__participants_group(), self.__co_organisers_group()]
+        see_tournament_private_info.set_groups(groups)
+        groups = [self.__participants_group()]
         play_matches.set_groups(groups)
         withdraw.set_groups(groups)
-        see_tournament_private_info.set_groups(groups)
         groups = [self.__co_organisers_group()]
         enter_match_results.set_groups(groups)
+
         # Permissions specific to the organiser of the tournament
         enter_match_results.add_user(self.organiser)
         see_tournament_private_info.add_user(self.organiser)

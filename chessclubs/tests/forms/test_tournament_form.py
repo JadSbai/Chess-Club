@@ -50,7 +50,7 @@ class TournamentFormTestCase(TestCase):
         self.assertTrue(isinstance(max_capacity_widget, forms.TextInput))
         self.assertIn('deadline', form.fields)
         deadline_widget = form.fields['deadline'].widget
-        self.assertTrue(isinstance(deadline_widget, forms.DateInput))
+        self.assertTrue(isinstance(deadline_widget, forms.DateTimeInput))
 
     def test_form_uses_model_validation(self):
         self.form_input['max_capacity'] = -100

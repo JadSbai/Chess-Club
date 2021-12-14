@@ -20,15 +20,14 @@ class TournamentModelTestCase(TestCase):
         'chessclubs/tests/fixtures/empty_tournament.json',
     ]
 
-    def setUp(self):
-        self.MAX = 96
-        super(TestCase, self).setUp()
-        self.tournament = Tournament.objects.get(name="Test_Tournament")
-        self.second_tournament = Tournament.objects.get(name="Test_Tournament2")
-        self.new_tournament = Tournament.objects.get(name="Empty_Tournament")
-        self.club = Club.objects.get(name="Test_Club")
-        self.player = Player.objects.get(pk=1)
-        self.list_of_participants = _create_test_players(self.MAX, self.club, self.new_tournament)
+    @classmethod
+    def setUpTestData(cls):
+        cls.MAX = 96
+        cls.tournament = Tournament.objects.get(name="Test_Tournament")
+        cls.second_tournament = Tournament.objects.get(name="Test_Tournament2")
+        cls.new_tournament = Tournament.objects.get(name="Empty_Tournament")
+        cls.club = Club.objects.get(name="Test_Club")
+        cls.player = Player.objects.get(pk=1)
 
     def test_organiser_must_not_be_blank(self):
         self.tournament.organiser = None
@@ -91,6 +90,7 @@ class TournamentModelTestCase(TestCase):
         self._assert_tournament_is_invalid()
 
     def test_phase_transitions(self):
+        _create_test_players(self.MAX, self.club, self.new_tournament)
         self.new_tournament._set_deadline_now()
         self.new_tournament.start_tournament()
         self.assertTrue(self.new_tournament.has_started())
@@ -126,6 +126,7 @@ class TournamentModelTestCase(TestCase):
         self.assertFalse(self.new_tournament.return_winner() is None)
 
     def test_get_current_schedule_is_accurate(self):
+        _create_test_players(self.MAX, self.club, self.new_tournament)
         self.new_tournament._set_deadline_now()
         self.new_tournament.start_tournament()
         before = len(self.new_tournament.get_current_schedule())
@@ -136,6 +137,7 @@ class TournamentModelTestCase(TestCase):
         self.assertEqual(before, after + 1)
 
     def test_get_current_pool_phase(self):
+        _create_test_players(self.MAX, self.club, self.new_tournament)
         self.new_tournament._set_deadline_now()
         self.new_tournament.start_tournament()
         self.assertFalse(self.new_tournament.get_current_pool_phase() is None)
