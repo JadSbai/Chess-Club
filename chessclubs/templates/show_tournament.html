@@ -51,8 +51,21 @@
                 <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Number of participants</h5>
               <p class="p-2">{{ tournament.participants_list.count }}</p>
 
+              <h5 class="mb-2 p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Controls</h5>
+              <p class="">
+                  <div>
+                  <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
+                  </div>
+                  <div>
+                  <a href="{% url 'set_deadline_now' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">set deadline now</a>
+                 </div>
+                 {% if is_organiser and not tournamnet.has_started %}
+                 <div>
+                 <a href="{% url 'start_tournament' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">Start tournament</a>
+                </div>
+                {%endif%}
+              </p>
             </div>
-
             {% if tournament|tournament_user_status:user != "organiser" %}
             <div class="card text-center bg-light m-5">
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Apply</h5>
@@ -78,12 +91,7 @@
               </div>
             </div>
             {% endif %}
-                    <div>
-                    <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
-                    </div>
-                    <div>
-                    <a href="{% url 'set_deadline_now' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">set deadline now</a>
-                   </div>
+
 
 
         </div>
