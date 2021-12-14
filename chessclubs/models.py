@@ -505,6 +505,16 @@ class Tournament(models.Model):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
+    def enter_winner(self, winner, match):
+        pool_phase = self.get_current_pool_phase()
+        if pool_phase:
+            pool_phase.enter_result(match, True,winner )
+        else:
+           self.elimination_round.enter_winner(winner,match)
+
+    def enter_draw(self, match):
+        self.get_current_pool_phase().enter_result(match, False)
+
     def _set_deadline_now(self):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
@@ -1208,6 +1218,19 @@ class Pool(models.Model):
                 self.__set_qualified_players()
         else:
             print("All matches are played")
+
+    def enter_winner(self, winner,match):
+        match.enter_winner(winner)
+        self.__are_all_matches_played()
+        if self.all_matches_played:
+            self.__set_qualified_players()
+
+    def enter_draw(self, match):
+        match.enter_draw()
+        self.__are_all_matches_played()
+        if self.all_matches_played:
+            self.__set_qualified_players()
+
 
     def __are_all_matches_played(self):
         self.all_matches_played = all(not m.is_open() for m in self.pool_matches.all())
