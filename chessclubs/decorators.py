@@ -55,10 +55,15 @@ def tournament_permissions_required(perms_list):
                         if perm == 'chessclubs.withdraw':
                             generate_withdraw_messages(request, tournament, target_user)
                             return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+                        elif perm == 'chessclubs.see_tournament_private_info':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Permission denied! You have to be an Organiser or Co-organiser or Participant to see schedules")
+                            return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
                         else:
                             messages.add_message(request, messages.WARNING,
                                                  "Permission denied! You don't have the necessary tournament permission(s)")
                             return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+
 
                 return view_func(request, *args, **kwargs)
 
@@ -73,8 +78,6 @@ def generate_withdraw_messages(request, tournament, target_user):
                              "You are the organiser of this tournament. "
                              "You cannot apply and withdraw from your own tournaments.")
     else:
-        # print(tournament.user_status(target_user))
-        # print(tournament.check_user(target_user))
         messages.add_message(request, messages.WARNING,
                              "You are not a participant of this tournament.")
 
@@ -96,6 +99,10 @@ def must_be_non_participant(view_function):
             elif tournament.is_organiser(target_user):
                 messages.add_message(request, messages.WARNING,
                                      "You are the organiser of this tournament. You cannot apply.")
+                return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+            elif tournament.is_co_organiser(target_user):
+                messages.add_message(request, messages.WARNING,
+                                     "You are a co-organiser of this tournament. You cannot apply.")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             else:
                 return view_function(request, *args, **kwargs)

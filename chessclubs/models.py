@@ -166,6 +166,9 @@ class Club(models.Model):
         """returns a querySet of all members"""
         return self.members.all()
 
+    def get_officers(self):
+        return self.__officers_group().user_set.all()
+
     def add_member(self, user):
         self.members.add(user)
         self.add_to_members_group(user)
@@ -505,16 +508,6 @@ class Tournament(models.Model):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
-    def enter_winner(self, winner, match):
-        pool_phase = self.get_current_pool_phase()
-        if pool_phase:
-            pool_phase.enter_result(match, True,winner )
-        else:
-           self.elimination_round.enter_winner(winner,match)
-
-    def enter_draw(self, match):
-        self.get_current_pool_phase().enter_result(match, False)
-
     def _set_deadline_now(self):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
@@ -611,14 +604,8 @@ class Tournament(models.Model):
             return None
 
     def add_co_organiser(self, officer):
-        # Checks should be done beforehand in the views
-        if officer in self.__co_organisers_group().user_set.all():
-            print("You are already a co_organiser")
-        elif officer == self.organiser:
-            print("The organiser cannot be a co_organiser")
-        else:
-            self.co_organisers.add(officer)
-            self.add_to_co_organisers_group(officer)
+        self.co_organisers.add(officer)
+        self.add_to_co_organisers_group(officer)
 
     def user_status(self, user):
         if user == self.organiser:

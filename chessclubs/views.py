@@ -438,7 +438,13 @@ def show_tournament(request, club_name, tournament_name):
         messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
         return redirect('show_club', club_name=club_name)
     else:
-        return render(request, 'show_tournament.html', {'tournament': tournament, 'user': request.user})
+        club = Club.objects.get(name=club_name)
+        officers = club.get_officers()
+        can_be_added_as_co_organiser = []
+        for officer in officers:
+            if officer not in tournament.participants_list() and officer not in tournament.co_organisers_list() and (officer != tournament.organiser):
+                can_be_added_as_co_organiser.append(officer)
+        return render(request, 'show_tournament.html', {'tournament': tournament, 'user': request.user, 'allowed_co_organisers': can_be_added_as_co_organiser})
 
 
 @login_required
@@ -467,6 +473,7 @@ def withdraw_tournament(request, club_name, tournament_name):
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+@tournament_permissions_required(perms_list=['chessclubs.see_tournament_private_info'])
 def show_schedule(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     schedule = tournament.get_current_schedule()
@@ -501,6 +508,15 @@ def my_matches(request):
     return render(request, 'my_matches.html', {'matches': matches, 'tournaments': tournaments})
 
 @login_required
+def add_to_co_organiser(request, tournament_name, club_name, user_id):
+    tournament = Tournament.objects.get(name=tournament_name)
+    co_organiser = User.objects.get(id=user_id)
+    tournament.add_co_organiser(co_organiser)
+    notify.send(request.user, recipient=co_organiser, verb=f'{tournament_name}_Coorganiser',
+                description=f"You have been added as co-organiser of tournament {tournament_name}")
+    return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+
+
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 def enter_result(request, tournament_name, match_id, result, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
