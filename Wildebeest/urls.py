@@ -49,9 +49,15 @@ urlpatterns = [
     path('<club_name>/ban/<int:user_id>', views.ban, name='ban'),
     path('<club_name>/leave/', views.leave, name='leave'),
     path('<club_name>/tournament/<tournament_name>/', views.show_tournament, name='show_tournament'),
+    path('<club_name>/create_tournament/', views.create_tournament, name='create_tournament'),
     path('<club_name>/tournament/<tournament_name>/apply/', views.apply_tournament, name='apply_tournament'),
     path('<club_name>/tournament/<tournament_name>/withdraw/', views.withdraw_tournament, name='withdraw_tournament'),
     path('<club_name>/edit_club_info/', views.edit_club, name='edit_club'),
+    path('<club_name>/tournament/<tournament_name>/set_deadline_now/', views.set_deadline_now, name='set_deadline_now'),
+    path('<club_name>/tournament/<tournament_name>/show_schedule/', views.show_schedule, name='show_schedule'),
+    path('<club_name>/tournament/<tournament_name>/add_co_organiser/<int:user_id>', views.add_to_co_organiser, name='add_to_co_organiser'),
+    path('<club_name>/tournament/<tournament_name>/<match_id>/enter_result/<result>/', views.enter_result, name='enter_result'),
+    path('my_matches/', views.my_matches, name='my_matches'),
     url('^inbox/notifications/', include(notifications.urls, namespace='notifications'))
 ]
 handler404 = "chessclubs.views.page_not_found_view"

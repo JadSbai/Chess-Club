@@ -138,7 +138,7 @@ class TournamentForm(forms.ModelForm):
         model = Tournament
         fields = ['name', 'description', 'deadline', 'location', 'max_capacity']
         widgets = {
-            'deadline': forms.DateInput(attrs={'type': 'date'}),
+            'deadline': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'description': forms.Textarea(),
             'max_capacity': forms.TextInput(attrs={'min': '2', 'max': '96', 'type': 'number', 'placeholder': 'Choose a value between 2 and 96'}),
         }
@@ -156,4 +156,5 @@ class TournamentForm(forms.ModelForm):
             organiser=organiser,
             club=club
         )
+        tournament.assign_tournament_permissions_and_groups()
         return tournament

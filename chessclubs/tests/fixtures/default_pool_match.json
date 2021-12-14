@@ -1,0 +1,22 @@
+[
+  {
+    "model": "chessclubs.match",
+    "pk": 1,
+    "fields": {
+      "_player1": 4,
+      "_player2": 5,
+      "tournament": 1
+    }
+  },
+
+  {
+    "model": "chessclubs.poolmatch",
+    "pk": 1,
+    "fields": {
+      "_player1": 4,
+      "_player2": 5,
+      "tournament": 1,
+      "pool": 1
+    }
+  }
+]

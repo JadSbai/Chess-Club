@@ -145,3 +145,23 @@ h3.profile-title {
   text-decoration: underline;
   color: black;
 }
+
+#demobox {
+  background-color: #cfc ;
+  padding: 10px ;
+  border: 1px solid green ;
+}
+
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+}
+
+.navbar-nav li:hover > ul.dropdown-menu {
+    display: block;
+}

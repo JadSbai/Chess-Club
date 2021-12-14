@@ -40,5 +40,110 @@
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 5,
+    "fields": {
+      "first_name": "Morgane",
+      "last_name": "Zadjlic",
+      "email": "morganezadjlic@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 6,
+    "fields": {
+      "first_name": "A",
+      "last_name": "B",
+      "email": "ab@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 7,
+    "fields": {
+      "first_name": "C",
+      "last_name": "D",
+      "email": "cd@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 8,
+    "fields": {
+      "first_name": "E",
+      "last_name": "F",
+      "email": "ef@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 9,
+    "fields": {
+      "first_name": "G",
+      "last_name": "H",
+      "email": "gh@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 10,
+    "fields": {
+      "first_name": "I",
+      "last_name": "J",
+      "email": "ij@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 11,
+    "fields": {
+      "first_name": "K",
+      "last_name": "L",
+      "email": "kl@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
   }
 ]

@@ -59,18 +59,19 @@
         <h5 class="mb-1 p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Tournaments</h5>
         {% if tournaments %}
         <table class="table">
-          <tr><th>Name</th><th>Deadline</th></tr>
+          <tr><th>Name</th><th>Deadline</th><th>Description</th><th>Number of participants</th></tr>
           {% for tournament in tournaments %}
           <tr>
             <td><a class = "btn btn-outline-primary" href="{% url 'show_tournament' tournament_name=tournament.name club_name=club.name%}">{{ tournament.name }}</a></td>
             <td>{{ tournament.deadline }}</td>
+            <td>{{ tournament.description }}</td>
+            <td>{{ tournament.participants_list.count }}</td>
           </tr>
           {% endfor%}
         </table>
         {% else %}
         <p class="p-2" style="text-align: center;">So far, this club has not organised any tournaments.</p>
         {% endif %}
-
       </div>
     </div>
   </div>

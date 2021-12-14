@@ -1,13 +1,13 @@
 [
   {
     "model": "chessclubs.tournament",
-    "pk": 1,
+    "pk": 3,
     "fields": {
-      "name": "Test_Tournament",
+      "name": "Empty_Tournament",
       "description": "Short description",
       "location": "London",
-      "max_capacity": 32,
-      "deadline": "2022-04-08 11:30+00:00",
+      "max_capacity": 96,
+      "deadline": "2024-04-08 11:30+00:00",
       "organiser": 1,
       "club": 1
     }

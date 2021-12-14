@@ -18,7 +18,7 @@
       {% if current_user_status == "owner" %}
         {% if target_user_status == "member" %}
             <div class="mx-3">
-          <a href="{% url 'promote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-success">Promote</a>
+          <a href="{% url 'promote' club_name=club.name user_id=target_user.id %}"  onclick="return promoteConfirmation()" class="btn btn-outline-success">Promote</a>
             </div>
             <div class="mx-3">
           <a href="{% url 'ban' club_name=club.name user_id=target_user.id%}" onclick="return banConfirmation()" class="btn btn-outline-danger">Ban this user</a>
@@ -26,21 +26,21 @@
           {%endif%}
         {% if target_user_status == "officer" %}
             <div class = "mx-3">
-        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-danger ">Demote</a>
+        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  onclick="return demoteConfirmation()" class="btn btn-outline-danger ">Demote</a>
             </div>
             <form action="{% url 'transfer_ownership' club_name=club.name user_id=target_user.id %}" method="post">
         {% csrf_token %}
-        <input type="submit" value="Transfer ownership" class="btn btn-outline-info">
+        <input type="submit" value="Transfer ownership" onclick="return transferConfirmation()" class="btn btn-outline-info">
       </form>
         {% endif%}
       {%endif%}
     {% if current_user_status == "officer" or current_user_status == "owner"%}
         {% if target_user_status == "applicant" %}
             <div class = "mx-3">
-          <a href="{% url 'accept' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-success">Accept</a>
+          <a href="{% url 'accept' club_name=club.name user_id=target_user.id %}" onclick="return acceptConfirmation()" class="btn btn-outline-success">Accept</a>
             </div>
             <div class = "mx-3">
-            <a href="{% url 'deny' club_name=club.name user_id=target_user.id %}"  class="btn btn-outline-danger">Deny</a>
+            <a href="{% url 'deny' club_name=club.name user_id=target_user.id %}" onclick="return denyConfirmation()" class="btn btn-outline-danger">Deny</a>
             </div>
           {%endif%}
       {%endif%}
