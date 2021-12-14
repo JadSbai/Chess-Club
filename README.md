@@ -1,11 +1,13 @@
-Team enter team name here Small Group project
+Team Wildebeest Small Group project
 Team members
 The members of the team are:
 
-Enter member 1
-Enter member 2
-Enter member 3
-Enter member 4 Add any further information about the team here, such as absent team members.
+Duna Alghamdi, 
+Marija Buivyte, 
+Yiren Liang,
+Jad Sbaï,  
+Lilianna Szabo, 
+
 Project structure
 The project is called system. It currently consists of a single app clubs.
 
@@ -34,5 +36,5 @@ The above instructions should work in your version of the application. If there 
 Sources
 The packages used by this application are specified in requirements.txt
 
-Declare are other sources here.
+This projects has code borrowed from the recommended training videos.
 
