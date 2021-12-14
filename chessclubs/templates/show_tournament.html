@@ -33,9 +33,12 @@
                 There are no co-organisers.
                 {% endif %}
                 {% for co_organiser in tournament.co_organisers_list %}
-                {{ co_organiser.full_name }}
+                {{ co_organiser.full_name }}/
                 {% endfor %}
               </p>
+            {% if tournament|tournament_user_status:user == "organiser" %}
+                    {% include 'allowed_co_organisers.html' with user=user tournament=tournament allowed_co_organisers=allowed_co_organisers %}
+                    {% endif %}
               <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Participants</h5>
               <p class="p-2">
                 {% if not tournament.participants_list %}
@@ -81,6 +84,8 @@
                     <div>
                     <a href="{% url 'set_deadline_now' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">set deadline now</a>
                    </div>
+
+
         </div>
     </div>
 </div>

@@ -476,7 +476,6 @@ def show_schedule(request, club_name, tournament_name):
 
 @login_required
 def set_deadline_now(request, tournament_name, club_name):
-
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.set_deadline_now()
     tournament.start_tournament()
@@ -493,4 +492,17 @@ def my_matches(request):
         tournaments[tournament]= tournament.get_matches_of_player(request.user)
         matches.extend(tournament.get_matches_of_player(request.user))
     return render(request, 'my_matches.html', {'matches': matches,'tournaments': tournaments})
+
+@login_required
+def add_to_co_organiser(request, tournament_name, club_name, user_id):
+    tournament = Tournament.objects.get(name=tournament_name)
+    co_organiser = User.objects.get(id=user_id)
+    tournament.add_co_organiser(co_organiser)
+    notify.send(request.user, recipient=co_organiser, verb=f'{tournament_name}_Coorganiser',
+                description=f"You have been added as co-organiser of tournament {tournament_name}")
+    return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+
+
+
+
 

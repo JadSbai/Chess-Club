@@ -167,6 +167,9 @@ class Club(models.Model):
         """returns a querySet of all members"""
         return self.members.all()
 
+    def get_officers(self):
+        return self.__officers_group().user_set.all()
+
     def add_member(self, user):
         self.members.add(user)
         self.add_to_members_group(user)
@@ -491,6 +494,8 @@ class Tournament(models.Model):
                 self.add_participant(member)
         self.deadline = timezone.now()-timezone.timedelta(days=1)
         self.save()
+
+
 
     def _set_deadline_now(self):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
