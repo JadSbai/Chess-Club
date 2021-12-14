@@ -434,11 +434,12 @@ def show_tournament(request, club_name, tournament_name):
         user = request.user
         tournament = Tournament.objects.get(name=tournament_name)
         is_participant = tournament.is_participant(user)
+        is_organiser = tournament.is_organiser(request.user)
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
         return redirect('show_club', club_name=club_name)
     else:
-        return render(request, 'show_tournament.html', {'tournament': tournament, 'user': user})
+        return render(request, 'show_tournament.html', {'tournament': tournament, 'user': user, 'is_participant': is_participant, 'is_organiser':is_organiser})
 
 
 @login_required
@@ -466,20 +467,24 @@ def withdraw_tournament(request, club_name, tournament_name):
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 def show_schedule(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
-    schedule = tournament.get_current_schedule()
-    pools = tournament.get_current_pool_phase().pools.all()
-    try:
-        club = Club.objects.get(name=club_name)
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
-        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
-    return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule':schedule, 'pools':pools})
+    if tournament.has_started():
+        schedule = tournament.get_current_schedule()
+        pools = tournament.get_current_pool_phase().pools.all()
+        try:
+            club = Club.objects.get(name=club_name)
+        except ObjectDoesNotExist:
+            messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+            return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
+        return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule':schedule, 'pools':pools})
+    else:
+        messages.add_message(request, messages.ERROR, "The tournament has not started yet")
+        return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
 @login_required
 def set_deadline_now(request, tournament_name, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.set_deadline_now()
-    tournament.start_tournament()
+    #tournament.start_tournament()
     print(tournament.deadline)
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
@@ -521,3 +526,10 @@ def enter_result(request, tournament_name, match_id, result, club_name):
     else:
         tournament.enter_result(match, winner=match.get_player2())
         return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
+
+@login_required
+def start_tournament(request, tournament_name, club_name):
+    tournament = Tournament.objects.get(name=tournament_name)
+    if tournament.is_organiser(request.user):
+        tournament.start_tournament()
+    return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
