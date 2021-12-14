@@ -21,10 +21,11 @@
                                 <p><strong>Pool {{ count }}</strong></p>
                             {% endwith %}
                             {% for player in pool.get_players %}
-                                <p class="p-2">{{player.user.full_name}}</p>
+                                <p class="p-2"><strong>{{player.user.full_name}}</strong>  : {{ player.get_points }}</p>
                             {% endfor %}
                         {% endfor %}
                     {% endwith %}
+
 
                 </div>
                 <div class="col-6">

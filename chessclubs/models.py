@@ -297,6 +297,7 @@ class Club(models.Model):
         tournament_perm = Permission.objects.get(codename='create_tournament')
         apply_tournament_perm = Permission.objects.get(codename="apply_tournament")
         withdraw_tournament_perm = Permission.objects.get(codename="withdraw_tournament")
+        edit_club_info_perm = Permission.objects.get(codename="edit_club_info")
 
         # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -326,7 +327,9 @@ class Club(models.Model):
         apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                                          base_permission=apply_tournament_perm)
         withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                            base_permission=withdraw_tournament_perm)
+                                                                           base_permission=withdraw_tournament_perm)
+        edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
+                                                                           base_permission=edit_club_info_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -354,6 +357,7 @@ class Club(models.Model):
         demote.set_groups(groups)
         transfer_ownership.set_groups(groups)
         ban.set_groups(groups)
+        edit_club_info.set_groups(groups)
         self.__owner_group().user_set.add(self.owner)
 
     def get_all_tournaments(self):
@@ -377,7 +381,8 @@ class Club(models.Model):
             ("leave", "Can leave a club"),
             ("create_tournament", "Can create a tournament"),
             ("apply_tournament", "Can apply to a tournament"),
-            ("withdraw_tournament", "Can withdraw from a tournament")
+            ("withdraw_tournament", "Can withdraw from a tournament"),
+            ("edit_club_info", "Can edit club information"),
         ]
 
 
@@ -532,6 +537,7 @@ class Tournament(models.Model):
             pool_phase.enter_result(match=pool_match, result=result, winner=winner)
         else:
             elimination_match = EliminationMatch.objects.get(id=match.id)
+            print(self.elimination_round.phase)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
 
     def get_winner(self):
@@ -834,20 +840,32 @@ class EliminationRounds(models.Model):
             self.EL_players.add(player)
         self.save()
 
+    def __are_all_matches_played(self):
+        for match in self.schedule.all():
+            if match.is_open():
+                return False
+        return True
+
     def remove_player(self, player):
         self.EL_players.remove(player)
         self.save()
+
+    def __are_all_matches_played(self):
+        for match in self.schedule.all():
+            if match.is_open():
+                return False
+        return True
 
     def enter_winner(self, winner, match):
         # The checks will be done at views level
         if self._open:
             round_winner = match.enter_winner(winner)
-            if self.phase == "Final" and round_winner:
+            if self.phase == "Final":
                 self._winner = round_winner
                 self._open = False
                 self.save()
                 self._tournament.go_to_next_phase(winner=round_winner)
-            else:
+            elif self.__are_all_matches_played():
                 self.__check_new_phase()
         else:
             raise ValueError("All matches have already been played")

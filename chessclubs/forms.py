@@ -117,6 +117,13 @@ class ClubForm(forms.ModelForm):
         club.assign_club_groups_permissions()
         return club
 
+class EditClubInformationForm(forms.ModelForm):
+    """Form to update existing club information."""
+
+    class Meta:
+        model = Club
+        fields = ['description', 'location']
+        widgets = {'description': forms.Textarea()}
 
 class NewOwnerForm(forms.ModelForm):
     class Meta:
