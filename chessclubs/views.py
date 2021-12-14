@@ -481,7 +481,6 @@ def show_tournament(request, club_name, tournament_name):
                                        'chessclubs.apply_tournament'])
 @must_be_non_participant
 def apply_tournament(request, club_name, tournament_name):
-    # TODO: Deadline constraints, maximum capacity reached constraints
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
     if tournament.deadline > timezone.now():
@@ -505,7 +504,6 @@ def apply_tournament(request, club_name, tournament_name):
                                        'chessclubs.withdraw_tournament'])
 @tournament_permissions_required(perms_list=['chessclubs.withdraw'])
 def withdraw_tournament(request, club_name, tournament_name):
-    # TODO: Deadline constraints, maximum capacity reached constraints
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
     if tournament.deadline > timezone.now():
