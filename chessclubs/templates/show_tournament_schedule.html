@@ -7,7 +7,7 @@
     {% block content %}
         {% current_time as the_time %}
         {% if tournament.has_finished %}
-            No more schedule! The winner is {{ tournament.return_winner }}
+            No more schedule! The winner is {{ tournament.get_winner }}
         {% endif %}
         {% if tournament.get_current_phase != "Elimination Round" %}
             <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.get_current_phase}}</h5>

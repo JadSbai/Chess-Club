@@ -123,7 +123,7 @@ class TournamentModelTestCase(TestCase):
         self.new_tournament.refresh_from_db()
         self.assertTrue(self.new_tournament._started)
         self.assertTrue(self.new_tournament._finished)
-        self.assertFalse(self.new_tournament.return_winner() is None)
+        self.assertFalse(self.new_tournament.get_winner() is None)
 
     def test_get_current_schedule_is_accurate(self):
         _create_test_players(self.MAX, self.club, self.new_tournament)

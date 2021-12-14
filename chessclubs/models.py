@@ -492,15 +492,15 @@ class Tournament(models.Model):
     _winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="won_tournaments", blank=True)
     _started = models.BooleanField(default=False)
     _finished = models.BooleanField(default=False)
+    _schedule_published = models.BooleanField(default=False)
 
     def add_participant(self, member):
         new_player = Player.objects.create(user=member, tournament=self)
         self.players.add(new_player)
         self.add_to_participants_group(member)
-
         return new_player
 
-# Not gonna be kept in production
+    # Not gonna be kept in production
     def set_deadline_now(self):
         for member in self.club.members.all():
             if member != self.organiser:
@@ -508,9 +508,13 @@ class Tournament(models.Model):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
+
     def _set_deadline_now(self):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
+
+    def is_published(self):
+        return self._schedule_published
 
     def has_finished(self):
         return self._finished
@@ -524,7 +528,7 @@ class Tournament(models.Model):
             elimination_match = EliminationMatch.objects.get(id=match.id)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
 
-    def return_winner(self):
+    def get_winner(self):
         if self._winner:
             return self._winner.full_name()
 
@@ -545,7 +549,6 @@ class Tournament(models.Model):
                 self.save()
             else:
                 raise ValidationError("Invalid number of qualified players")
-
         elif winner:
             self.__announce_winner(winner)
         else:
@@ -636,14 +639,15 @@ class Tournament(models.Model):
         if not self._started:
             if timezone.now() >= self.deadline:
                 self._started = True
-                self.__launch()
-                self.save()
+                if (not self._schedule_published):
+                    self.publish_schedule()
             else:
                 raise ValidationError("The deadline is not yet passed")
         else:
             raise ValidationError("The tournament has already started")
 
-    def __launch(self):
+    def publish_schedule(self):
+        _schedule_published = True
         self.__set_start_phase()
         if self._start_phase == "Elimination-Rounds":
             self.__create_elimination_round(self.players.all())
@@ -654,6 +658,7 @@ class Tournament(models.Model):
         else:
             large_pool_phase = self.__create_pool_phase(qualified_players=self.players.all(), name="Large-Pool-Phase")
             large_pool_phase.generate_schedule()
+        self.save()
 
     def has_started(self):
         return self._started
@@ -1206,7 +1211,7 @@ class Pool(models.Model):
         else:
             print("All matches are played")
 
-    def enter_winner(self, winner,match):
+    def enter_winner(self, winner, match):
         match.enter_winner(winner)
         self.__are_all_matches_played()
         if self.all_matches_played:
@@ -1217,7 +1222,6 @@ class Pool(models.Model):
         self.__are_all_matches_played()
         if self.all_matches_played:
             self.__set_qualified_players()
-
 
     def __are_all_matches_played(self):
         self.all_matches_played = all(not m.is_open() for m in self.pool_matches.all())
@@ -1263,7 +1267,6 @@ class Match(models.Model):
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="tournament_schedule")
 
     objects = MatchManager()
-
 
     def get_player1(self):
         return self._player1
