@@ -14,8 +14,10 @@
 
                     <div class="border">
 
-                        <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Description</h5>
-                        <p class="p-2">{{ tournament.description }}</p>
+
+              <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Description</h5>
+              <p class="p-2 text-break">{{ tournament.description }}</p>
+
 
                         <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Deadline</h5>
 
@@ -57,7 +59,11 @@
                                     If you change your mind, you can withdraw any time before the deadline.
                                     <hr>
                                     {% if tournament|tournament_user_status:user != "participant" %}
-                                        <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
+                                         {% if not tournament.is_max_capacity_reached %}
+                  <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">Apply to this tournament</a>
+                {% else %}
+                Unfortunately, maximum capacity of participants was reached. Come back next time to see if any spot has freed up.
+                {% endif %}
                                     {% else %}
                                         <a href="{% url 'withdraw_tournament' club_name=tournament.club.name tournament_name=tournament.name %}"  class="btn btn-outline-info">Withdraw from tournament</a>
                                     {% endif %}
@@ -101,10 +107,6 @@
                         {%  endif %}
                     </p>
 
-
-
-
-                   
 
                     </div>
                     </div>
