@@ -104,7 +104,6 @@ class User(AbstractUser):
             tournaments1.append(player_profile.tournament)
         return tournaments1
 
-
     def gravatar(self, size=120):
         """Return a URL to the user's gravatar."""
         gravatar_object = Gravatar(self.email)
@@ -434,12 +433,25 @@ class Player(models.Model):
                                            related_name="EL_players", null=True, blank=True)
     _pool_phases = models.ManyToManyField('PoolPhase', related_name="PP_players")
     _pools = models.ManyToManyField('Pool', related_name="pool_players")
+    _encountered_players = models.ManyToManyField('self', related_name="encountered_players")
 
     def get_points(self):
         return self._points
 
     def get_pools(self):
         return self._pools.all()
+
+    def get_encountered_players(self):
+        return self._encountered_players.all()
+
+    def add_encountered_player(self, player):
+        if player not in self.get_encountered_players():
+            self._encountered_players.add(player)
+            self.save()
+
+    def _clean_encountered_players(self):
+        for player in self.get_encountered_players():
+            self._encountered_players.remove(player)
 
     def win(self):
         self._points += float(1.0)
@@ -489,7 +501,7 @@ class Tournament(models.Model):
         for member in self.club.members.all():
             if member != self.organiser:
                 self.add_participant(member)
-        self.deadline = timezone.now()-timezone.timedelta(days=1)
+        self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
     def _set_deadline_now(self):
@@ -539,7 +551,7 @@ class Tournament(models.Model):
             if match.get_player1() == player or match.get_player2() == player:
                 matches.append(match)
         return matches
-      
+
     def __go_to_small_pool_phase(self, qualified_players):
         small_pool_phase = self.__create_pool_phase(qualified_players=qualified_players, name="Small-Pool-Phase")
         small_pool_phase.generate_schedule()
@@ -607,8 +619,6 @@ class Tournament(models.Model):
         # Checks should be done beforehand in the views
         self.co_organisers.remove(member)
         self.remove_from_organisers_group(member)
-
-
 
     def start_tournament(self):
         if not self._started:
@@ -831,7 +841,7 @@ class EliminationRounds(models.Model):
         return self.EL_players.all()
 
     def get_players_count(self):
-        return  self.EL_players.count()
+        return self.EL_players.count()
 
     def get_phase(self):
         return self.phase
@@ -881,13 +891,10 @@ class EliminationRounds(models.Model):
             player = random.sample(not_yet_selected_players, 1)[0]
             forbidden_players = {0}
             forbidden_players.remove(0)
-            player_pools = player.get_pools()
-            if player_pools:
-                for player_pool in player_pools:
-                    forbidden_players.update(player_pool.pool_players.all())
-
+            forbidden_players.update(player.get_encountered_players())
             not_yet_selected_players.remove(player)
             choices = not_yet_selected_players - forbidden_players
+
             if len(choices) == 0:
                 random_player = random.sample(not_yet_selected_players, 1)[0]
             else:
@@ -979,46 +986,67 @@ class PoolPhase(models.Model):
         not_yet_selected_players.remove(0)
         not_yet_selected_players.update(self.PP_players.all())
 
-        for i in range(groups_of_4):
-            new_pool = Pool.objects.create(pool_phase=self)
-            pool_players = random.sample(not_yet_selected_players, 4)
-            for player in pool_players:
-                not_yet_selected_players.remove(player)
-            new_pool.add_players(pool_players)
-
-        for i in range(groups_of_3):
-            new_pool = Pool.objects.create(pool_phase=self)
-            pool_players = random.sample(not_yet_selected_players, 3)
-            for player in pool_players:
-                not_yet_selected_players.remove(player)
-            new_pool.add_players(pool_players)
+        not_yet_selected_players = self.__create_new_pool(groups_of_4, 3, not_yet_selected_players)
+        self.__create_new_pool(groups_of_3, 2, not_yet_selected_players)
 
     def __create_large_pools(self, groups_of_5, groups_of_6):
         not_yet_selected_players = {0}
         not_yet_selected_players.remove(0)
         not_yet_selected_players.update(self.PP_players.all())
 
-        for i in range(groups_of_5):
+        not_yet_selected_players = self.__create_new_pool(groups_of_6, 5, not_yet_selected_players)
+        self.__create_new_pool(groups_of_5, 4, not_yet_selected_players)
+
+    def __create_new_pool(self, num_of_groups, size, all_players):
+        counter = 0
+        while counter != num_of_groups:
+            player = random.sample(all_players, 1)[0]
+            forbidden_players = {0}
+            forbidden_players.remove(0)
+            forbidden_players.update(player.get_encountered_players())
+            all_players.remove(player)
+            non_encountered = all_players - forbidden_players
+            number_of_choices = len(non_encountered)
             new_pool = Pool.objects.create(pool_phase=self)
-            pool_players = random.sample(not_yet_selected_players, 5)
-            for player in pool_players:
-                not_yet_selected_players.remove(player)
+
+            pool_players = []
+
+            if number_of_choices >= size:
+                pool_players = random.sample(non_encountered, size)
+            elif number_of_choices > 0:
+                diff = size - number_of_choices
+
+                non_encountered_players = random.sample(non_encountered, number_of_choices)
+                for non_encountered_player in non_encountered_players:
+                    pool_players.append(non_encountered_player)
+
+                all_other_players = []
+                for player in all_players:
+                    if player not in non_encountered_players:
+                        all_other_players.append(player)
+
+                encountered_players = random.sample(all_other_players, diff)
+                for encountered_player in encountered_players:
+                    pool_players.append(encountered_player)
+
+            else:
+                pool_players = random.sample(all_players, size)
+
+            for new_player in pool_players:
+                all_players.remove(new_player)
+
+            pool_players.append(player)
             new_pool.add_players(pool_players)
 
-        for i in range(groups_of_6):
-            new_pool = Pool.objects.create(pool_phase=self)
-            pool_players = random.sample(not_yet_selected_players, 6)
-            for player in pool_players:
-                not_yet_selected_players.remove(player)
-            new_pool.add_players(pool_players)
+            counter += 1
+
+        return all_players
 
     def __generate_small_pool_schedule(self):
         number_of_players = self.PP_players.count()
         groups_of_3, groups_of_4 = self.__small_groups(number_of_players)
-
-        if self.pools.count() != groups_of_4 + groups_of_3:
-            self.__create_small_pools(groups_of_3, groups_of_4)
-            self.__assign_matches_to_pools()
+        self.__create_small_pools(groups_of_3, groups_of_4)
+        self.__assign_matches_to_pools()
         return self.pools.all()
 
     def __small_groups(self, number_of_players):
@@ -1084,7 +1112,6 @@ class PoolPhase(models.Model):
 
         return groups_of_5, groups_of_6
 
-
     def __generate_large_pool_schedule(self):
         number_of_players = self.PP_players.count()
         groups_of_3 = 0
@@ -1104,7 +1131,6 @@ class PoolPhase(models.Model):
         self.__assign_matches_to_pools()
         return self.pools.all()
 
-
     def generate_schedule(self):
         if 17 <= self.PP_players.count() <= 32:
             return self.__generate_small_pool_schedule()
@@ -1112,6 +1138,7 @@ class PoolPhase(models.Model):
             return self.__generate_large_pool_schedule()
         else:
             raise ValueError("The number of players is invalid")
+
 
 class Pool(models.Model):
     pool_phase = models.ForeignKey(PoolPhase, on_delete=models.CASCADE, related_name="pools", null=True)
@@ -1211,6 +1238,7 @@ class Match(models.Model):
             raise ValidationError("This match is closed")
         if player == self._player1 or player == self._player2:
             self._winner = player
+            self._player1.add_encountered_player(self._player2)
             self.__close_match()
             self.save()
             return self._winner
@@ -1221,6 +1249,7 @@ class Match(models.Model):
         if not self._open:
             raise ValidationError("This match is closed")
         else:
+            self._player1.add_encountered_player(self._player2)
             self.__close_match()
             self.save()
 

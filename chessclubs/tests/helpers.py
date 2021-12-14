@@ -154,6 +154,17 @@ def enter_results_to_all_matches(tournament):
         enter_results_to_elimination_round_matches(elimination_round)
 
 
+def encounter_half(players):
+    for i in range(0, len(players) - 1, 2):
+        players[i].add_encountered_player(players[i + 1])
+
+
+def encounter_all(players):
+    for i in range(len(players)):
+        for j in range(i + 1, len(players)):
+            players[i].add_encountered_player(players[j])
+
+
 def get_right_number_of_pools():
     right_answers = {17: 5, 18: 5, 19: 5, 20: 5, 21: 6, 22: 6, 23: 6, 24: 6, 25: 7, 26: 7, 27: 7, 28: 7, 29: 8, 30: 8,
                      31: 8, 32: 8}
@@ -166,5 +177,3 @@ def get_right_phase():
            8: "Quarter-Final", 9: "Eighth-Final", 10: "Eighth-Final", 11: "Eighth-Final", 12: "Eighth-Final",
            13: "Eighth-Final", 14: "Eighth-Final", 15: "Eighth-Final", 16: "Eighth-Final"}
     return dic
-
-
