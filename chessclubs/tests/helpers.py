@@ -140,18 +140,16 @@ def enter_results_to_elimination_round_matches(ER):
 
 
 def enter_results_to_all_matches(tournament):
-    pool_phase = tournament.get_current_pool_phase()
-    if pool_phase:
-        for pool in pool_phase.get_pools():
-            for match in pool.get_pool_matches():
-                rand = random.choice([True, False])
-                if rand:
-                    pool.enter_result(match=match, result=rand, winner=match.get_player1())
-                else:
-                    pool.enter_result(match=match, result=rand)
+    if tournament.get_current_pool_phase():
+        for match in tournament.get_current_schedule():
+            rand = random.choice([True, False])
+            if rand:
+                tournament.enter_result(match=match, result=rand, winner=match.get_player1())
+            else:
+                tournament.enter_result(match=match, result=rand)
     else:
-        elimination_round = tournament.elimination_round
-        enter_results_to_elimination_round_matches(elimination_round)
+        for match in tournament.get_current_schedule():
+            tournament.enter_result(match=match, winner=match.get_player1())
 
 
 def encounter_half(players):

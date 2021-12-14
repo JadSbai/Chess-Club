@@ -497,6 +497,7 @@ class Tournament(models.Model):
 
         return new_player
 
+# Not gonna be kept in production
     def set_deadline_now(self):
         for member in self.club.members.all():
             if member != self.organiser:
@@ -511,11 +512,18 @@ class Tournament(models.Model):
     def has_finished(self):
         return self._finished
 
+    def enter_result(self, match, result=True, winner=None):
+        pool_phase = self.get_current_pool_phase()
+        if pool_phase:
+            pool_match = PoolMatch.objects.get(id=match.id)
+            pool_phase.enter_result(match=pool_match, result=result, winner=winner)
+        else:
+            elimination_match = EliminationMatch.objects.get(id=match.id)
+            self.elimination_round.enter_winner(match=elimination_match, winner=winner)
+
     def return_winner(self):
         if self._winner:
             return self._winner.full_name()
-        else:
-            return None
 
     def go_to_next_phase(self, winner=None, qualified_players=None):
         if qualified_players:
@@ -947,6 +955,10 @@ class PoolPhase(models.Model):
             self.PP_qualified_players.add(player)
         self.save()
 
+    def enter_result(self, match, result, winner=None):
+        pool = self.__get_pool_of_match(match)
+        pool.enter_result(match=match, result=result, winner=winner)
+
     def __go_to_next_phase(self):
         self._closed = True
         self.__delete_all_phase_matches()
@@ -962,6 +974,12 @@ class PoolPhase(models.Model):
             if not pool.all_matches_played:
                 return False
         return True
+
+    def __get_pool_of_match(self, match):
+        for pool in self.get_pools():
+            for pool_match in pool.get_pool_matches():
+                if match.id == pool_match.id:
+                    return pool
 
     def get_players(self):
         return self.PP_players.all()

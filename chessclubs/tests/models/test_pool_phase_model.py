@@ -83,8 +83,7 @@ class SmallPoolPhaseModelTestCase(TestCase):
                     for other_player in pool.get_players():
                         if other_player != player and (player in other_player.get_encountered_players()):
                             anomalies += 1
-            self.assertTrue(
-                anomalies <= 2 * len(pools_list))  # At MOST 1 pair of player have encountered each other in each pool
+            self.assertTrue(anomalies <= 2 * len(pools_list))  # At MOST 1 pair of player have encountered each other in each pool
             self._clean(self.small_pool_phase)
 
             # Every player encounters every player
