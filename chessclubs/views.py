@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.utils import slug2id
 from django.urls import reverse
-from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
+from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, EditClubInformationForm
 from .models import User, Club, Tournament, ClubPermission, Match
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, must_be_non_participant
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
@@ -320,6 +320,35 @@ def create_club(request):
         form = ClubForm()
         return render(request, 'create_club.html', {'form': form})
 
+@login_required
+@club_permissions_required(perms_list=['chessclubs.edit_club_info'])
+def edit_club(request, club_name):
+    current_club = Club.objects.get(name=club_name)
+    if request.method == 'POST':
+        form = EditClubInformationForm(instance=current_club, data=request.POST)
+        if form.is_valid():
+            messages.add_message(request, messages.SUCCESS, "Club information updated!")
+            form.save()
+            return redirect('show_club', club_name=club_name)
+        else:
+            return render(request, 'edit_club_info.html', {'form': form})
+    else:
+        form = EditClubInformationForm(instance=current_club)
+        return render(request, 'edit_club_info.html', {'form': form, 'club': current_club})
+
+@login_required
+def change_profile(request):
+    current_user = request.user
+    if request.method == 'POST':
+        form = UserForm(instance=current_user, data=request.POST)
+        if form.is_valid():
+            messages.add_message(request, messages.SUCCESS, "Profile updated!")
+            form.save()
+            return redirect('my_profile')
+    else:
+        form = UserForm(instance=current_user)
+    return render(request, 'change_profile.html', {'form': form})
+
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
@@ -446,10 +475,21 @@ def show_tournament(request, club_name, tournament_name):
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.apply_tournament'])
 @must_be_non_participant
 def apply_tournament(request, club_name, tournament_name):
-    # TODO: Deadline constraints, maximum capacity reached constraints
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    tournament.add_participant(target_user)
+    if tournament.deadline > timezone.now():
+        if not tournament.is_max_capacity_reached():
+            if tournament.is_organiser(target_user):
+                messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. You cannot apply.")
+            else:
+                tournament.add_participant(target_user)
+                messages.add_message(request, messages.SUCCESS, "You have successfully registered for the tournament.")
+
+        else:
+            messages.add_message(request, messages.WARNING, "Maximum capacity of participants is reached. "
+                                                            "Come back next time.")
+    else:
+        messages.add_message(request, messages.WARNING, "You cannot apply after the deadline.")
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
 
@@ -457,10 +497,18 @@ def apply_tournament(request, club_name, tournament_name):
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.withdraw_tournament'])
 @tournament_permissions_required(perms_list=['chessclubs.withdraw'])
 def withdraw_tournament(request, club_name, tournament_name):
-    # TODO: Deadline constraints, maximum capacity reached constraints
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    tournament.remove_participant(target_user)
+    if tournament.deadline > timezone.now():
+        if tournament.is_participant(target_user):
+            tournament.remove_participant(target_user)
+        elif tournament.is_organiser(target_user):
+            messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. "
+                                                            "You cannot apply and withdraw from your own tournaments.")
+        elif not tournament.is_participant(target_user):
+            messages.add_message(request, messages.WARNING, "You are not a participant of this tournament.")
+    else:
+        messages.add_message(request, messages.WARNING, "You cannot withdraw after the deadline.")
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
 @login_required

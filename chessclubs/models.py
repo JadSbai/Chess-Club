@@ -297,6 +297,7 @@ class Club(models.Model):
         tournament_perm = Permission.objects.get(codename='create_tournament')
         apply_tournament_perm = Permission.objects.get(codename="apply_tournament")
         withdraw_tournament_perm = Permission.objects.get(codename="withdraw_tournament")
+        edit_club_info_perm = Permission.objects.get(codename="edit_club_info")
 
         # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -326,7 +327,9 @@ class Club(models.Model):
         apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                                          base_permission=apply_tournament_perm)
         withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                            base_permission=withdraw_tournament_perm)
+                                                                           base_permission=withdraw_tournament_perm)
+        edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
+                                                                           base_permission=edit_club_info_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -354,6 +357,7 @@ class Club(models.Model):
         demote.set_groups(groups)
         transfer_ownership.set_groups(groups)
         ban.set_groups(groups)
+        edit_club_info.set_groups(groups)
         self.__owner_group().user_set.add(self.owner)
 
     def get_all_tournaments(self):
@@ -377,7 +381,8 @@ class Club(models.Model):
             ("leave", "Can leave a club"),
             ("create_tournament", "Can create a tournament"),
             ("apply_tournament", "Can apply to a tournament"),
-            ("withdraw_tournament", "Can withdraw from a tournament")
+            ("withdraw_tournament", "Can withdraw from a tournament"),
+            ("edit_club_info", "Can edit club information"),
         ]
 
 
