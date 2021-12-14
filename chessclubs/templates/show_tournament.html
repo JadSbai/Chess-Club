@@ -79,16 +79,17 @@
                     {% else %}
                         {% if not tournament.is_published and the_time > tournament.deadline %}
                             <div>
-                                <a href="{% url 'publish_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
+                                <a href="{% url 'publish_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">publish schedule</a>
                             </div>
-                        {% else %}
+                        {% elif tournament.is_published %}
                             <div>
                                 <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
                             </div>
-                            <div>
+
+                        {% endif %}
+                        <div>
                                 <a href="{% url 'set_deadline_now' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">set deadline now</a>
                             </div>
-                        {% endif %}
                     {% endif %}
 
                 </div>
