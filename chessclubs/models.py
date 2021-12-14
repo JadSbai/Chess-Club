@@ -508,6 +508,12 @@ class Tournament(models.Model):
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
+    def get_participant_count(self):
+        self.players.count()
+
+    def get_min_capacity(self):
+        return TOURNAMENT_MIN_CAPACITY
+
 
     def _set_deadline_now(self):
         self.deadline = timezone.now() - timezone.timedelta(days=1)

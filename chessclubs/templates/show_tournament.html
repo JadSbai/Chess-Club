@@ -77,19 +77,24 @@
                             <p></p>
                         </div>
                     {% else %}
-                        {% if not tournament.is_published and the_time > tournament.deadline %}
-                            <div>
-                                <a href="{% url 'publish_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">publish schedule</a>
-                            </div>
-                        {% elif tournament.is_published %}
-                            <div>
-                                <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
-                            </div>
+                        {% if the_time > tournament.deadline and tournament.participants_list.count < tournament.get_min_capacity %}
+                            Sorry!The tournament has not reached the minimum participant count.
+                        {% else %}
 
-                        {% endif %}
-                        <div>
+                            {% if not tournament.is_published and the_time > tournament.deadline and  tournament|tournament_user_status:user == "organiser" %}
+                                <div>
+                                    <a href="{% url 'publish_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">publish schedule</a>
+                                </div>
+                            {% elif tournament.is_published %}
+                                <div>
+                                    <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">see schedule</a>
+                                </div>
+
+                            {% endif %}
+                            <div>
                                 <a href="{% url 'set_deadline_now' tournament_name=tournament.name club_name=tournament.club.name %}" class="btn btn-outline-info">set deadline now</a>
                             </div>
+                        {% endif %}
                     {% endif %}
 
                 </div>
