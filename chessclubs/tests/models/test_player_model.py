@@ -59,7 +59,7 @@ class PlayerModelTestCase(TestCase):
         elimination_round.remove_player(new_player)
         self._assert_player_is_valid(new_player)
 
-    def test_elimination_can_be_blank(self):
+    def test_elimination_round_can_be_blank(self):
         new_player = Player.objects.create(user=self.user, tournament=self.tournament)
         self._assert_player_is_valid(new_player)
 
