@@ -140,18 +140,27 @@ def enter_results_to_elimination_round_matches(ER):
 
 
 def enter_results_to_all_matches(tournament):
-    pool_phase = tournament.get_current_pool_phase()
-    if pool_phase:
-        for pool in pool_phase.get_pools():
-            for match in pool.get_pool_matches():
-                rand = random.choice([True, False])
-                if rand:
-                    pool.enter_result(match=match, result=rand, winner=match.get_player1())
-                else:
-                    pool.enter_result(match=match, result=rand)
+    if tournament.get_current_pool_phase():
+        for match in tournament.get_current_schedule():
+            rand = random.choice([True, False])
+            if rand:
+                tournament.enter_result(match=match, result=rand, winner=match.get_player1())
+            else:
+                tournament.enter_result(match=match, result=rand)
     else:
-        elimination_round = tournament.elimination_round
-        enter_results_to_elimination_round_matches(elimination_round)
+        for match in tournament.get_current_schedule():
+            tournament.enter_result(match=match, winner=match.get_player1())
+
+
+def encounter_half(players):
+    for i in range(0, len(players) - 1, 2):
+        players[i].add_encountered_player(players[i + 1])
+
+
+def encounter_all(players):
+    for i in range(len(players)):
+        for j in range(i + 1, len(players)):
+            players[i].add_encountered_player(players[j])
 
 
 def get_right_number_of_pools():
@@ -166,5 +175,3 @@ def get_right_phase():
            8: "Quarter-Final", 9: "Eighth-Final", 10: "Eighth-Final", 11: "Eighth-Final", 12: "Eighth-Final",
            13: "Eighth-Final", 14: "Eighth-Final", 15: "Eighth-Final", 16: "Eighth-Final"}
     return dic
-
-
