@@ -20,17 +20,17 @@ class SmallPoolPhaseModelTestCase(TestCase):
         'chessclubs/tests/fixtures/large_pool_phase.json',
     ]
 
-    def setUp(self):
-        super(TestCase, self).setUp()
-        self.MIN = 17
-        self.MID = 33
-        self.MAX = 96
-        self.tournament = Tournament.objects.get(name="Test_Tournament")
-        self.club = Club.objects.get(name="Test_Club")
-        self.small_pool_phase = PoolPhase.objects.get(pk=1)
-        self.large_pool_phase = PoolPhase.objects.get(pk=2)
-        self.right_answers = get_right_number_of_pools()
-        self.list_of_players = _create_test_players(self.MAX, self.club, self.tournament)
+    @classmethod
+    def setUpTestData(cls):
+        cls.MIN = 17
+        cls.MID = 33
+        cls.MAX = 96
+        cls.tournament = Tournament.objects.get(name="Test_Tournament")
+        cls.club = Club.objects.get(name="Test_Club")
+        cls.small_pool_phase = PoolPhase.objects.get(pk=1)
+        cls.large_pool_phase = PoolPhase.objects.get(pk=2)
+        cls.right_answers = get_right_number_of_pools()
+        cls.list_of_players = _create_test_players(cls.MAX, cls.club, cls.tournament)
 
     def test_generate_accurate_schedule_for_small_size(self):
         for i in range(self.MIN, self.MID):

@@ -67,7 +67,6 @@ class EliminationRoundTestCase(TestCase):
         self._clean()
         for count in range(self.MIN, self.MAX):
             players = random.sample(self.players_list, count)
-            print(count)
             encounter_half(players)
             generate_elimination_matches_schedule(players, self.elimination_round)
             anomalies = 0
