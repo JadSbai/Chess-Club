@@ -322,6 +322,7 @@ def create_club(request):
         return render(request, 'create_club.html', {'form': form})
 
 @login_required
+@club_permissions_required(perms_list=['chessclubs.edit_club_info'])
 def edit_club(request, club_name):
     current_club = Club.objects.get(name=club_name)
     if request.method == 'POST':
