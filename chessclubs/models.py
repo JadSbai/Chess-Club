@@ -839,6 +839,12 @@ class EliminationRounds(models.Model):
         self.EL_players.remove(player)
         self.save()
 
+    def __are_all_matches_played(self):
+        for match in self.schedule.all():
+            if match.is_open():
+                return False
+        return True
+
     def enter_winner(self, winner, match):
         # The checks will be done at views level
         if self._open:
