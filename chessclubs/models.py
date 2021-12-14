@@ -522,6 +522,7 @@ class Tournament(models.Model):
             pool_phase.enter_result(match=pool_match, result=result, winner=winner)
         else:
             elimination_match = EliminationMatch.objects.get(id=match.id)
+            print(self.elimination_round.phase)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
 
     def return_winner(self):
@@ -823,6 +824,12 @@ class EliminationRounds(models.Model):
             self.EL_players.add(player)
         self.save()
 
+    def __are_all_matches_played(self):
+        for match in self.schedule.all():
+            if match.is_open():
+                return False
+        return True
+
     def remove_player(self, player):
         self.EL_players.remove(player)
         self.save()
@@ -831,12 +838,12 @@ class EliminationRounds(models.Model):
         # The checks will be done at views level
         if self._open:
             round_winner = match.enter_winner(winner)
-            if self.phase == "Final" and round_winner:
+            if self.phase == "Final":
                 self._winner = round_winner
                 self._open = False
                 self.save()
                 self._tournament.go_to_next_phase(winner=round_winner)
-            else:
+            elif self.__are_all_matches_played():
                 self.__check_new_phase()
         else:
             raise ValueError("All matches have already been played")
