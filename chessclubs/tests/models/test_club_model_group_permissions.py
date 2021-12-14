@@ -14,12 +14,12 @@ class ClubGroupPermissionsTestCase(TestCase):
         'chessclubs/tests/fixtures/default_club.json',
     ]
 
-    def setUp(self):
-        self.owner = User.objects.get(email='johndoe@example.org')
-        self.other_user = User.objects.get(email='janedoe@example.org')
-        self.client.login(email=self.other_user.email, password='Password123')
-        self.club = Club.objects.get(name="Test_Club")
-        self.group_tester = ClubGroupTester(self.club)
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.get(email='johndoe@example.org')
+        cls.other_user = User.objects.get(email='janedoe@example.org')
+        cls.club = Club.objects.get(name="Test_Club")
+        cls.group_tester = ClubGroupTester(cls.club)
 
     def test_applicant_can_access_club_info(self):
         self.group_tester.make_applicant(self.other_user)
