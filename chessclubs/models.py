@@ -586,14 +586,8 @@ class Tournament(models.Model):
             return None
 
     def add_co_organiser(self, officer):
-        # Checks should be done beforehand in the views
-        if officer in self.__co_organisers_group().user_set.all():
-            print("You are already a co_organiser")
-        elif officer == self.organiser:
-            print("The organiser cannot be a co_organiser")
-        else:
-            self.co_organisers.add(officer)
-            self.add_to_co_organisers_group(officer)
+        self.co_organisers.add(officer)
+        self.add_to_co_organisers_group(officer)
 
     def user_status(self, user):
         if user == self.organiser:
@@ -724,9 +718,10 @@ class Tournament(models.Model):
 
         # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
         groups = [self.__participants_group(), self.__co_organisers_group()]
+        see_tournament_private_info.set_groups(groups)
+        groups = [self.__participants_group()]
         play_matches.set_groups(groups)
         withdraw.set_groups(groups)
-        see_tournament_private_info.set_groups(groups)
         groups = [self.__co_organisers_group()]
         enter_match_results.set_groups(groups)
         # Permissions specific to the organiser of the tournament
