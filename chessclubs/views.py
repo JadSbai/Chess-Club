@@ -9,14 +9,15 @@ from notifications.models import Notification
 from notifications.utils import slug2id
 from django.urls import reverse
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm
-from .models import User, Club, Tournament, ClubPermission
-from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, must_be_non_participant
-from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
+from .models import User, Club, Tournament, ClubPermission, Match
+from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, \
+    must_be_non_participant
+from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
+    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-
 
 
 @login_required
@@ -427,6 +428,7 @@ def leave(request, club_name):
     notify_officers_and_owner_of_leave(request.user, club)
     return redirect('landing_page')
 
+
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 def show_tournament(request, club_name, tournament_name):
@@ -440,7 +442,8 @@ def show_tournament(request, club_name, tournament_name):
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.apply_tournament'])
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info',
+                                       'chessclubs.apply_tournament'])
 @must_be_non_participant
 def apply_tournament(request, club_name, tournament_name):
     # TODO: Deadline constraints, maximum capacity reached constraints
@@ -451,7 +454,8 @@ def apply_tournament(request, club_name, tournament_name):
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info', 'chessclubs.withdraw_tournament'])
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info',
+                                       'chessclubs.withdraw_tournament'])
 @tournament_permissions_required(perms_list=['chessclubs.withdraw'])
 def withdraw_tournament(request, club_name, tournament_name):
     # TODO: Deadline constraints, maximum capacity reached constraints
@@ -459,6 +463,7 @@ def withdraw_tournament(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.remove_participant(target_user)
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
@@ -469,14 +474,16 @@ def show_schedule(request, club_name, tournament_name):
     club = Club.objects.get(name=club_name)
     if pool_phase:
         pools = tournament.get_current_pool_phase().pools.all()
-        return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule': schedule, 'pools': pools})
+        return render(request, 'show_tournament_schedule.html',
+                      {'tournament': tournament, 'user': request.user, 'club': club, 'schedule': schedule,
+                       'pools': pools})
     else:
-        return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule': schedule})
+        return render(request, 'show_tournament_schedule.html',
+                      {'tournament': tournament, 'user': request.user, 'club': club, 'schedule': schedule})
 
 
 @login_required
 def set_deadline_now(request, tournament_name, club_name):
-
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.set_deadline_now()
     tournament.start_tournament()
@@ -489,20 +496,26 @@ def my_matches(request):
     tournaments = {}
     my_tournaments = request.user.get_all_tournaments()
     for tournament in my_tournaments:
-        tournaments[tournament]= tournament.get_matches_of_player(request.user)
+        tournaments[tournament] = tournament.get_matches_of_player(request.user)
         matches.extend(tournament.get_matches_of_player(request.user))
-    return render(request, 'my_matches.html', {'matches': matches,'tournaments': tournaments})
+    return render(request, 'my_matches.html', {'matches': matches, 'tournaments': tournaments})
 
-def enter_result(request, tournament_name,match_id, result):
+@login_required
+@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+def enter_result(request, tournament_name, match_id, result, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     match = Match.objects.get(id=match_id)
-    if result== "draw":
+    print(club_name)
+    print(tournament_name)
+    if result == "draw":
         if tournament.is_pool_phase():
-            match.enter_draw()
+            tournament.enter_draw()
+            return show_schedule(request, club_name, tournament_name)
         else:
-            messages.add_message(request, messages.WARNING,"You cannot enter a draw result for an elimination round")
-    elif result=="player1":
-        match.enter_winner(match.get_player1())
+            messages.add_message(request, messages.WARNING, "You cannot enter a draw result for an elimination round")
+    elif result == "player1":
+        tournament.enter_winner(match.get_player1(), match)
+        return show_tournament(request, club_name, tournament_name)
     else:
-        match.enter_winner(match.get_player2())
-
+        tournament.enter_winner(match.get_player2(), match)
+        return show_schedule(request, club_name, tournament_name)
