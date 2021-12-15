@@ -601,3 +601,4 @@ def start_tournament(request, tournament_name, club_name):
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
 #try to push
+#try to push after upgrading github
