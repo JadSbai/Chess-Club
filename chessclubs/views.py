@@ -599,3 +599,5 @@ def start_tournament(request, tournament_name, club_name):
     if tournament.is_organiser(request.user):
         tournament.start_tournament()
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+
+#try to push
