@@ -6,25 +6,28 @@
     {% load custom_template_tags %}
     {% block content %}
         {% current_time as the_time %}
-        <div class="container fluid">
-            <div class="container d-flex justify-content-center">
-                <div class="container-fluid content">
+        {% with tournament|tournament_user_status:user as status %}
+            <div class="container fluid">
+                <div class="container d-flex justify-content-center">
+                    <div class="container-fluid content">
 
-                    <h1 class="mb-3 mt-3">{{ tournament.name }}</h1>
+                        <h1 class="mb-3 mt-3">{{ tournament.name }}</h1>
 
-                    <div class="border">
+                        <div class="border">
+                            <h5 class="p-2"
+                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
+                                Description</h5>
+                            <p class="p-2 text-break">{{ tournament.description }}</p>
+                            <h5 class="p-2"
+                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
+                                Deadline</h5>
 
+                            <p class="p-2">{{ tournament.deadline }}</p>
 
-              <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Description</h5>
-              <p class="p-2 text-break">{{ tournament.description }}</p>
-
-
-                        <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Deadline</h5>
-
-                        <p class="p-2">{{ tournament.deadline }}</p>
-
-                        <h5 class="p-2" style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">Maximum Capacity</h5>
-                        <p class="p-2">{{ tournament.max_capacity }}</p>
+                            <h5 class="p-2"
+                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
+                                Maximum Capacity</h5>
+                            <p class="p-2">{{ tournament.max_capacity }}</p>
 
                             <h5 class="p-2"
                                 style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
