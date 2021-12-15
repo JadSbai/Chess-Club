@@ -1,10 +1,14 @@
+{% load custom_template_tags %}
+{% lengthof tournaments as size %}
+{% if size != 0 %}
 <ul class="navbar-nav mb-2 mb-lg-0">
   <li class="dropdown">
        <a class="nav-link" href="#" id="my-tournaments-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> My Tournaments </a>
-      {% if tournaments.count != 0 %}
       <ul class="dropdown-menu">
+      {% past_tournaments tournaments as past %}
+      {% if past %}
         <li class="dropdown-submenu">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> Past Tournaments</a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"> Past Tournaments</a>
                     <ul class="dropdown-menu">
                       {% for tournament in tournaments %}
                         {% if tournament.has_finished%}
@@ -15,6 +19,9 @@
                       {% endfor%}
                     </ul>
                 </li>
+          {% endif %}
+      {% current_tournaments tournaments as current %}
+      {% if current %}
         <li class="dropdown-submenu">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> <span class="nav-label">Current tournaments</span><span class="caret"></span></a>
             <ul class="dropdown-menu">
@@ -27,6 +34,9 @@
               {% endfor%}
             </ul>
         </li>
+          {% endif %}
+      {% future_tournaments tournaments as future %}
+      {% if future %}
         <li class="dropdown-submenu">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> <span class="nav-label">Future tournaments</span><span class="caret"></span></a>
             <ul class="dropdown-menu">
@@ -39,13 +49,8 @@
               {% endfor%}
             </ul>
           </li>
+          {% endif %}
           </ul>
-        {% else %}
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
-          <li >
-	           <p class="dropdown-item disabled">You are currently part of no tournaments</p>
-          </li>
-        </ul>
-      {%endif%}
     </li>
 </ul>
+{% endif %}
