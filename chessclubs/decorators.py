@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
 from .models import Club, Tournament
 from django.contrib import messages
+from django.utils import timezone
 
 
 def login_prohibited(view_function):
@@ -45,10 +46,15 @@ def tournament_permissions_required(perms_list):
             club_name = kwargs.get('club_name')
             target_user = request.user
             try:
+                club = Club.objects.get(name=club_name)
+            except ObjectDoesNotExist:
+                messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
+                return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+            try:
                 tournament = Tournament.objects.get(name=tournament_name)
             except ObjectDoesNotExist:
                 messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
-                return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+                return redirect('show_club', club_name=club_name)
             else:
                 for perm in perms_list:
                     if not request.user.has_tournament_perm(perm, tournament):
@@ -63,7 +69,6 @@ def tournament_permissions_required(perms_list):
                             messages.add_message(request, messages.WARNING,
                                                  "Permission denied! You don't have the necessary tournament permission(s)")
                             return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
-
 
                 return view_func(request, *args, **kwargs)
 
@@ -91,20 +96,49 @@ def must_be_non_participant(view_function):
             tournament = Tournament.objects.get(name=tournament_name)
         except ObjectDoesNotExist:
             messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
-            return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+            return redirect('show_club', club_name=club_name)
         else:
             if tournament.is_participant(target_user):
                 messages.add_message(request, messages.WARNING, "You are already a participant.")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             elif tournament.is_organiser(target_user):
                 messages.add_message(request, messages.WARNING,
-                                     "You are the organiser of this tournament. You cannot apply.")
+                                     "You are the organiser of this tournament. You cannot join.")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             elif tournament.is_co_organiser(target_user):
                 messages.add_message(request, messages.WARNING,
-                                     "You are a co-organiser of this tournament. You cannot apply.")
+                                     "You are a co-organiser of this tournament. You cannot join.")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             else:
                 return view_function(request, *args, **kwargs)
+
+    return modified_view_function
+
+
+def deadline_must_not_be_passed(view_function):
+    def modified_view_function(request, *args, **kwargs):
+        tournament_name = kwargs.get('tournament_name')
+        tournament = Tournament.objects.get(name=tournament_name)
+        club_name = kwargs.get('club_name')
+        if tournament.deadline <= timezone.now():
+            messages.add_message(request, messages.WARNING,
+                                 "The deadline is already passed! You can't join or withdraw.")
+            return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+        else:
+            return view_function(request, *args, **kwargs)
+
+    return modified_view_function
+
+
+def tournament_must_be_published(view_function):
+    def modified_view_function(request, *args, **kwargs):
+        tournament_name = kwargs.get('tournament_name')
+        tournament = Tournament.objects.get(name=tournament_name)
+        club_name = kwargs.get('club_name')
+        if not tournament.is_published():
+            messages.add_message(request, messages.WARNING, "The schedule hasn't been published yet")
+            return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+        else:
+            return view_function(request, *args, **kwargs)
 
     return modified_view_function

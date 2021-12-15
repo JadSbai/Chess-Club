@@ -73,15 +73,14 @@ class MatchModelTestCase(TestCase):
         with self.assertRaises(ValidationError):
             self.match.enter_draw()
 
-    def test_forbidden_return_winner(self):
-        with self.assertRaises(ValidationError):
-            winner = self.match.get_winner()
-            self.assertEqual(winner, None)
+    def test_forbidden_get_winner(self):
+        winner = self.match.get_winner()
+        self.assertEqual(winner, None)
 
-    def test_successful_return_winner(self):
+    def test_successful_get_winner(self):
         self.match.enter_winner(self.player1)
         winner = self.match.get_winner()
-        self.assertEqual(self.player1.user.full_name(), winner)
+        self.assertEqual(self.player1, winner)
 
     def test_player1_and_player2_have_encountered_each_other(self):
         self.match.enter_winner(self.player1)

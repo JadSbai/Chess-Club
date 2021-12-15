@@ -295,8 +295,7 @@ class Club(models.Model):
         ban_perm = Permission.objects.get(codename='ban')
         leave_perm = Permission.objects.get(codename='leave')
         tournament_perm = Permission.objects.get(codename='create_tournament')
-        apply_tournament_perm = Permission.objects.get(codename="apply_tournament")
-        withdraw_tournament_perm = Permission.objects.get(codename="withdraw_tournament")
+        join_tournament_perm = Permission.objects.get(codename="join_tournament")
         edit_club_info_perm = Permission.objects.get(codename="edit_club_info")
 
         # Create the club-specific permissions using the ClubPermission Model
@@ -324,10 +323,8 @@ class Club(models.Model):
                                                               base_permission=leave_perm)
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                                           base_permission=tournament_perm)
-        apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                         base_permission=apply_tournament_perm)
-        withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=withdraw_tournament_perm)
+        join_tournament, created = ClubPermission.objects.get_or_create(club=self,
+                                                                         base_permission=join_tournament_perm)
         edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
                                                                            base_permission=edit_club_info_perm)
 
@@ -342,8 +339,7 @@ class Club(models.Model):
         groups = [self.__denied_applicants_group(), self.__accepted_applicants_group()]
         acknowledge_response.set_groups(groups)
         groups = [self.__officers_group(), self.__members_group(), self.__owner_group()]
-        apply_tournament.set_groups(groups)
-        withdraw_tournament.set_groups(groups)
+        join_tournament.set_groups(groups)
         members_list.set_groups(groups)
         public.set_groups(groups)
         groups = [self.__officers_group(), self.__owner_group()]
@@ -380,8 +376,7 @@ class Club(models.Model):
             ("ban", "Can ban a user from the club"),
             ("leave", "Can leave a club"),
             ("create_tournament", "Can create a tournament"),
-            ("apply_tournament", "Can apply to a tournament"),
-            ("withdraw_tournament", "Can withdraw from a tournament"),
+            ("join_tournament", "Can apply to a tournament"),
             ("edit_club_info", "Can edit club information"),
         ]
 
@@ -514,7 +509,7 @@ class Tournament(models.Model):
         self.save()
 
     def get_participant_count(self):
-        self.players.count()
+        return self.players.count()
 
     def get_min_capacity(self):
         return TOURNAMENT_MIN_CAPACITY
@@ -613,6 +608,11 @@ class Tournament(models.Model):
         player = self.__player_instance_of_user(member)
         player.delete()
         self.remove_from_participants_group(member)
+
+    def _remove_all_participants(self):
+        for player in self.participants_list():
+            player.delete()
+            self.remove_from_participants_group(player.user)
 
     def get_current_pool_phase(self):
         for pool_phase in self.pool_phases.all():
@@ -1330,12 +1330,6 @@ class Match(models.Model):
 
     def is_open(self):
         return self._open
-
-    def return_winner(self):
-        if not self._open and self._winner:
-            return self._winner.user.full_name()
-        else:
-            raise ValidationError("Match still open or winner not yet determined")
 
 
 class PoolMatchManager(MatchManager):

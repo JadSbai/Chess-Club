@@ -5,14 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect, render, get_object_or_404
-from django.utils import timezone
 from notifications.models import Notification
 from notifications.signals import notify
 from notifications.utils import slug2id
-
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, \
-    must_be_non_participant
+    must_be_non_participant, deadline_must_not_be_passed, tournament_must_be_published
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, \
     EditClubInformationForm
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
@@ -461,7 +459,7 @@ def leave(request, club_name):
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+@club_permissions_required(perms_list=['chessclubs.access_club_info'])
 def show_tournament(request, club_name, tournament_name):
     try:
         tournament = Tournament.objects.get(name=tournament_name)
@@ -481,63 +479,45 @@ def show_tournament(request, club_name, tournament_name):
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info',
-                                       'chessclubs.apply_tournament'])
+@club_permissions_required(perms_list=['chessclubs.join_tournament'])
 @must_be_non_participant
-def apply_tournament(request, club_name, tournament_name):
+@deadline_must_not_be_passed
+def join_tournament(request, club_name, tournament_name):
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    if tournament.deadline > timezone.now():
-        if not tournament.is_max_capacity_reached():
-            if tournament.is_organiser(target_user):
-                messages.add_message(request, messages.WARNING,
-                                     "You are the organiser of this tournament. You cannot apply.")
-            else:
-                tournament.add_participant(target_user)
-                messages.add_message(request, messages.SUCCESS, "You have successfully registered for the tournament.")
-
-        else:
-            messages.add_message(request, messages.WARNING, "Maximum capacity of participants is reached. "
-                                                            "Come back next time.")
+    if not tournament.is_max_capacity_reached():
+        tournament.add_participant(target_user)
+        messages.add_message(request, messages.SUCCESS, "You have successfully registered for the tournament.")
     else:
-        messages.add_message(request, messages.WARNING, "You cannot apply after the deadline.")
+        messages.add_message(request, messages.WARNING, "Maximum capacity of participants is reached."
+                                                        "Come back next time.")
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info',
-                                       'chessclubs.withdraw_tournament'])
 @tournament_permissions_required(perms_list=['chessclubs.withdraw'])
+@deadline_must_not_be_passed
 def withdraw_tournament(request, club_name, tournament_name):
     target_user = request.user
     tournament = Tournament.objects.get(name=tournament_name)
-    if tournament.deadline > timezone.now():
-        if tournament.is_participant(target_user):
-            tournament.remove_participant(target_user)
-        elif tournament.is_organiser(target_user):
-            messages.add_message(request, messages.WARNING, "You are the organiser of this tournament. "
-                                                            "You cannot apply and withdraw from your own tournaments.")
-        elif not tournament.is_participant(target_user):
-            messages.add_message(request, messages.WARNING, "You are not a participant of this tournament.")
-    else:
-        messages.add_message(request, messages.WARNING, "You cannot withdraw after the deadline.")
+    tournament.remove_participant(target_user)
     return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
-@tournament_permissions_required(perms_list=[])
+@tournament_permissions_required(perms_list=['chessclubs.see_tournament_private_info'])
+@tournament_must_be_published
 def show_schedule(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
-    if tournament.is_published():
-        schedule = tournament.get_current_schedule()
-        return render(request, 'show_tournament_schedule.html',
-                      {'tournament': tournament, 'user': request.user, 'schedule': schedule})
-    else:
-        messages.add_message(request, messages.ERROR, "The tournament has not started yet")
-        return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+    if tournament.has_finished():
+        messages.add_message(request, messages.WARNING,
+                             "The tournament is finished. There is no schedule")
+        return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+    schedule = tournament.get_current_schedule()
+    return render(request, 'show_tournament_schedule.html',
+                  {'tournament': tournament, 'user': request.user, 'schedule': schedule})
 
-
+# Not gonna be kept
 @login_required
 def set_deadline_now(request, tournament_name, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
@@ -566,7 +546,6 @@ def add_to_co_organiser(request, tournament_name, club_name, user_id):
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
 
-@club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 @tournament_permissions_required(perms_list=['chessclubs.enter_match_results'])
 def enter_result(request, tournament_name, match_id, result, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
