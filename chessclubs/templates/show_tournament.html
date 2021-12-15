@@ -66,7 +66,7 @@
                             <div class="container-fluid content justify-content-center pb-3 ps-3">
                                 <strong>Your status in this tournament: {{ status }}</strong>
                                 {% if tournament.has_finished %}
-                                    <div><p></p>
+                                    <div><p id="winner"></p>
                                         The tournament has finished. The winner is {{ tournament.get_winner }}
                                         <p></p>
                                     </div>
@@ -77,7 +77,7 @@
                                                 {% if status == "organiser" or status == "co_organiser" or status == "participant" %}
                                                     <div>
                                                         <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}"
-                                                           class="btn btn-outline-info ml-2">see schedule</a>
+                                                           class="btn btn-outline-info ml-2">See Schedule</a>
                                                     </div>
                                                 {% endif %}
                                             {% else %}
@@ -97,11 +97,15 @@
                                                 {% endif %}
                                             {% endif %}
                                         {% else %}
+                                            {% if status == "organiser" %}
                                             <p>Unfortunately, you don't have enough participants to start the
                                                 tournament.</p>
                                             <a class="btn-outline-info"
                                                href="{% url 'create_tournament' club_name=tournament.club.name %}">Exit
                                                 this page and create a new tournament.</a>
+                                                {% else %}
+                                                <p>Unfortunately, this tournament has finished due to a lack of players.</p>
+                                            {% endif %}
                                         {% endif %}
                                     {% endif %}
                                 {% endif %}
@@ -121,7 +125,7 @@
                                         <hr>
                                         {% if status != "participant" %}
                                             {% if not tournament.is_max_capacity_reached %}
-                                                <a href="{% url 'apply_tournament' tournament_name=tournament.name club_name=tournament.club.name %}"
+                                                <a href="{% url 'join_tournament' tournament_name=tournament.name club_name=tournament.club.name %}"
                                                    class="btn btn-outline-info">Apply to this tournament</a>
                                             {% else %}
                                                 Unfortunately, maximum capacity of participants was reached. Come back
