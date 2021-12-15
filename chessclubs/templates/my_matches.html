@@ -5,21 +5,21 @@
             <div class="col-12">
                 <h1 class="mb-3 mt-3">My Matches</h1>
                 {% if count == 0 %}
-                    <p><i>You currently have no matches undergoing.</i></p>
+                    <p><i id="no_matches">You currently have no matches undergoing.</i></p>
                 {% else %}
                     <div class="col-6">
                     {% for tournament, list_matches in tournaments.items %}
                         <h5 class="p-2"
                             style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.name }}</h5>
-                    {% if not list_matches %}
-                        <p><i>The schedule hasn't been published yet</i></p>
+                        {% if not list_matches %}
+                            <p><i id="not_published">The schedule hasn't been published yet.</i></p>
                         {% else %}
-                        {% for match in list_matches %}
-                            <div>
-                                <p class="p-2">{{ match.get_player1.user.full_name }}
-                                    <strong>vs</strong> {{ match.get_player2.user.full_name }}</p><br>
-                            </div>
-                        {% endfor %}
+                            {% for match in list_matches %}
+                                <div class="matches">
+                                    <p class="p-2">{{ match.get_player1.user.full_name }}
+                                        <strong>vs</strong> {{ match.get_player2.user.full_name }}</p><br>
+                                </div>
+                            {% endfor %}
                         {% endif %}
                     {% endfor %}
                 {% endif %}
