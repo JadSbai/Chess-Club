@@ -167,6 +167,7 @@ class Club(models.Model):
         return self.members.all()
 
     def get_officers(self):
+        """ returns the list of all officers """
         return self.__officers_group().user_set.all()
 
     def add_member(self, user):
@@ -361,6 +362,7 @@ class Club(models.Model):
         self.__owner_group().user_set.add(self.owner)
 
     def get_all_tournaments(self):
+        """ returns all the tournament in the club """
         return self.all_tournaments.all()
 
     class Meta:
