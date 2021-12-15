@@ -641,6 +641,7 @@ class Tournament(models.Model):
             self._start_phase = "Large-Pool-Phase"
         else:
             raise ValueError("Invalid number of players")
+        self.save()
 
     def remove_co_organiser(self, member):
         # Checks should be done beforehand in the views
@@ -651,7 +652,8 @@ class Tournament(models.Model):
         if not self._started:
             if timezone.now() >= self.deadline:
                 self._started = True
-                if (not self._schedule_published):
+                self.save()
+                if not self._schedule_published:
                     self.publish_schedule()
             else:
                 raise ValidationError("The deadline is not yet passed")
@@ -659,7 +661,7 @@ class Tournament(models.Model):
             raise ValidationError("The tournament has already started")
 
     def publish_schedule(self):
-        _schedule_published = True
+        self._schedule_published = True
         self.__set_start_phase()
         if self._start_phase == "Elimination-Rounds":
             self.__create_elimination_round(self.players.all())

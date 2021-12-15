@@ -460,10 +460,7 @@ def leave(request, club_name):
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 def show_tournament(request, club_name, tournament_name):
     try:
-        user = request.user
         tournament = Tournament.objects.get(name=tournament_name)
-        is_participant = tournament.is_participant(user)
-        is_organiser = tournament.is_organiser(request.user)
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "The tournament you are looking for does not exist!")
         return redirect('show_club', club_name=club_name)
@@ -521,17 +518,13 @@ def withdraw_tournament(request, club_name, tournament_name):
 
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+@tournament_permissions_required(perms_list=[])
 def show_schedule(request, club_name, tournament_name):
     tournament = Tournament.objects.get(name=tournament_name)
-    if tournament.has_started():
+    if tournament.is_published():
         schedule = tournament.get_current_schedule()
-        pools = tournament.get_current_pool_phase().pools.all()
-        try:
-            club = Club.objects.get(name=club_name)
-        except ObjectDoesNotExist:
-            messages.add_message(request, messages.ERROR, "The club you are looking for does not exist!")
-            return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
-        return render(request, 'show_tournament_schedule.html', {'tournament': tournament, 'user': request.user, 'club': club, 'schedule':schedule, 'pools':pools})
+        return render(request, 'show_tournament_schedule.html',
+                      {'tournament': tournament, 'user': request.user, 'schedule': schedule})
     else:
         messages.add_message(request, messages.ERROR, "The tournament has not started yet")
         return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
@@ -569,11 +562,12 @@ def add_to_co_organiser(request, tournament_name, club_name, user_id):
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
+@tournament_permissions_required(perms_list=['chessclubs.enter_match_results'])
 def enter_result(request, tournament_name, match_id, result, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     match = Match.objects.get(id=match_id)
     if result == "draw":
-        if tournament.get_current_phase()!="Elimination Round":
+        if tournament.get_current_phase() != "Elimination Round":
             tournament.enter_result(match, result=False)
             if tournament.has_finished():
                 return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
@@ -583,13 +577,13 @@ def enter_result(request, tournament_name, match_id, result, club_name):
     elif result == "player1":
         tournament.enter_result(match, winner=match.get_player1())
         if tournament.has_finished():
-            return show_tournament(request, club_name=club_name, tournament_name=tournament_name)
-        return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
+            return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+        return redirect('show_schedule', club_name=club_name, tournament_name=tournament_name)
     else:
         tournament.enter_result(match, winner=match.get_player2())
         if tournament.has_finished():
-            return show_tournament(request, club_name=club_name, tournament_name=tournament_name)
-        return show_schedule(request, club_name=club_name, tournament_name=tournament_name)
+            return redirect('show_tournament', club_name=club_name, tournament_name=tournament_name)
+        return redirect('show_schedule', club_name=club_name, tournament_name=tournament_name)
 
 
 @login_required
