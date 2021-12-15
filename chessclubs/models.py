@@ -519,8 +519,8 @@ class Tournament(models.Model):
     def get_min_capacity(self):
         return TOURNAMENT_MIN_CAPACITY
 
-
     def _set_deadline_now(self):
+        """Method only used for testing purposes"""
         self.deadline = timezone.now() - timezone.timedelta(days=1)
         self.save()
 
@@ -530,6 +530,10 @@ class Tournament(models.Model):
     def has_finished(self):
         return self._finished
 
+    def _set_finished(self):
+        self._finished = True
+        self.save()
+
     def enter_result(self, match, result=True, winner=None):
         pool_phase = self.get_current_pool_phase()
         if pool_phase:
@@ -537,7 +541,6 @@ class Tournament(models.Model):
             pool_phase.enter_result(match=pool_match, result=result, winner=winner)
         else:
             elimination_match = EliminationMatch.objects.get(id=match.id)
-            print(self.elimination_round.phase)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
 
     def get_winner(self):
@@ -630,7 +633,7 @@ class Tournament(models.Model):
         elif self.__player_instance_of_user(user):
             return "participant"
         else:
-            return "non_participant"
+            return "non-participant"
 
     def __set_start_phase(self):
         if 2 <= self.players.count() <= 16:
@@ -648,18 +651,13 @@ class Tournament(models.Model):
         self.remove_from_organisers_group(member)
 
     def start_tournament(self):
-        if not self._started:
-            if timezone.now() >= self.deadline:
-                self._started = True
-                if (not self._schedule_published):
-                    self.publish_schedule()
-            else:
-                raise ValidationError("The deadline is not yet passed")
-        else:
-            raise ValidationError("The tournament has already started")
+        self._started = True
+        if not self._schedule_published:
+            self.publish_schedule()
+        self.save()
 
     def publish_schedule(self):
-        _schedule_published = True
+        self._schedule_published = True
         self.__set_start_phase()
         if self._start_phase == "Elimination-Rounds":
             self.__create_elimination_round(self.players.all())
@@ -682,8 +680,7 @@ class Tournament(models.Model):
     def __announce_winner(self, winner):
         if winner:
             self._winner = winner.user
-            self._finished = True
-            self.save()
+            self._set_finished()
 
     def participants_list(self):
         return self.players.all()

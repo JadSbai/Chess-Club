@@ -46,17 +46,6 @@ class SmallPoolPhaseModelTestCase(TestCase):
             self.assertTrue(9 <= len(pools_list) <= 16)
             self._clean(self.large_pool_phase)
 
-    def test_no_player_is_in_more_than_1_pool(self):
-        for i in range(self.MIN, self.MAX + 1):
-            players = random.sample(self.list_of_players, i)
-            pools_list = generate_pools_list(players, self.small_pool_phase)
-            for pool in pools_list:
-                for other_pool in pools_list:
-                    if other_pool != pool:
-                        for player in other_pool.get_players():
-                            self.assertTrue(player not in pool.get_players())
-            self._clean(self.small_pool_phase)
-
     def test_every_player_is_in_1_pool(self):
         for i in range(self.MIN, self.MAX + 1):
             players = random.sample(self.list_of_players, i)
