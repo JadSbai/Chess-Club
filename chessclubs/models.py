@@ -537,7 +537,6 @@ class Tournament(models.Model):
             pool_phase.enter_result(match=pool_match, result=result, winner=winner)
         else:
             elimination_match = EliminationMatch.objects.get(id=match.id)
-            print(self.elimination_round.phase)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
 
     def get_winner(self):
@@ -1234,8 +1233,6 @@ class Pool(models.Model):
             self.__are_all_matches_played()
             if self.all_matches_played:
                 self.__set_qualified_players()
-        else:
-            print("All matches are played")
 
     def enter_winner(self, winner, match):
         match.enter_winner(winner)

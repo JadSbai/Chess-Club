@@ -10,7 +10,7 @@ from notifications.utils import slug2id
 from django.urls import reverse
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, EditClubInformationForm
 from .models import User, Club, Tournament, ClubPermission, Match
-from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, must_be_non_participant
+from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, must_be_non_participant, target_user_must_be_officer
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
 from notifications.signals import notify
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
@@ -552,13 +552,24 @@ def my_matches(request):
     return render(request, 'my_matches.html', {'count': count, 'tournaments': tournaments})
 
 
+# @login_required
+# def add_to_co_organiser(request, tournament_name, club_name, user_id):
+#     tournament = Tournament.objects.get(name=tournament_name)
+#     co_organiser = User.objects.get(id=user_id)
+#     tournament.add_co_organiser(co_organiser)
+#     notify.send(request.user, recipient=co_organiser, verb=f'{tournament_name}_Coorganiser',
+#                 description=f"You have been added as co-organiser of tournament {tournament_name}")
+#     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+
 @login_required
+# @tournament_permissions_required(perms_list=['chessclubs.add_co_organiser'])
+@target_user_must_be_officer
 def add_to_co_organiser(request, tournament_name, club_name, user_id):
     tournament = Tournament.objects.get(name=tournament_name)
     co_organiser = User.objects.get(id=user_id)
     tournament.add_co_organiser(co_organiser)
     notify.send(request.user, recipient=co_organiser, verb=f'{tournament_name}_Coorganiser',
-                description=f"You have been added as co-organiser of tournament {tournament_name}")
+                description=f"You have been assigned as co-organiser of tournament {tournament_name}")
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
 
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])

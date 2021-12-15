@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
-from .models import Club, Tournament
+from .models import Club, Tournament,User
 from django.contrib import messages
 
 
@@ -103,6 +103,25 @@ def must_be_non_participant(view_function):
             elif tournament.is_co_organiser(target_user):
                 messages.add_message(request, messages.WARNING,
                                      "You are a co-organiser of this tournament. You cannot apply.")
+                return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+            else:
+                return view_function(request, *args, **kwargs)
+
+    return modified_view_function
+
+def target_user_must_be_officer(view_function):
+    def modified_view_function(request, *args, **kwargs):
+        user_id = kwargs.get('user_id')
+        club_name = kwargs.get('club_name')
+        tournament_name = kwargs.get('tournament_name')
+        try:
+            user = User.objects.get(id=user_id)
+        except ObjectDoesNotExist:
+            messages.add_message(request, messages.ERROR, "The officer you are looking for doesn't exist")
+        else:
+            club = Club.objects.get(name=club_name)
+            if club.user_status(user) != "officer":
+                messages.add_message(request, messages.WARNING, "You can only add officers as co_organisers")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             else:
                 return view_function(request, *args, **kwargs)
