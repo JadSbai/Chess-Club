@@ -93,6 +93,7 @@ def sign_up(request):
 @login_required
 @club_permissions_required(perms_list=['chessclubs.show_public_info'])
 def show_user(request, user_id, club_name):
+    """ shows a specific user's page """
     try:
         target_user = User.objects.get(id=user_id)
     except ObjectDoesNotExist:
@@ -110,6 +111,7 @@ def show_user(request, user_id, club_name):
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_members_list'])
 def user_list(request, club_name):
+    """ lists the members of a specific club """
     club = Club.objects.get(name=club_name)
     users = club.get_members()
     current_user = request.user
@@ -280,11 +282,13 @@ def acknowledge(request, club_name):
 
 
 def page_not_found_view(request, exception):
+    """ customized error page """
     return render(request, '404.html', status=404)
 
 
 @login_required
 def landing_page(request):
+    """ the first page the user is redirected to when they log in or sign up, it contains the list of all existing clubs"""
     current_user = request.user
     clubs = Club.objects.all()
     return render(request, 'landing_page.html', {'clubs': clubs, 'current_user': current_user})
@@ -341,6 +345,7 @@ def change_profile(request):
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info', 'chessclubs.access_club_owner_public_info'])
 def show_club(request, club_name):
+    """ the page of a specif club """
     club = Club.objects.get(name=club_name)
     user_status = club.user_status(request.user)
     tournaments = club.get_all_tournaments()
@@ -448,6 +453,7 @@ def leave(request, club_name):
 @login_required
 @club_permissions_required(perms_list=['chessclubs.access_club_info'])
 def show_tournament(request, club_name, tournament_name):
+    """ shows a specific tournament page """
     try:
         tournament = Tournament.objects.get(name=tournament_name)
     except ObjectDoesNotExist:
