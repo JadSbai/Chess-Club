@@ -71,6 +71,20 @@ class AddCoOrganiserViewTestCase(TestCase, AssertHTMLMixin):
         self.assertEqual(self.tournament.user_status(self.officer), "non-participant")
         self._assert_warning_message_displayed(response, "The tournament is already finished!", messages.WARNING)
 
+    def test_add_co_organiser_participant(self):
+        self.tournament_tester.make_participant(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.show_tournament_url, status_code=302, target_status_code=200)
+        self.assertEqual(self.tournament.user_status(self.officer), "participant")
+        self._assert_warning_message_displayed(response, "You can only add non-participants as co-organisers", messages.WARNING)
+
+    def test_add_co_organiser_non_officer(self):
+        self.group_tester.make_member(self.officer)
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.show_tournament_url, status_code=302, target_status_code=200)
+        self.assertEqual(self.tournament.user_status(self.officer), "non-participant")
+        self._assert_warning_message_displayed(response, "You can only add officers as co-organisers", messages.WARNING)
+
     def test_member_cannot_be_added_as_co_organiser(self):
         self.group_tester.make_member(self.officer)
         response = self.client.get(self.url, follow=True)

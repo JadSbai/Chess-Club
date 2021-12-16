@@ -527,6 +527,11 @@ class Tournament(models.Model):
         self._finished = True
         self.save()
 
+    def _set_not_started(self):
+        """Method created for tests"""
+        self._started = False
+        self.save()
+
     def enter_result(self, match, result=True, winner=None):
         pool_phase = self.get_current_pool_phase()
         if pool_phase:
