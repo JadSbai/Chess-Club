@@ -1,29 +1,40 @@
 {% extends 'base_content.html' %}
 {% block body %}
-    {% include 'partials/navbar.html' with request=request%}
-  {% include 'partials/second_navbar.html' with request=request club=club%}
-  {% include 'partials/messages.html' %}
-{% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="mb-3 mt-3">Applicants</h1>
-    {% if count == 0 %}
-        <p><i>There are currently no applications.</i></p>
-    {% endif %}
-      <table class="table">
-        {% for applicant in applicants%}
-          <tr>
-            <td>
-              <img src="{{ applicant.mini_gravatar }}" alt="Gravatar of {{ applicant.full_name }}" class="rounded-circle" >
-            </td>
-              <td><a href="{% url 'show_user' club_name=club.name user_id=applicant.id %}">{{ applicant.full_name }}</a></td>
-            <td>{{ applicant.status }}</td>
-          </tr>
-        {% endfor%}
-      </table>
-    </div>
-  </div>
-</div>
-{% endblock %}
+    {% include 'partials/navbar.html' with request=request %}
+    {% include 'partials/second_navbar.html' with request=request club=club %}
+    {% include 'partials/messages.html' %}
+    {% block content %}
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="mb-3 mt-3">Applicants</h1>
+                    {% if count == 0 %}
+                        <p><i>There are currently no applications.</i></p>
+                    {% endif %}
+                    <table class="table table-bordered" id="applicantsTable">
+                        <thead>
+                        <tr style="background-color: white">
+                            <th style="width: 2%" id="avatar-header">Avatar</th>
+                            <th style="width: 2%">Name</th>
+                        </tr>
+                        </thead>
+                        {% for applicant in applicants %}
+                            <tr>
+                                <td>
+                                    <img src="{{ applicant.mini_gravatar }}" alt="Gravatar of {{ applicant.full_name }}"
+                                         class="rounded-circle">
+                                </td>
+                                <td class="align-middle">
+                                    <a style="color: #0088cc">{{ applicant.full_name }}</a>
+                                    <a href="{% url 'show_user' club_name=club.name user_id=applicant.id %}"
+                                            class="btn text-white sad-button blue-apple">See
+                                        applicant details</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
 {% endblock %}

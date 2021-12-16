@@ -1,35 +1,47 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="mb-3 mt-3">My applications</h1>
-    {% if count == 0 %}
-        <p><i>You currently have no application undergoing.</i></p>
-    {% endif %}
-      <table class="table">
-      {% for accepted_application in accepted_applications %}
-          <tr>
-              <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=accepted_application.name %}">{{ accepted_application.name }}</a></td>
-              <td><p style="color:green;"> <strong>Notice: </strong>Your application has been accepted</p></td>
-              <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=accepted_application.name %}">Join now!</a></td>
-          </tr>
-        {% endfor%}
-        {% for application in applications%}
-          <tr>
-              <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=application.name %}">{{ application.name }}</a></td>
-              <td><p style="color:sandybrown;"><strong>Notice: </strong>Your application is now under review.</p></td>
-          </tr>
-        {% endfor%}
-        {% for denied_application in denied_applications%}
-          <tr>
-                <td><a class = "btn btn-outline-primary" href="{% url 'show_club' club_name=denied_application.name %}">{{ denied_application.name }}</a></td>
-                <td><p style="color:red;"> <strong>Notice: </strong>Your application has been denied.</p></td>
-                <td><a class = "btn btn-outline-primary" href="{% url 'acknowledge' club_name=denied_application.name %}">OK</a></td>
-          </tr>
-        {% endfor%}
-      </table>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4 mt-3">My applications</h1>
+                {% if count == 0 %}
+                    <p><i>You currently have no application undergoing.</i></p>
+                {% endif %}
+                <table class="table table-bordered mx-auto">
+                    {% for accepted_application in accepted_applications %}
+                        <tr>
+                            <td class="text-center align-middle"><a class="btn text-white" style="background-color: 	#0088cc;"
+                                                       href="{% url 'show_club' club_name=accepted_application.name %}">{{ accepted_application.name }}</a>
+                            </td>
+                            <td class="text-center py-3"><strong id="accepted" style="color:green;">Notice: Your application has been accepted</strong>
+                                <a class="btn text-white" style="background-color: 	#0088cc; margin-left: 10%"
+                                                       href="{% url 'acknowledge' club_name=accepted_application.name %}">Join
+                                now!</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% for application in applications %}
+                        <tr>
+                            <td class="text-center pt-2"><a class="btn text-white" style="background-color: 	#0088cc;"
+                                                       href="{% url 'show_club' club_name=application.name %}">{{ application.name }}</a>
+                            </td>
+                            <td class="text-center align-middle"><strong id="under_review" style="color:sandybrown;" class="mt-2">Notice: Your application is now under review.</strong></td>
+                        </tr>
+                    {% endfor %}
+                    {% for denied_application in denied_applications %}
+                        <tr>
+                            <td class="text-center"><a class="btn text-white" style="background-color: 	#0088cc;"
+                                                       href="{% url 'show_club' club_name=denied_application.name %}">{{ denied_application.name }}</a>
+                            </td>
+                            <td class="text-center align-middle"><strong id="denied" style="color:red;">Notice: Your application has been denied.</strong>
+                            </td>
+                            <td class="text-center"><a class="btn text-white" style="background-color: 	#0088cc;"
+                                                       href="{% url 'acknowledge' club_name=denied_application.name %}">OK</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 {% endblock %}

@@ -4,16 +4,16 @@
   <div class="row">
     <div class="col-12">
       <p class="mt-3">
-        <a href='{% url 'create_club' %}' class="btn btn-lg btn-primary">
+        <a href='{% url 'create_club' %}' class="btn btn-lg text-white blue-apple">
           Create Club
         </a>
       </p>
       <h1 class="mb-3 mt-3">All Clubs</h1>
-        <table class="table">
-          <tr><th>Name</th><th>Location</th></tr>
+        <table class="table table-bordered " >
+          <tr style="background-color: white"><th>Name</th><th>Location</th></tr>
             {% for club in clubs %}
-              <tr>
-                <td><a class="btn btn-outline-primary" href="{% url 'show_club' club_name=club.name %}">{{ club.name }}</a></td>
+              <tr style="background-color: white">
+                <td><a class="btn text-white" style="background-color: black;" href="{% url 'show_club' club_name=club.name %}">{{ club.name }}</a></td>
                 <td>{{ club.location }}</td>
               </tr>
             {% endfor%}

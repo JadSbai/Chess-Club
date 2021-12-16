@@ -1,18 +1,16 @@
-
-    <a class="nav-link" href="#" id="my-clubs-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Add co-organisers</a>
+<a class="btn text-white blue-apple dropdown-toggle ms-2 mb-2" href="#" id="co-organisers-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"> Add co-organisers</a>
   {% if allowed_co_organisers.count != 0 %}
-      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-account-dropdown">
+      <ul class="dropdown-menu" aria-labelledby="co-organisers-dropdown">
         {% for officer in allowed_co_organisers %}
             <li>
-          <a class="dropdown-item" onclick="return co_organiser_Confirmation()" href="{% url 'add_co_organiser' user_id=officer.id club_name=tournament.club.name tournament_name=tournament.name %}"> {{officer.full_name}} </a>
+          <a class="dropdown-item" style="color: #0088cc;" onclick="return co_organiser_Confirmation()" href="{% url 'add_co_organiser' user_id=officer.id club_name=tournament.club.name tournament_name=tournament.name %}"> {{officer.full_name}} </a>
             </li>
         {% endfor%}
       </ul>
       {% else %}
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="co-organisers-dropdown" >
         <li >
 	    <p class="dropdown-item disabled">There is no user can be added as co-organiser</p>
 		</li>
         </ul>
     {% endif %}
-

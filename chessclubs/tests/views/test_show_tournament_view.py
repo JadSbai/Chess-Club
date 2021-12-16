@@ -383,6 +383,6 @@ class ShowTournamentViewTestCase(TestCase, AssertHTMLMixin):
     def _assert_winner_is_showed(self, response):
         self.assertContains(response, f"{self.tournament.get_winner()}")
         with self.assertHTML(response) as html:
-            paragraph = html.find(f'.//div/p[@id="winner"]')
+            paragraph = html.find(f'.//div/h3[@id="winner"]')
             self.assertTrue(f"{self.tournament.get_winner()}")
             self.assertIsNotNone(paragraph)

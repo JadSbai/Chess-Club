@@ -11,114 +11,130 @@
                 <div class="container d-flex justify-content-center">
                     <div class="container-fluid content">
 
-                        <h1 class="mb-3 mt-3">{{ tournament.name }}</h1>
+                        <h1 class="mb-3 mt-3 mb-4">{{ tournament.name }}</h1>
+
+                        {% if tournament.has_finished %}
+                            <div class="alert alert-success" role="alert" id="winner">
+                                <h3 id="winner">The tournament has finished. The winner is
+                                    <strong>{{ tournament.get_winner }}</strong></h3>
+                            </div>
+                        {% endif %}
+
 
                         <div class="border">
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Description</h5>
-                            <p class="p-2 text-break">{{ tournament.description }}</p>
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Deadline</h5>
+                            <div class="section">
+                                <h5 class="p-2 section-heading">
+                                    Description</h5>
+                                <p class="p-2 text-break">{{ tournament.description }}</p>
+                            </div>
+                            <div class="section">
+                                <h5 class="p-2 section-heading">
+                                    Deadline</h5>
+                                <p class="p-2">{{ tournament.deadline }}</p>
+                            </div>
 
-                            <p class="p-2">{{ tournament.deadline }}</p>
+                            <div class="section">
+                                <h5 class="p-2 section-heading">
+                                    Organiser</h5>
+                                <p class="p-2">{{ tournament.organiser.full_name }}</p>
+                            </div>
 
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Maximum Capacity</h5>
-                            <p class="p-2">{{ tournament.max_capacity }}</p>
+                            <div class="section">
+                                <h5 class="p-2 section-heading">
+                                    Co-Organisers</h5>
+                                <p class="p-2">
+                                    {% if not tournament.co_organisers_list %}
+                                        There are no co-organisers.
+                                    {% endif %}
+                                    {% for co_organiser in tournament.co_organisers_list %}
+                                        {{ co_organiser.full_name }}/
+                                    {% endfor %}
+                                </p>
+                            </div>
 
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Organiser</h5>
-                            <p class="p-2">{{ tournament.organiser.full_name }}</p>
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Co-Organisers</h5>
-                            <p class="p-2">
-                                {% if not tournament.co_organisers_list %}
-                                    There are no co-organisers.
-                                {% endif %}
-                                {% for co_organiser in tournament.co_organisers_list %}
-                                    {{ co_organiser.full_name }}/
-                                {% endfor %}
-                            </p>
                             {% if tournament|tournament_user_status:user == "organiser" %}
                                 {% include 'allowed_co_organisers.html' with user=user tournament=tournament allowed_co_organisers=allowed_co_organisers %}
                             {% endif %}
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Participants</h5>
-                            <p class="p-2">
-                                {% if not tournament.participants_list %}
-                                    There are no participants.
-                                {% endif %}
-                                {% for participant in tournament.participants_list %}
-                                    {{ participant.user.full_name }}/
-                                {% endfor %}
-                            </p>
-                            <h5 class="p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Number
-                                of participants</h5>
-                            <p class="p-2">{{ tournament.participants_list.count }}</p>
-                            <h5 class="mb-2 p-2"
-                                style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
-                                Controls</h5>
-                            <div class="container-fluid content justify-content-center pb-3 ps-3">
-                                <strong>Your status in this tournament: {{ status }}</strong>
-                                {% if tournament.has_finished %}
-                                    <div><p id="winner"></p>
-                                        The tournament has finished. The winner is {{ tournament.get_winner }}
-                                        <p></p>
-                                    </div>
-                                {% else %}
-                                    {% if the_time > tournament.deadline %}
-                                        {% if tournament.participants_list.count >= 2 %}
-                                            {% if tournament.is_published %}
-                                                {% if status == "organiser" or status == "co_organiser" or status == "participant" %}
-                                                    <div>
-                                                        <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}"
-                                                           class="btn btn-outline-info ml-2">See Schedule</a>
-                                                    </div>
+
+                            <div class="section">
+                                <h5 class="p-2 section-heading">
+                                    Participants</h5>
+                                <p class="p-2">
+                                    {% if not tournament.participants_list %}
+                                        There are no participants.
+                                    {% endif %}
+                                    {% for participant in tournament.participants_list %}
+                                        {{ participant.user.full_name | add:", " }}
+                                    {% endfor %}
+                                </p>
+                            </div>
+
+                            <div class="section">
+                                <h5 class="p-2 section-heading">
+                                    Number of participants </h5>
+                                <p class="p-2">{{ tournament.participants_list.count }}</p>
+                            </div>
+
+
+                            <div class="section">
+
+                                <h5 class="section-heading p-2">
+                                    Controls</h5>
+                                <div class="container-fluid content justify-content-center pb-3 ps-3 text-center">
+                                    <strong>Your status in this tournament: {{ status }}</strong>
+                                </div>
+                                <div class=" d-flex justify-content-center">
+                                    {% if not tournament.has_finished %}
+                                        {% if the_time > tournament.deadline %}
+                                            {% if tournament.participants_list.count >= 2 %}
+                                                {% if tournament.is_published %}
+                                                    {% if status == "organiser" or status == "co_organiser" or status == "participant" %}
+                                                        <div>
+                                                            <a href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}"
+                                                               class="btn ml-2 text-white blue-apple m-2">See Schedule</a>
+                                                        </div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {% if status == "organiser" %}
+                                                        <div>
+                                                            <a href="{% url 'publish_schedule' tournament_name=tournament.name club_name=tournament.club.name %}"
+                                                               class="btn text-white blue-apple m-2">Publish schedule</a>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endif %}
+                                                {% if not tournament.has_started %}
+                                                    {% if status == "organiser" %}
+                                                        <div>
+                                                            <a href="{% url 'start_tournament' tournament_name=tournament.name club_name=tournament.club.name %}"
+                                                               class="btn text-white blue-apple m-2">Start tournament</a>
+                                                        </div>
+                                                    {% endif %}
                                                 {% endif %}
                                             {% else %}
                                                 {% if status == "organiser" %}
-                                                    <div>
-                                                        <a href="{% url 'publish_schedule' tournament_name=tournament.name club_name=tournament.club.name %}"
-                                                           class="btn btn-outline-info">publish schedule</a>
-                                                    </div>
-                                                {% endif %}
-                                            {% endif %}
-                                            {% if not tournament.has_started %}
-                                                {% if status == "organiser" %}
-                                                    <div>
-                                                        <a href="{% url 'start_tournament' tournament_name=tournament.name club_name=tournament.club.name %}"
-                                                           class="btn btn-outline-info">Start tournament</a>
-                                                    </div>
-                                                {% endif %}
-                                            {% endif %}
-                                        {% else %}
-                                            {% if status == "organiser" %}
-                                            <p>Unfortunately, you don't have enough participants to start the
-                                                tournament.</p>
-                                            <a class="btn-outline-info"
-                                               href="{% url 'create_tournament' club_name=tournament.club.name %}">Exit
-                                                this page and create a new tournament.</a>
+                                                    <p>Unfortunately, you don't have enough participants to start the
+                                                        tournament.</p>
+                                                    <a class="text-white blue-apple"
+                                                       href="{% url 'create_tournament' club_name=tournament.club.name %}">Exit
+                                                        this page and create a new tournament.</a>
                                                 {% else %}
-                                                <p>Unfortunately, this tournament has finished due to a lack of players.</p>
+                                                    <div class="alert alert-danger" role="alert" id="winner">
+                                                        <h3>Unfortunately, this tournament has finished due to a lack of
+                                                            players.</h3>
+                                                    </div>
+                                                {% endif %}
                                             {% endif %}
                                         {% endif %}
                                     {% endif %}
-                                {% endif %}
-                            </div>
 
+                                </div>
+                            </div>
                         </div>
+
+
                         {% if status != "organiser" and status != "co_organiser" %}
                             <div class="card text-center bg-light m-5">
-                                <h5 class="p-2"
-                                    style="background-color: rgba(0,0,0,.03); border-bottom: 1px solid rgba(0,0,0,.125);">
+                                <h5 class="section-heading p-2">
                                     Apply</h5>
                                 <div class="card-body">
                                     {% if the_time < tournament.deadline %}
@@ -129,15 +145,16 @@
                                         {% if status != "participant" %}
                                             {% if not tournament.is_max_capacity_reached %}
                                                 <a href="{% url 'join_tournament' tournament_name=tournament.name club_name=tournament.club.name %}"
-                                                   class="btn btn-outline-info">Apply to this tournament</a>
+                                                   class="btn blue-apple text-white">Apply to this tournament</a>
                                             {% else %}
-                                                Unfortunately, maximum capacity of participants was reached. Come back
+                                                Unfortunately, maximum capacity of participants was reached. Come
+                                                back
                                                 next
                                                 time to see if any spot has freed up.
                                             {% endif %}
                                         {% else %}
                                             <a href="{% url 'withdraw_tournament' club_name=tournament.club.name tournament_name=tournament.name %}"
-                                               class="btn btn-outline-info">Withdraw from tournament</a>
+                                               class="btn btn-danger text-white">Withdraw from tournament</a>
                                         {% endif %}
                                     {% else %}
                                         <p>

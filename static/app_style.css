@@ -3,7 +3,7 @@
  */
 
 .alert {
-  border-radius: 0px;
+    border-radius: 0px;
 }
 
 
@@ -12,23 +12,23 @@
  */
 
 .content {
-  padding-top: 10px;
+    padding-top: 10px;
 }
 
 #cover-image {
-  background: url('images/chess-bg1.jpeg') no-repeat center center fixed;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  background-size: cover;
-  -o-background-size: cover;
+    background: url('images/chess-bg1.jpeg') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
 }
 
 .h-100 {
-  min-height: 100vh;
-  height: 100vh;
+    min-height: 100vh;
+    height: 100vh;
 }
 
-.vcenter-item{
+.vcenter-item {
     display: flex;
     align-items: center;
 }
@@ -37,26 +37,28 @@
  * Cover page
  */
 h1.cover-heading {
-  font-size: 4rem;
-  color: white;
+    font-size: 4rem;
+    color: white;
 }
 
 p.cover-text {
-  font-size: 1.7rem;
-  color: white;
+    font-size: 1.7rem;
+    color: white;
 }
 
 .cover-card {
-  background-color: rgba(200, 220, 260, 0.6);
-  max-width: 30rem;
-  padding-top: 30px;
-  padding-left: 50px;
-  padding-right: 50px;
-  padding-bottom: 30px;
-  border-radius: 15%;
+    background-color: rgba(200, 220, 260, 0.6);
+    color: black;
+    max-width: 30rem;
+    padding-top: 30px;
+    padding-left: 50px;
+    padding-right: 50px;
+    padding-bottom: 30px;
+    border-radius: 15%;
 }
+
 .cover-card-block {
-  opacity: 1
+    opacity: 1
 }
 
 
@@ -64,13 +66,13 @@ p.cover-text {
  * forms
  */
 .nolabel label {
-  display: none;
+    display: none;
 }
 
 ul.errorlist {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
 /*
@@ -78,93 +80,151 @@ ul.errorlist {
  */
 
 .low-key {
-  color: #777777;
-  font-weight: 300;
+    color: #777777;
+    font-weight: 300;
 }
 
 .list-title {
-  margin-top: 10px;
-  margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 /*
  * Profile
  */
 .profile-image {
-  width: 120px;
-  clear:both;
-  float:left;
+    width: 120px;
+    clear: both;
+    float: left;
 }
 
 .profile-text {
-  overflow:hidden;
+    overflow: hidden;
 }
 
 h3.profile-title {
-  margin-bottom: 0px;
+    margin-bottom: 0px;
 }
 
 .profile-username {
-  color: #777777;
-  font-weight: 300;
-  font-style: italic;
+    color: #777777;
+    font-weight: 300;
+    font-style: italic;
 }
 
 .profile-bio {
-  font-size: 1.1rem;
+    font-size: 1.1rem;
 }
 
 .profile-statistics {
-  color: #777777;
-  font-weight: 300;
-  display: block;
+    color: #777777;
+    font-weight: 300;
+    display: block;
 }
 
 .profile-statistics-item {
-  display: block;
-  padding-right: 50px;
+    display: block;
+    padding-right: 50px;
 }
 
 /*
  * Hyperlinks
  */
 .content a {
-  text-decoration: none;
-  color: #0d6efd;
+    text-decoration: none;
+    color: #0d6efd;
 }
+
 .content a:hover {
-  text-decoration: underline;
-  color: #0d6efd;
+    text-decoration: underline;
+    color: #0d6efd;
 }
 
 .post-author a {
-  text-decoration: none;
-  color: black;
+    text-decoration: none;
+    color: black;
 }
+
 .post-author a:hover {
-  text-decoration: underline;
-  color: black;
+    text-decoration: underline;
+    color: black;
 }
 
 #demobox {
-  background-color: #cfc ;
-  padding: 10px ;
-  border: 1px solid green ;
+    background-color: #cfc;
+    padding: 10px;
+    border: 1px solid green;
 }
 
 /*
 * submenu
 */
 .dropdown-submenu {
-  position: relative;
+    position: relative;
 }
 
 .dropdown-submenu .dropdown-menu {
-  top: 0;
-  left: 100%;
-  margin-top: -1px;
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
 }
 
 .navbar-nav li:hover > ul.dropdown-menu {
     display: block;
+}
+
+#avatar-header {
+
+}
+
+tr {
+    background-color: white;
+}
+
+.left-aligned-tab {
+    right: 3px;
+    left: auto;
+}
+
+table a, .names {
+    color: #0088cc;
+    text-decoration: underline;
+    font-size:14px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.big-names
+{
+        color: #0088cc;
+    text-decoration: underline;
+      margin-left: 5px;
+    margin-right: 5px;
+}
+
+.sad-button {
+    margin-left: 10%;
+}
+
+@media screen and (max-width: 480px) {
+    .sad-button {
+        margin-top: 10px;
+    }
+}
+
+.blue-apple {
+    background-color: #0088cc !important;
+}
+
+body {
+    background-color: #DFDFDD;
+    font-family: 'Playfair', sans-serif;
+}
+
+.section-heading{
+    background-color: rgba(0,0,0,.1);
+}
+
+.section {
+    background-color: rgba(0,0,0,.04)
 }

@@ -1,6 +1,6 @@
 {% extends 'base_content.html' %}
 {% block content %}
-<div class="container">
+<div class="container pb-4">
   <div class="row">
     <div class="col-sm-12 col-md-8 offset-md-2">
       <h1 class="mb-3 mt-3">Edit Profile</h1>
@@ -8,7 +8,7 @@
         {% csrf_token %}
         {% include 'partials/bootstrap_form.html' with form=form %}
         <div class="container d-flex justify-content-center">
-             <input type="submit" value="Update" class="btn btn-primary">
+             <input type="submit" value="Update" class="btn text-white blue-apple">
         </div>
       </form>
     </div>
