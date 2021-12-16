@@ -61,8 +61,6 @@ def get_appropriate_redirect(notification):
         tournament = Tournament.objects.get(name=instance_name)
         return redirect('show_tournament', club_name=tournament.club.name, tournament_name=instance_name)
     else:
-        # Not going to be kept in production
-        print("Action name is not valid")
         raise BaseException
 
 
