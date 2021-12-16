@@ -8,77 +8,99 @@
         {% current_time as the_time %}
         {% if tournament.has_finished %}
             No more schedule! The winner is {{ tournament.get_winner }}
-        {% endif %}
-        {% if tournament.get_current_phase != "Elimination Round" %}
-            <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.get_current_phase}}</h5>
-            <div class="row">
-                <div class="col-6">
-                    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Pools</h5>
+        {% else %}
+            {% if tournament.get_current_phase != "Elimination Round" %}
+                {% with pools=tournament.get_current_pool_phase.pools.all %}
+                    <h3 class="p-2 text-center" id="pool_phase"
+                        style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.get_current_phase }}</h3>
+                    <div class="row">
+                    <div class="col-6 text-center mt-2">
+                        <h5 class="p-2"
+                            style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">
+                            Pools</h5>
+                        {% with i=pools.count %}
+                            {% for pool in pools %}
+                                {% decrement i as i %}
+                                {% with count=pools.count|pool_number:i %}
+                                    <p style="font-size: 24px;  text-decoration: underline;"><strong class="pool">Pool {{ count }}: </strong></p>
+                                {% endwith %}
+
+                                <table class="table table-bordered ms-2 mb-5">
+                                    <tr style="background-color: white">
+                                        <td>Player</td>
+                                        <td>Score</td>
+                                    </tr>
+                                    {% for player in pool.get_players %}
+                                        <tr>
+                                            <td><strong>{{ player.user.full_name }}</strong></td>
+                                            <td><strong> {{ player.get_points }}</strong></td>
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            {% endfor %}
+                        {% endwith %}
+
+                    </div>
+                    <div class="col-6 text-center mt-2">
+                    <h5 class="p-2"
+                        style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">
+                        Matches</h5>
                     {% with i=pools.count %}
                         {% for pool in pools %}
                             {% decrement i as i %}
                             {% with count=pools.count|pool_number:i %}
-                                <p><strong>Pool {{ count }}</strong></p>
+                                <p style="font-size: 24px; margin-top: 52px;  text-decoration: underline;"><strong>Pool {{ count }}: </strong></p>
                             {% endwith %}
-                            {% for player in pool.get_players %}
-                                <p class="p-2"><strong>{{player.user.full_name}}</strong>  : {{ player.get_points }}</p>
+                            {% for match in pool.get_pool_matches %}
+                                   <div class="mb-3 section" style="margin-left: 72px; margin-right: 72px">
+                                    <h6 class="section-heading p-1 text-center"> Match {{ count }}</h6>
+                                    <div class="text-center">
+                                        <p class="ms-2" style="font-size: 14px; ">{{ match.get_player1.user.full_name }} <strong>vs</strong> {{ match.get_player2.user.full_name }}</p>
+                                        <p style="font-size: 14px; " class="ms-2">Pick the winner: </p>
+                                        <div class="ps-2 pb-2 enter_match_result">
+                                            <a class="names" id="player1_winner" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player1" %}"> {{ match.get_player1.user.full_name }} </a>
+                                            <strong> or </strong>
+                                            <a class="names" id="player2_winner" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player2" %}"> {{ match.get_player2.user.full_name }} </a>
+                                                                                   <strong> or </strong>
+                                            <a class="names" id="draw" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="draw" %}"> Draw </a>
+                                        </div>
+                                    </div>
+                                </div>
                             {% endfor %}
                         {% endfor %}
                     {% endwith %}
-
-
-                </div>
-                <div class="col-6">
-                    <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Matches</h5>
-                    {% for match in schedule %}
-                        <div>
-                            <p class="p-2">{{ match.get_player1.user.full_name}} <strong>vs</strong> {{ match.get_player2.user.full_name}}</p><br>
-                            <ul>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id  result="player1" %}"> {{match.get_player1.user.full_name}} </a>
-                            </li>
-                            <li>
-
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id  result="player2" %}"> {{match.get_player2.user.full_name}} </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id  result="draw" %}"> Draw </a>
-                            </li>
-
-                        </ul>
-                        </div>
-                    {% endfor %}
-                </div>
+                {% endwith %}
             </div>
-        {% else %}
-            <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.elimination_round.phase}}</h5>
-            <div class="col-6">
-                <h5 class="p-2" style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">Matches</h5>
-                {% for match in schedule %}
-                    <div>
-                        <p class="p-2">{{ match.get_player1.user.full_name}} <strong>vs</strong> {{ match.get_player2.user.full_name}}</p><br>
-                        <ul>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player1" %}"> {{ match.get_player1.user.full_name }} </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player2" %}"> {{ match.get_player2.user.full_name }} </a>
-                            </li>
-                        </ul>
-                        <div class="dropdown">
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Choose a winner
-                            </button>
-                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player1" %}"> {{ match.get_player1.user.full_name }} </a>
-                                <a class="dropdown-item" href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player2" %}"> {{ match.get_player2.user.full_name }} </a>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
             </div>
+
+            {% else %}
+                <h3 class="p-2 text-center" id="elimination_phase"
+                    style="background-color: rgba(1,.03,0,.08); border-bottom: 1px solid rgba(0,0,0,.125);">{{ tournament.elimination_round.phase }}</h3>
+                <div class="col-6 mx-auto">
+                    {% lengthof schedule as len %}
+                    {% with i=len %}
+                        {% for match in schedule %}
+                            {% decrement i as i %}
+                            {% with count=len|pool_number:i %}
+                                <div class="mb-5 section">
+                                    <h5 class="section-heading p-3 text-center"> Match {{ count }}</h5>
+                                    <div class="text-center">
+                                        <p class="ms-2" style="font-size: 24px">{{ match.get_player1.user.full_name }} <strong>vs</strong> {{ match.get_player2.user.full_name }}</p>
+                                        <h5 class="mt-4 ms-2">Pick the winner: </h5>
+                                        <div class="mb-5 ps-2 pb-2 enter_match_winner">
+                                            <a class="big-names" id="player2_loser"
+                                               href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player1" %}"> {{ match.get_player1.user.full_name }} </a>
+                                            <strong> or </strong>
+                                            <a class="big-names" id="player1_loser"
+                                               href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id result="player2" %}"> {{ match.get_player2.user.full_name }} </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endwith %}
+                        {% endfor %}
+                    {% endwith %}
+                </div>
+            {% endif %}
         {% endif %}
-
-
-    {%endblock%}
-{%endblock%}
+    {% endblock %}
+{% endblock %}

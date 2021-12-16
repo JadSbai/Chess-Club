@@ -5,10 +5,10 @@ from django.urls import reverse
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
-from django.contrib import messages
+from with_asserts.mixin import AssertHTMLMixin
 
 
-class MyApplicationsViewTestCase(TestCase):
+class MyApplicationsViewTestCase(TestCase, AssertHTMLMixin):
     """Test Suites of my applications view"""
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
@@ -33,26 +33,28 @@ class MyApplicationsViewTestCase(TestCase):
         redirect_url = reverse_with_next('log_in', reverse('my_applications'))
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
-    def no_application_display(self):
+    def test_no_application_display(self):
         response = self.client.get(self.url)
-        self.assertContains(response, "You currently have no application undergoing", html=True)
+        self.assertContains(response, "You currently have no application undergoing.")
 
     def test_pending_application_display(self):
         self.group_tester.make_applicant(self.applicant)
         response = self.client.get(self.url)
-        self.assertContains(response, "Your application is now under review")
+        with self.assertHTML(response, element_id="under_review") as accept:
+            self.assertEqual(accept.text, "Notice: Your application is now under review.")
 
     def test_accepted_application_display(self):
         self.group_tester.make_accepted_applicant(self.applicant)
         response = self.client.get(self.url)
-        self.assertContains(response, "Your application has been accepted")
+        with self.assertHTML(response, element_id="accepted") as accept:
+            self.assertEqual(accept.text, "Notice: Your application has been accepted")
         self.assertContains(response, "Join now!", html=True)
 
     def test_denied_application_display(self):
         self.group_tester.make_denied_applicant(self.applicant)
         response = self.client.get(self.url)
-        self.assertContains(response, "Your application has been denied")
+        with self.assertHTML(response, element_id="denied") as accept:
+            self.assertEqual(accept.text, "Notice: Your application has been denied.")
         self.assertContains(response, "OK")
 
     # Thorough tests for template content
-

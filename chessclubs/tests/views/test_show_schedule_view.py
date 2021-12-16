@@ -161,9 +161,9 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
 
     def assert_correct_large_pool_phase_display(self, response):
         with self.assertHTML(response) as html:
-            pool_phase = html.find(f'.//h5[@id="pool_phase"]')
+            pool_phase = html.find(f'.//h3[@id="pool_phase"]')
             self.assertEqual(pool_phase.text, "Large-Pool-Phase")
-        with self.assertHTML(response, '.pool') as pools:
+        with self.assertHTML(response, selector='.pool') as pools:
             self.assertEqual(len(pools), 16)
             for i in range(1, 17):
                 self.assertContains(response, f"Pool {i}")
@@ -173,7 +173,7 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
 
     def assert_correct_small_pool_phase_display(self, response):
         with self.assertHTML(response) as html:
-            pool_phase = html.find(f'.//h5[@id="pool_phase"]')
+            pool_phase = html.find(f'.//h3[@id="pool_phase"]')
             self.assertEqual(pool_phase.text, "Small-Pool-Phase")
         with self.assertHTML(response, '.pool') as pools:
             self.assertEqual(len(pools), 8)
@@ -185,23 +185,23 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
 
     def assert_pool_phase_type_enter_result(self, elements):
         for elem in elements:
-            player1 = elem.find(f'li[@id="player1_winner"]')
-            player2 = elem.find(f'li[@id="player2_winner"]')
-            draw = elem.find(f'li[@id="draw"]')
+            player1 = elem.find(f'a[@id="player1_winner"]')
+            player2 = elem.find(f'a[@id="player2_winner"]')
+            draw = elem.find(f'a[@id="draw"]')
             self.assertIsNotNone(player1)
             self.assertIsNotNone(player2)
             self.assertIsNotNone(draw)
 
     def assert_elimination_type_enter_result(self, elements):
         for elem in elements:
-            player1 = elem.find(f'li[@id="player1_loser"]')
-            player2 = elem.find(f'li[@id="player2_loser"]')
+            player1 = elem.find(f'a[@id="player1_loser"]')
+            player2 = elem.find(f'a[@id="player2_loser"]')
             self.assertIsNotNone(player1)
             self.assertIsNotNone(player2)
 
     def assert_correct_eighth_final_display(self, response):
         with self.assertHTML(response) as html:
-            pool_phase = html.find(f'.//h5[@id="elimination_phase"]')
+            pool_phase = html.find(f'.//h3[@id="elimination_phase"]')
             self.assertEqual(pool_phase.text, "Eighth-Final")
         with self.assertHTML(response, '.enter_match_winner') as elems:
             self.assertEqual(8, len(elems))
@@ -209,7 +209,7 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
 
     def assert_correct_quarter_final_display(self, response):
         with self.assertHTML(response) as html:
-            pool_phase = html.find(f'.//h5[@id="elimination_phase"]')
+            pool_phase = html.find(f'.//h3[@id="elimination_phase"]')
             self.assertEqual(pool_phase.text, "Quarter-Final")
         with self.assertHTML(response, '.enter_match_winner') as elems:
             self.assertEqual(4, len(elems))
@@ -217,7 +217,7 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
 
     def assert_correct_semi_final_display(self, response):
         with self.assertHTML(response) as html:
-            pool_phase = html.find(f'.//h5[@id="elimination_phase"]')
+            pool_phase = html.find(f'.//h3[@id="elimination_phase"]')
             self.assertEqual(pool_phase.text, "Semi-Final")
         with self.assertHTML(response, '.enter_match_winner') as elems:
             self.assertEqual(2, len(elems))
@@ -225,7 +225,7 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
 
     def assert_correct_final_display(self, response):
         with self.assertHTML(response) as html:
-            pool_phase = html.find(f'.//h5[@id="elimination_phase"]')
+            pool_phase = html.find(f'.//h3[@id="elimination_phase"]')
             self.assertEqual(pool_phase.text, "Final")
         with self.assertHTML(response, '.enter_match_winner') as elems:
             self.assertEqual(1, len(elems))
