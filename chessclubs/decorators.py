@@ -220,7 +220,7 @@ def tournament_must_be_published(view_function):
     return modified_view_function
 
 
-def target_user_must_be_officer(view_function):
+def target_user_must_be_officer_and_non_participant(view_function):
     def modified_view_function(request, *args, **kwargs):
         user_id = kwargs.get('user_id')
         club_name = kwargs.get('club_name')
@@ -231,13 +231,16 @@ def target_user_must_be_officer(view_function):
             messages.add_message(request, messages.ERROR, "The officer you are looking for doesn't exist")
             return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
         else:
+            tournament = Tournament.objects.get(name=tournament_name)
             club = Club.objects.get(name=club_name)
             if club.user_status(user) != "officer":
-                messages.add_message(request, messages.WARNING, "You can only add officers as co_organisers")
+                messages.add_message(request, messages.WARNING, "You can only add officers as co-organisers")
+                return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+            elif tournament.user_status(user) != "non-participant":
+                messages.add_message(request, messages.WARNING, "You can only add non-participants as co-organisers")
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             else:
                 return view_function(request, *args, **kwargs)
-
     return modified_view_function
 
 
@@ -302,4 +305,16 @@ def tournament_has_not_started(view_function):
         else:
             return view_function(request, *args, **kwargs)
 
+    return modified_view_function
+
+def tournament_has_started(view_function):
+    def modified_view_function(request, *args, **kwargs):
+        club_name = kwargs.get('club_name')
+        tournament_name = kwargs.get('tournament_name')
+        tournament = Tournament.objects.get(name=tournament_name)
+        if not tournament.has_started():
+            messages.add_message(request, messages.WARNING, "The tournament has not started yet!")
+            return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
+        else:
+            return view_function(request, *args, **kwargs)
     return modified_view_function

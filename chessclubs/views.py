@@ -10,9 +10,9 @@ from notifications.signals import notify
 from notifications.utils import slug2id
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, \
-    must_be_non_participant, deadline_must_not_be_passed, tournament_must_be_published, target_user_must_be_officer, \
+    must_be_non_participant, deadline_must_not_be_passed, tournament_must_be_published, target_user_must_be_officer_and_non_participant, \
     must_be_valid_result, match_must_be_in_tournament, deadline_must_be_passed, tournament_has_not_finished, \
-    tournament_has_not_started
+    tournament_has_not_started, tournament_has_started
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, \
     EditClubInformationForm
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
@@ -520,7 +520,7 @@ def my_matches(request):
 @login_required
 @tournament_permissions_required(perms_list=['chessclubs.add_co_organiser'])
 @tournament_has_not_finished
-@target_user_must_be_officer
+@target_user_must_be_officer_and_non_participant
 def add_co_organiser(request, tournament_name, club_name, user_id):
     tournament = Tournament.objects.get(name=tournament_name)
     co_organiser = User.objects.get(id=user_id)
@@ -533,6 +533,7 @@ def add_co_organiser(request, tournament_name, club_name, user_id):
 @login_required
 @tournament_permissions_required(perms_list=['chessclubs.enter_match_results'])
 @deadline_must_be_passed
+@tournament_has_started
 @tournament_has_not_finished
 @match_must_be_in_tournament
 @must_be_valid_result

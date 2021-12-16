@@ -146,6 +146,13 @@ class EnterResultViewTestCase(TestCase, AssertHTMLMixin):
         self.assertRedirects(response, self.show_club_url, status_code=302, target_status_code=200)
         self._assert_warning_message_displayed(response, "The tournament you are looking for does not exist!", messages.ERROR)
 
+    def test_enter_result_when_not_started(self):
+        self.tournament._set_not_started()
+        response = self.client.get(self.draw_url, follow=True)
+        self.assertRedirects(response, self.show_tournament_url, status_code=302, target_status_code=200)
+        self._assert_warning_message_displayed(response, "The tournament has not started yet!", messages.WARNING)
+        pass
+
     def test_enter_result_when_deadline_not_passed(self):
         self.tournament._set_deadline_future()
         response = self.client.get(self.player1_winner_url, follow=True)
