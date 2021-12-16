@@ -324,9 +324,9 @@ class Club(models.Model):
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                                           base_permission=tournament_perm)
         join_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                         base_permission=join_tournament_perm)
+                                                                        base_permission=join_tournament_perm)
         edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=edit_club_info_perm)
+                                                                       base_permission=edit_club_info_perm)
 
         # Assign the appropriate groups to the the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -748,11 +748,11 @@ class Tournament(models.Model):
         withdraw, created = TournamentPermission.objects.get_or_create(tournament=self,
                                                                        base_permission=withdraw_perm)
         add_co_organiser, created = TournamentPermission.objects.get_or_create(tournament=self,
-                                                                       base_permission=add_co_organiser_perm)
+                                                                               base_permission=add_co_organiser_perm)
         start, created = TournamentPermission.objects.get_or_create(tournament=self,
-                                                                       base_permission=start_tournament_perm)
+                                                                    base_permission=start_tournament_perm)
         publish, created = TournamentPermission.objects.get_or_create(tournament=self,
-                                                                               base_permission=publish_schedule_perm)
+                                                                      base_permission=publish_schedule_perm)
 
         # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
         groups = [self.__participants_group(), self.__co_organisers_group()]
@@ -1079,16 +1079,21 @@ class PoolPhase(models.Model):
                     pool_players.append(non_encountered_player)
 
                 all_other_players = []
-                for player in all_players:
-                    if player not in non_encountered_players:
-                        all_other_players.append(player)
+                for other_player in all_players:
+                    if other_player not in non_encountered_players:
+                        all_other_players.append(other_player)
 
                 encountered_players = random.sample(all_other_players, diff)
                 for encountered_player in encountered_players:
                     pool_players.append(encountered_player)
-
             else:
                 pool_players = random.sample(all_players, size)
+
+            new_diff = size - len(pool_players)
+            if new_diff > 1:
+                other_players = random.sample(all_players, new_diff - 1)
+                for pl in other_players:
+                    pool_players.append(pl)
 
             for new_player in pool_players:
                 all_players.remove(new_player)

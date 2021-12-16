@@ -107,6 +107,8 @@ class TournamentModelTestCase(TestCase):
         small_pool_phase = self.new_tournament.get_current_pool_phase()
         self.assertFalse(small_pool_phase is None)
         self.assertEqual(small_pool_phase.get_players_count(), 32)
+        for pool in small_pool_phase.get_pools():
+            self.assertEqual(pool.get_players_count(), 4)
         enter_results_to_all_matches(self.new_tournament)
         self.assertEqual(len(small_pool_phase.get_all_matches()), 0)
         elimination_round = self.new_tournament.elimination_round
