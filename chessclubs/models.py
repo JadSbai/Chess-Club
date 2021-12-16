@@ -9,7 +9,7 @@ from django.db import models, IntegrityError
 from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
-from django.core.exceptions import ObjectDoesNotExist
+
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
@@ -328,7 +328,7 @@ class Club(models.Model):
         edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
                                                                            base_permission=edit_club_info_perm)
 
-        # Assign the appropriate groups to the the club-specific permissions (according to requirements)
+        # Assign the appropriate groups to the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
                   self.__authenticated_non_member_group(), self.__members_group(), self.__accepted_applicants_group(),
                   self.__owner_group()]
@@ -407,7 +407,7 @@ class ClubPermission(models.Model):
 
 
 def _user_has_club_perm(user, perm, club):
-    """Checks whether a given user has the required permission in the the specified club"""
+    """Checks whether a given user has the required permission in the specified club"""
     for backend in auth.get_backends():
         if not hasattr(backend, "has_club_perm"):
             continue
@@ -753,7 +753,7 @@ class Tournament(models.Model):
         publish, created = TournamentPermission.objects.get_or_create(tournament=self,
                                                                                base_permission=publish_schedule_perm)
 
-        # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
+        # Assign the appropriate groups to the tournament-specific permissions (according to requirements)
         groups = [self.__participants_group(), self.__co_organisers_group()]
         see_tournament_private_info.set_groups(groups)
         groups = [self.__participants_group()]
@@ -807,7 +807,7 @@ class TournamentPermission(models.Model):
 
 
 def _user_has_tournament_perm(user, perm, tournament):
-    """Checks whether a given user has the required permission in the the specified tournament"""
+    """Checks whether a given user has the required permission in the specified tournament"""
     for backend in auth.get_backends():
         if not hasattr(backend, "has_tournament_perm"):
             continue
