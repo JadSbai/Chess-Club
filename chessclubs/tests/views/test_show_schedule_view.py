@@ -51,6 +51,9 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
         self.assert_correct_large_pool_phase_display(response1)
         enter_results_to_all_matches(self.tournament)
         response2 = self.client.get(self.url, follow=True)
+        print(self.tournament.get_current_pool_phase().PP_players.count())
+        for pool in self.tournament.get_current_pool_phase().get_pools():
+            self.assertEqual(pool.get_players_count(), 4)
         self.assertEqual(response2.status_code, 200)
         self.assert_correct_small_pool_phase_display(response2)
         enter_results_to_all_matches(self.tournament)
