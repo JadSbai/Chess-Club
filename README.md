@@ -21,6 +21,12 @@ In case of a draw in the elimination system, the players will have to replay the
 The participants can see all their matches in all tournaments.
 A user can also see all of their current, past, and upcoming tournaments. 
 
+Possible improvments:
+There are some things that could have been improved but we did not have enough time for it, for instance, class based views, which would allow us to stucture the code and reuse code by harnessing inheritance and mixins. 
+Secondly, writing tests for template content. 
+Thirdly, Improve encpuslations of model classes.
+Last but not least, adding sorting filters to users list and clubs list.
+
 Deployed version of the application
 The deployed version of the application can be found at URL.
 
