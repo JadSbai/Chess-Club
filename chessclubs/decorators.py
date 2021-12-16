@@ -29,9 +29,54 @@ def club_permissions_required(perms_list):
             else:
                 for perm in perms_list:
                     if not request.user.has_club_perm(perm, club):
-                        messages.add_message(request, messages.WARNING,
-                                             "Permission denied! You don't have the necessary club permission(s)")
-                        return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
+                        if perm == 'chessclubs.access_members_list':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Permission denied! Only members of the club can access the list of members")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.show_public_info':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Permission denied! Only members of the club can see a member's public info")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.promote' or perm == "chessclubs.demote" or perm == 'chessclubs.transfer_ownership':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Permission denied! Only owner of the club can modify statuses of the members")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.manage_applications':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only the owner and officers can manage the club's applications")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.acknowledge_response':
+                            messages.add_message(request, messages.WARNING,
+                                                 "You can only acknowldege an application response if it has either been accepted or denied")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.apply_to_club':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only non-members can apply to a club")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.ban':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only the owner can ban a member")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.leave':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only a member can leave the club")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.create_tournament':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only the owner or an officer can create a tournament")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.join_tournament':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only a member of the club can join its tournaments")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.edit_club_info':
+                            messages.add_message(request, messages.WARNING,
+                                                 "Only the owner can modify the club's information")
+                            return redirect('show_club', club_name=club_name)
+                        else:
+                            messages.add_message(request, messages.WARNING,
+                                                 "Permission denied! You don't have the necessary tournament permission(s)")
+                            return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN)
                 return view_func(request, *args, **kwargs)
 
         return wrapped

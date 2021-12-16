@@ -21,8 +21,20 @@ def notify_officers_and_owner_of_joining(user, club):
 def notify_officers_and_owner_of_leave(user, club):
     for member in club.members.all():
         if club.user_status(member) == "officer" or club.user_status(member) == "owner":
-            notify.send(user, recipient=member, verb=f'{club.name}_Leave_Notice',
+            notify.send(user, recipient=member, verb=f'{club.name}_LeaveNotice',
                         description=f"{user.full_name()} has left club {club.name}")
+
+
+def notify_participants_of_publish(tournament):
+    for participant in tournament.participants_list():
+        notify.send(tournament.organiser, recipient=participant.user, verb=f'{tournament.name}_PublishSchedule',
+                    description=f"The schedule for tournament {tournament.name} is now published!")
+
+
+def notify_participants_of_start(tournament):
+    for participant in tournament.participants_list():
+        notify.send(tournament.organiser, recipient=participant.user, verb=f'{tournament.name}_StartTournament',
+                    description=f"The tournament {tournament.name} has started!")
 
 
 def notify_officers_and_owner_of_new_application(user, club):
@@ -41,9 +53,7 @@ def get_appropriate_redirect(notification):
 
     instance_name = action_pattern.group(1)
 
-    if action_name == "Transfer_Ownership":
-        return redirect('my_profile')
-    elif action_name == "Promote" or action_name == "Demote":
+    if action_name == "Promote" or action_name == "Demote" or action_name == "TransferOwnership":
         return redirect('show_club', club_name=instance_name)
     elif action_name == "Accept" or action_name == "Deny":
         return redirect('my_applications')
@@ -51,21 +61,14 @@ def get_appropriate_redirect(notification):
         return redirect('view_applications', club_name=instance_name)
     elif action_name == "Join":
         return redirect('user_list', club_name=instance_name)
-    elif action_name == "Ban":
-        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
-    elif action_name == "Leave":
-        return redirect(REDIRECT_URL_WHEN_LOGGED_IN)
-    elif action_name == "Leave_Notice":
+    elif action_name == "Ban" or action_name == "Leave":
+        return redirect('show_club', club_name=instance_name)
+    elif action_name == "LeaveNotice":
         return redirect('user_list', club_name=instance_name)
-    elif action_name == "Coorganiser":
+    elif action_name == "Coorganiser" or action_name == "PublishSchedule" or action_name == "StartTournament":
         tournament = Tournament.objects.get(name=instance_name)
         return redirect('show_tournament', club_name=tournament.club.name, tournament_name=instance_name)
     else:
         # Not going to be kept in production
         print("Action name is not valid")
         raise BaseException
-
-
-
-
-

@@ -25,7 +25,7 @@ class CreateTournamentViewTestCase(TestCase):
         self.url = reverse('create_tournament', kwargs={'club_name': self.club.name})
         self.data = {'name': 'y' * 40, 'location': 'x' * 40, 'description': 'Description', 'max_capacity': 20,
                      'deadline': (timezone.now() + timezone.timedelta(days=1))}
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_view_create_tournament_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/create_tournament/')

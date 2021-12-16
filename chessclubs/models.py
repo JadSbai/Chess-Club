@@ -608,6 +608,7 @@ class Tournament(models.Model):
         self.remove_from_participants_group(member)
 
     def _remove_all_participants(self):
+        """This method is used only for tests"""
         for player in self.participants_list():
             player.delete()
             self.remove_from_participants_group(player.user)

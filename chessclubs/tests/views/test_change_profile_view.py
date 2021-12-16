@@ -2,9 +2,11 @@
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
+
 from chessclubs.forms import UserForm
 from chessclubs.models import User
 from chessclubs.tests.helpers import reverse_with_next
+
 
 class ChangeProfileViewTest(TestCase):
     """Test suite for the change_profile view."""
@@ -42,7 +44,7 @@ class ChangeProfileViewTest(TestCase):
         response = self.client.get(self.url)
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
 
-    def test_unsuccesful_profile_update(self):
+    def test_unsuccessful_profile_update(self):
         self.client.login(email=self.user.email, password='Password123')
         self.form_input['chess_experience'] = ''
         before_count = User.objects.count()
@@ -60,7 +62,6 @@ class ChangeProfileViewTest(TestCase):
         self.assertEqual(self.user.bio, "Hello, I'm John Doe.")
         self.assertEqual(self.user.chess_experience, "Expert")
         self.assertEqual(self.user.personal_statement, "I have a whiteboard")
-
 
     def test_succesful_profile_update(self):
         self.client.login(email=self.user.email, password='Password123')

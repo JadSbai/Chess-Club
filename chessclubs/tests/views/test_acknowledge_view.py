@@ -24,7 +24,7 @@ class AcknowledgeViewTestCase(TestCase):
         self.accept_url = reverse('accept', kwargs={'club_name': self.club.name, 'user_id': self.applicant.id})
         self.deny_url = reverse('deny', kwargs={'club_name': self.club.name, 'user_id': self.applicant.id})
         self.url = reverse('acknowledge', kwargs={'club_name': self.club.name})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_acknowledged_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/acknowledge/')
@@ -46,6 +46,17 @@ class AcknowledgeViewTestCase(TestCase):
                 last_notification = member.notifications.unread()[0].description
                 self.assertEqual(len(member.notifications.unread()), notifications + 1)
                 self.assertEqual(last_notification, f"{self.applicant.full_name()} has joined club {self.club.name}")
+
+    def test_mark_as_read_new_member(self):
+        self.client.get(self.accept_url)
+        self.client.login(email=self.applicant.email, password='Password123')
+        self.client.get(self.url)
+        self.client.login(email=self.club.owner.email, password='Password123')
+        last_notification = self.club.owner.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        members_list_url = reverse('user_list', kwargs={'club_name': self.club.name})
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, members_list_url, status_code=302, target_status_code=200)
 
     def test_accepted_applicant_becomes_member(self):
         self.client.get(self.accept_url)

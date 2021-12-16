@@ -55,6 +55,22 @@ class AddCoOrganiserViewTestCase(TestCase, AssertHTMLMixin):
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The officer you are looking for doesn't exist")
 
+    def test_mark_as_read_become_co_organiser(self):
+        self.client.get(self.url)
+        self.client.login(email=self.officer.email, password='Password123')
+        last_notification = self.officer.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        self.client.login(email=self.officer.email, password='Password123')
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, self.show_tournament_url, status_code=302, target_status_code=200)
+
+    def test_add_co_organiser_when_tournament_finished(self):
+        self.tournament._set_finished()
+        response = self.client.get(self.url, follow=True)
+        self.assertRedirects(response, self.show_tournament_url, status_code=302, target_status_code=200)
+        self.assertEqual(self.tournament.user_status(self.officer), "non-participant")
+        self._assert_warning_message_displayed(response, "The tournament is already finished!", messages.WARNING)
+
     def test_member_cannot_be_added_as_co_organiser(self):
         self.group_tester.make_member(self.officer)
         response = self.client.get(self.url, follow=True)
@@ -121,6 +137,12 @@ class AddCoOrganiserViewTestCase(TestCase, AssertHTMLMixin):
         self.assertEqual(response.status_code, 200)
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
+
+    def _assert_warning_message_displayed(self, response, message, level):
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, level)
+        self.assertEqual(messages_list[0].message, message)
 
 
 

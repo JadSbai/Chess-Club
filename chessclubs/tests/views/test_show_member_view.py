@@ -1,3 +1,4 @@
+
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
@@ -5,8 +6,9 @@ from chessclubs.models import User, Club
 from chessclubs.tests.helpers import reverse_with_next, ClubGroupTester
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
-class ShowUserTest(TestCase):
 
+class ShowMemberTestCase(TestCase):
+    """Test Suites for the Show member view"""
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
         'chessclubs/tests/fixtures/other_users.json',
@@ -21,10 +23,10 @@ class ShowUserTest(TestCase):
         self.group_tester = ClubGroupTester(self.club)
         self.club.add_member(self.target_user)
         self.url = reverse('show_user', kwargs={'user_id': self.target_user.id, 'club_name': self.club.name})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_show_user_url(self):
-        self.assertEqual(self.url, f'/{self.club.name}/user/{self.target_user.id}')
+        self.assertEqual(self.url, f'/{self.club.name}/member/{self.target_user.id}')
 
     def test_get_show_user_with_valid_id_and_club(self):
         self.client.login(email=self.user.email, password='Password123')
@@ -50,7 +52,7 @@ class ShowUserTest(TestCase):
         self.client.login(email=self.user.email, password='Password123')
         bad_url = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': 2000})
         response = self.client.get(bad_url, follow=True)
-        target_url = reverse('user_list', kwargs={'club_name':self.club.name})
+        target_url = reverse('user_list', kwargs={'club_name': self.club.name})
         self.assertRedirects(response, target_url, status_code=302, target_status_code=200)
         self.assertTemplateUsed(response, 'user_list.html')
         messages_list = list(response.context['messages'])
@@ -74,60 +76,42 @@ class ShowUserTest(TestCase):
         self.group_tester.make_applicant(self.other_user)
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.WARNING)
+        self._assert_response_redirect(response)
 
     def test_accepted_applicant_cannot_access_the_user_page(self):
         self.group_tester.make_accepted_applicant(self.other_user)
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.WARNING)
+        self._assert_response_redirect(response)
 
     def test_denied_applicant_cannot_access_the_user_page(self):
         self.group_tester.make_denied_applicant(self.other_user)
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.WARNING)
+        self._assert_response_redirect(response)
 
     def test_member_can_access_the_user_page(self):
         self.group_tester.make_member(self.other_user)
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertEqual(response.status_code, 200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 0)
+        self._assert_valid_response(response)
 
     def test_officer_can_access_the_user_page(self):
         self.group_tester.make_officer(self.other_user)
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertEqual(response.status_code, 200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 0)
+        self._assert_valid_response(response)
 
     def test_owner_can_access_the_user_page(self):
         self.client.login(email=self.user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertEqual(response.status_code, 200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 0)
+        self._assert_valid_response(response)
 
     def test_logged_in_non_member_cannot_access_the_user_page(self):
         self.group_tester.make_authenticated_non_member(self.other_user)
         self.client.login(email=self.other_user.email, password='Password123')
         response = self.client.get(self.url, follow=True)
-        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
-        messages_list = list(response.context['messages'])
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.WARNING)
+        self._assert_response_redirect(response)
 
     def test_member_cannot_see_private_info(self):
         self.group_tester.make_member(self.other_user)
@@ -164,3 +148,13 @@ class ShowUserTest(TestCase):
         self.assertContains(response, "Demote")
         self.assertContains(response, "Transfer ownership")
 
+    def _assert_response_redirect(self, response):
+        self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(messages_list[0].level, messages.WARNING)
+
+    def _assert_valid_response(self, response):
+        self.assertEqual(response.status_code, 200)
+        messages_list = list(response.context['messages'])
+        self.assertEqual(len(messages_list), 0)

@@ -27,7 +27,7 @@ class AcceptViewTestCase(TestCase):
         self.url = reverse('deny', kwargs={'club_name': self.club.name, 'user_id': self.applicant.id})
         self.target_url = reverse('view_applications', kwargs={'club_name': self.club.name})
         self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_deny_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/deny/{self.applicant.id}')
@@ -57,6 +57,15 @@ class AcceptViewTestCase(TestCase):
         last_notification = self.applicant.notifications.unread()[0].description
         self.assertEqual(len(self.applicant.notifications.unread()), notifications + 1)
         self.assertEqual(last_notification, f"Your application for club {self.club.name} has been denied")
+
+    def test_mark_as_read_denial(self):
+        self.client.get(self.url)
+        last_notification = self.applicant.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        my_applications_url = reverse('my_applications')
+        self.client.login(email=self.applicant.email, password='Password123')
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, my_applications_url, status_code=302, target_status_code=200)
 
     def test_deny_non_applicant_redirects(self):
         self.club.remove_from_applicants_group(self.applicant)
