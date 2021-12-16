@@ -16,7 +16,8 @@ from .decorators import login_prohibited, club_permissions_required, tournament_
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, \
     EditClubInformationForm
 from .helpers import add_all_users_to_logged_in_group, notify_officers_and_owner_of_joining, \
-    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave
+    notify_officers_and_owner_of_new_application, get_appropriate_redirect, notify_officers_and_owner_of_leave, \
+    notify_participants_of_start, notify_participants_of_publish
 from .models import User, Club, Tournament, Match
 
 
@@ -185,7 +186,7 @@ def transfer_ownership(request, user_id, club_name):
             form = NewOwnerForm(instance=club, data={'owner': target_user})
             if form.is_valid():
                 form.save()
-            notify.send(request.user, recipient=target_user, verb=f'{club.name}_Transfer_Ownership',
+            notify.send(request.user, recipient=target_user, verb=f'{club.name}_TransferOwnership',
                         description=f"You have been transferred the ownership of the club {club.name}")
         return redirect('show_user', club_name=club_name, user_id=user_id)
 
@@ -318,11 +319,9 @@ def edit_club(request, club_name):
             messages.add_message(request, messages.SUCCESS, "Club information updated!")
             form.save()
             return redirect('show_club', club_name=club_name)
-        else:
-            return render(request, 'edit_club_info.html', {'form': form})
     else:
         form = EditClubInformationForm(instance=current_club)
-        return render(request, 'edit_club_info.html', {'form': form, 'club': current_club})
+    return render(request, 'edit_club_info.html', {'form': form, 'club': current_club})
 
 
 @login_required
@@ -520,6 +519,7 @@ def my_matches(request):
 
 @login_required
 @tournament_permissions_required(perms_list=['chessclubs.add_co_organiser'])
+@tournament_has_not_finished
 @target_user_must_be_officer
 def add_co_organiser(request, tournament_name, club_name, user_id):
     tournament = Tournament.objects.get(name=tournament_name)
@@ -561,6 +561,7 @@ def enter_result(request, tournament_name, match_id, result, club_name):
 def publish_schedule(request, tournament_name, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.publish_schedule()
+    notify_participants_of_publish(tournament)
     return redirect('show_schedule', tournament_name=tournament_name, club_name=club_name)
 
 
@@ -571,4 +572,5 @@ def publish_schedule(request, tournament_name, club_name):
 def start_tournament(request, tournament_name, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     tournament.start_tournament()
+    notify_participants_of_start(tournament)
     return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)

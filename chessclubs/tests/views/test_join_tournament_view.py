@@ -29,7 +29,7 @@ class JoinTournamentViewTestCase(TestCase):
                           kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
         cls.show_tournament_url = reverse('show_tournament',
                                           kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
-        cls.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        cls.redirect_url = reverse('show_club', kwargs={'club_name': cls.club.name})
 
     def setUp(self):
         self.group_tester.make_member(self.non_participant)

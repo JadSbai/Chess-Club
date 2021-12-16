@@ -21,7 +21,7 @@ class ApplyClubViewTestCase(TestCase):
         self.group_tester = ClubGroupTester(self.club)
         self.group_tester.make_authenticated_non_member(self.applicant)
         self.url = reverse('apply_club', kwargs={'club_name': self.club.name})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_apply_club_url(self):
         self.assertEqual(self.url, f'/apply_club/{self.club.name}')
@@ -57,6 +57,15 @@ class ApplyClubViewTestCase(TestCase):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
+
+    def test_mark_as_read_new_application(self):
+        self.client.get(self.url)
+        self.client.login(email=self.club.owner.email, password='Password123')
+        last_notification = self.club.owner.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        view_applications_url = reverse('view_applications', kwargs={'club_name': self.club.name})
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, view_applications_url, status_code=302, target_status_code=200)
 
     def test_non_logged_in_redirects(self):
         self.client.logout()

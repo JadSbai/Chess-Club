@@ -25,7 +25,7 @@ class DemoteViewTestCase(TestCase):
         self.group_tester.make_officer(self.officer)
         self.url = reverse('demote', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
         self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.owner.id})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_demote_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/demote/{self.officer.id}')
@@ -43,6 +43,15 @@ class DemoteViewTestCase(TestCase):
         last_notification = self.officer.notifications.unread()[0].description
         self.assertEqual(len(self.officer.notifications.unread()), notifications + 1)
         self.assertEqual(last_notification, f"You have been demoted to Member of club {self.club.name}")
+
+    def test_mark_as_read_transfer_ownership(self):
+        self.client.get(self.url)
+        last_notification = self.officer.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        show_club_url = reverse('show_club', kwargs={'club_name': self.club.name})
+        self.client.login(email=self.officer.email, password='Password123')
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, show_club_url, status_code=302, target_status_code=200)
 
     def test_successful_demote_redirects(self):
         response = self.client.get(self.url)

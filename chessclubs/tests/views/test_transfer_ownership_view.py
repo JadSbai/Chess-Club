@@ -24,7 +24,7 @@ class TransferOwnershipViewTestCase(TestCase):
         self.group_tester.make_officer(self.officer)
         self.url = reverse('transfer_ownership', kwargs={'club_name': self.club.name, 'user_id': self.officer.id})
         self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.owner.id})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_transfer_ownership_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/transfer_ownership/{self.officer.id}')
@@ -43,6 +43,15 @@ class TransferOwnershipViewTestCase(TestCase):
         self.assertEqual(after_status, "officer")
         self.assertEqual(self.club.owner_count(), 1)
         self.assertEqual(self.club.officer_count(), before_count)
+
+    def test_mark_as_read_transfer_ownership(self):
+        self.client.get(self.url)
+        last_notification = self.officer.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        show_club_url = reverse('show_club', kwargs={'club_name': self.club.name})
+        self.client.login(email=self.officer.email, password='Password123')
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, show_club_url, status_code=302, target_status_code=200)
 
     def test_officer_receives_notification_of_transfer(self):
         notifications = len(self.officer.notifications.unread())

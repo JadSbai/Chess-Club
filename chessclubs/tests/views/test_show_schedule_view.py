@@ -40,7 +40,6 @@ class ShowTournamentScheduleTestCase(TestCase, AssertHTMLMixin):
         self.group_tester.make_member(self.participant)
         self.tournament_tester.make_participant(self.participant)
         self.client.login(email=self.participant.email, password='Password123')
-        print(self.tournament.get_participant_count())
 
     def test_show_schedule_of_tournament_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/tournament/{self.tournament.name}/show_schedule/')

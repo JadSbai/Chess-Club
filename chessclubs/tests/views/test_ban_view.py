@@ -27,7 +27,7 @@ class BanViewTestCase(TestCase):
         self.url = reverse('ban', kwargs={'club_name': self.club.name, 'user_id': self.member.id})
         self.secondary_url = reverse('ban', kwargs={'club_name': self.club.name, 'user_id': self.other_member.id})
         self.show_self = reverse('show_user', kwargs={'club_name': self.club.name, 'user_id': self.owner.id})
-        self.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        self.redirect_url = reverse('show_club', kwargs={'club_name': self.club.name})
 
     def test_ban_member_url(self):
         self.assertEqual(self.url, f'/{self.club.name}/ban/{self.member.id}')
@@ -44,6 +44,15 @@ class BanViewTestCase(TestCase):
         last_notification = self.member.notifications.unread()[0].description
         self.assertEqual(len(self.member.notifications.unread()), notifications+1)
         self.assertEqual(last_notification, f"You have been banned from {self.club.name}")
+
+    def test_mark_as_read_ban(self):
+        self.client.get(self.url)
+        last_notification = self.member.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        show_club_url = reverse('show_club', kwargs={'club_name': self.club.name})
+        self.client.login(email=self.member.email, password='Password123')
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, show_club_url, status_code=302, target_status_code=200)
 
     def test_becomes_non_member_of_club(self):
         before_status = self.club.user_status(self.member)

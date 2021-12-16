@@ -70,6 +70,23 @@ class StartTournamentViewTestCase(TestCase, AssertHTMLMixin):
         self.assertEqual(messages_list[0].level, messages.ERROR)
         self.assertEqual(messages_list[0].message, "The club you are looking for does not exist!")
 
+    def test_notification_sent(self):
+        participant = self.tournament.participants_list()[0].user
+        notifications = len(participant.notifications.unread())
+        self.client.get(self.url)
+        last_notification = participant.notifications.unread()[0].description
+        self.assertEqual(len(participant.notifications.unread()), notifications+1)
+        self.assertEqual(last_notification, f"The tournament {self.tournament.name} has started!")
+
+    def test_mark_as_read_started(self):
+        self.client.get(self.url)
+        participant = self.tournament.participants_list()[0].user
+        self.client.login(email=participant.email, password='Password123')
+        last_notification = participant.notifications.unread()[0]
+        read_notif_url = reverse('mark_as_read', kwargs={'slug': last_notification.slug})
+        response = self.client.get(read_notif_url, follow=True)
+        self.assertRedirects(response, self.show_tournament_url, status_code=302, target_status_code=200)
+
     def test_start_tournament_when_deadline_not_passed(self):
         self.tournament._set_deadline_future()
         response = self.client.get(self.url, follow=True)

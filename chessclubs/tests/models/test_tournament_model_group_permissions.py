@@ -41,6 +41,18 @@ class TournamentGroupPermissionsTestCase(TestCase):
         if not self.player.has_tournament_perm('chessclubs.withdraw', self.tournament):
             self.fail('Participant should be able to withdraw')
 
+    def test_participant_cannot_add_co_organiser(self):
+        if self.player.has_tournament_perm('chessclubs.add_co_organiser', self.tournament):
+            self.fail('Participant should not be allowed to add a co-organiser')
+
+    def test_participant_cannot_start_tournament(self):
+        if self.player.has_tournament_perm('chessclubs.start_tournament', self.tournament):
+            self.fail('Participant should not be allowed to start tournament')
+
+    def test_participant_cannot_publish_schedule(self):
+        if self.player.has_tournament_perm('chessclubs.publish_schedule', self.tournament):
+            self.fail('Co-Participant should not be able to publish schedule')
+
     def test_organiser_cannot_play_matches(self):
         if self.organiser.has_tournament_perm('chessclubs.play_matches', self.tournament):
             self.fail('Organiser should not be allowed to play matches')
@@ -57,6 +69,18 @@ class TournamentGroupPermissionsTestCase(TestCase):
         if self.organiser.has_tournament_perm('chessclubs.withdraw', self.tournament):
             self.fail('Organiser should not be able to withdraw')
 
+    def test_organiser_can_add_co_organiser(self):
+        if not self.organiser.has_tournament_perm('chessclubs.add_co_organiser', self.tournament):
+            self.fail('Organiser should be allowed to add a co-organiser')
+
+    def test_organiser_can_start_tournament(self):
+        if not self.organiser.has_tournament_perm('chessclubs.start_tournament', self.tournament):
+            self.fail('Organiser should be allowed to start tournament')
+
+    def test_organiser_can_publish_schedule(self):
+        if not self.organiser.has_tournament_perm('chessclubs.publish_schedule', self.tournament):
+            self.fail('Co-Organiser should be able to publish schedule')
+
     def test_co_organiser_cannot_play_matches(self):
         if self.co_organiser.has_tournament_perm('chessclubs.play_matches', self.tournament):
             self.fail('Co_Organiser should not be allowed to play matches')
@@ -72,3 +96,15 @@ class TournamentGroupPermissionsTestCase(TestCase):
     def test_co_organiser_cannot_withdraw(self):
         if self.co_organiser.has_tournament_perm('chessclubs.withdraw', self.tournament):
             self.fail('Co-organiser should be able to withdraw')
+
+    def test_co_organiser_cannot_add_co_organiser(self):
+        if self.co_organiser.has_tournament_perm('chessclubs.add_co_organiser', self.tournament):
+            self.fail('Co_Organiser should not be allowed to add a co-organiser')
+
+    def test_co_organiser_cannot_start_tournament(self):
+        if self.co_organiser.has_tournament_perm('chessclubs.start_tournament', self.tournament):
+            self.fail('Co_Organiser should not be allowed to start tournament')
+
+    def test_co_organiser_cannot_publish_schedule(self):
+        if self.co_organiser.has_tournament_perm('chessclubs.publish_schedule', self.tournament):
+            self.fail('Co-organiser should not be able to publish schedule')

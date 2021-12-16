@@ -106,6 +106,7 @@ class Command(BaseCommand):
                                                     location="London",
                                                     max_capacity=96, deadline=deadline1, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
+            tournament1.assign_tournament_permissions_and_groups()
             self.assign_random_members_to_tournament(tournament1, forbidden=Command.JEB)
             tournament1.start_tournament()
             self.enter_results_until_finished(tournament1)
@@ -114,6 +115,7 @@ class Command(BaseCommand):
                                                     location="London",
                                                     max_capacity=32, deadline=deadline2, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
+            tournament2.assign_tournament_permissions_and_groups()
             tournament2.add_participant(Command.JEB)
             self.assign_random_members_to_tournament(tournament2, forbidden=Command.JEB)
 
@@ -121,6 +123,7 @@ class Command(BaseCommand):
                                                     location="London",
                                                     max_capacity=16, deadline=deadline3, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
+            tournament3.assign_tournament_permissions_and_groups()
             self.assign_random_members_to_tournament(tournament3)
             tournament3.start_tournament()
 
@@ -128,6 +131,7 @@ class Command(BaseCommand):
                                                     location="London",
                                                     max_capacity=55, deadline=deadline4, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
+            tournament4.assign_tournament_permissions_and_groups()
             self.assign_random_members_to_tournament(tournament4)
             tournament4.start_tournament()
 
@@ -135,6 +139,7 @@ class Command(BaseCommand):
                                                     location="London",
                                                     max_capacity=38, deadline=deadline5, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
+            tournament5.assign_tournament_permissions_and_groups()
             self.assign_random_members_to_tournament(tournament5)
             tournament5.start_tournament()
 
