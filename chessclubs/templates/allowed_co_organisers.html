@@ -4,7 +4,7 @@
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-account-dropdown">
         {% for officer in allowed_co_organisers %}
             <li>
-          <a class="dropdown-item" onclick="return co_organiser_Confirmation()" href="{% url 'add_co_organiser' user_id=officer.id club_name=tournament.club.name tournament_name=tournament.name %}"> {{officer.full_name}} </a>
+          <a class="dropdown-item" onclick="return co_organiser_Confirmation()" href="{% url 'add_to_co_organiser' user_id=officer.id club_name=tournament.club.name tournament_name=tournament.name %}"> {{officer.full_name}} </a>
             </li>
         {% endfor%}
       </ul>

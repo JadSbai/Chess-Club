@@ -5,7 +5,7 @@
   {% include 'partials/messages.html' %}
 {% block content %}
 
-<div class="container fluid">
+<div class="container fluid pb-5">
   <div class="container d-flex justify-content-center">
       {% include 'partials/user_profile.html' with target_user=target_user%}
     </div>
@@ -18,19 +18,19 @@
       {% if current_user_status == "owner" %}
         {% if target_user_status == "member" %}
             <div class="mx-3">
-          <a href="{% url 'promote' club_name=club.name user_id=target_user.id %}"  onclick="return promoteConfirmation()" class="btn btn-outline-success">Promote</a>
+          <a href="{% url 'promote' club_name=club.name user_id=target_user.id %}"  onclick="return promoteConfirmation()" class="btn btn-success">Promote</a>
             </div>
             <div class="mx-3">
-          <a href="{% url 'ban' club_name=club.name user_id=target_user.id%}" onclick="return banConfirmation()" class="btn btn-outline-danger">Ban this user</a>
+          <a href="{% url 'ban' club_name=club.name user_id=target_user.id%}" onclick="return banConfirmation()" class="btn btn-danger">Ban this user</a>
             </div>
           {%endif%}
         {% if target_user_status == "officer" %}
             <div class = "mx-3">
-        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  onclick="return demoteConfirmation()" class="btn btn-outline-danger ">Demote</a>
+        <a href="{% url 'demote' club_name=club.name user_id=target_user.id %}"  onclick="return demoteConfirmation()" class="btn btn-danger ">Demote</a>
             </div>
             <form action="{% url 'transfer_ownership' club_name=club.name user_id=target_user.id %}" method="post">
         {% csrf_token %}
-        <input type="submit" value="Transfer ownership" onclick="return transferConfirmation()" class="btn btn-outline-info">
+        <input type="submit" value="Transfer ownership" onclick="return transferConfirmation()" class="btn text-white blue-apple"><input type="submit" value="Transfer ownership" onclick="return transferConfirmation()">
       </form>
         {% endif%}
       {%endif%}

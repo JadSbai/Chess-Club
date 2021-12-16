@@ -1,35 +1,44 @@
-
 {% extends 'base_content.html' %}
 {% block body %}
-    {% include 'partials/navbar.html' with request=request%}
-  {% include 'partials/second_navbar.html' with request=request club=club%}
-  {% include 'partials/messages.html' %}
-{% load custom_template_tags %}
-{% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-12">
-      <h1 class="mb-3 mt-3">Members of Club</h1>
-    <br>
-      <table class="table">
-        {% for user in users %}
-            {% if club|user_status:user != "applicant" and not user.is_superuser and club|user_status:user != "denied_applicants"%}
-          <tr>
-            <td>
-              <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.full_name }}" class="rounded-circle" >
-            </td>
-              {% if user == current_user %}
-                  <td><p>You</p></td>
-              {% else %}
-                  <td><a href="{% url 'show_user' user_id=user.id club_name=club.name %}">{{ user.full_name }}</a></td>
-              {% endif %}
-            <td><h6>{{ club|user_status:user }}</h6></td>
-          </tr>
-            {% endif %}
-        {% endfor %}
-      </table>
-    </div>
-  </div>
-</div>
+    {% include 'partials/navbar.html' with request=request %}
+    {% include 'partials/second_navbar.html' with request=request club=club %}
+    {% include 'partials/messages.html' %}
+    {% load custom_template_tags %}
+    {% block content %}
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="mb-3 mt-3">Members of Club</h1>
+                    <br>
+                    <table class="table table-bordered" id="userListTable">
+                        <thead>
+                        <tr style="background-color: white">
+                            <th class="th-sm" id="avatar-header">Avatar</th>
+                            <th class="th-sm">Name</th>
+                            <th class="th-sm">Status</th>
+                        </tr>
+                        </thead>
+                        {% for user in users %}
+                            {% if club|user_status:user != "applicant" and not user.is_superuser and club|user_status:user != "denied_applicants" %}
+                                <tr style="background-color: white">
+                                    <td>
+                                        <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.full_name }}"
+                                             class="rounded-circle">
+                                    </td>
+                                    {% if user == current_user %}
+                                        <td><p>You</p></td>
+                                    {% else %}
+                                        <td>
+                                            <a href="{% url 'show_user' user_id=user.id club_name=club.name %}">{{ user.full_name }}</a>
+                                        </td>
+                                    {% endif %}
+                                    <td><h6>{{ club|user_status:user }}</h6></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
 {% endblock %}
-{%  endblock %}
