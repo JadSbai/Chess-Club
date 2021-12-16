@@ -93,5 +93,5 @@ class ShowClubViewTestCase(TestCase):
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
 
-    # Thorough tests for template content
+    # Add tests for template content
 

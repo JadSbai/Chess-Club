@@ -4,6 +4,7 @@ from django.forms.widgets import DateInput
 from django.core.validators import RegexValidator
 from .models import User, Club, Tournament
 
+
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
 
@@ -117,6 +118,7 @@ class ClubForm(forms.ModelForm):
         club.assign_club_groups_permissions()
         return club
 
+
 class EditClubInformationForm(forms.ModelForm):
     """Form to update existing club information."""
 
@@ -124,6 +126,7 @@ class EditClubInformationForm(forms.ModelForm):
         model = Club
         fields = ['description', 'location']
         widgets = {'description': forms.Textarea()}
+
 
 class NewOwnerForm(forms.ModelForm):
     class Meta:
@@ -140,7 +143,8 @@ class TournamentForm(forms.ModelForm):
         widgets = {
             'deadline': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'description': forms.Textarea(),
-            'max_capacity': forms.TextInput(attrs={'min': '2', 'max': '96', 'type': 'number', 'placeholder': 'Choose a value between 2 and 96'}),
+            'max_capacity': forms.TextInput(
+                attrs={'min': '2', 'max': '96', 'type': 'number', 'placeholder': 'Choose a value between 2 and 96'}),
         }
 
     def save(self, organiser, club):

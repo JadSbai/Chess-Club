@@ -295,8 +295,7 @@ class Club(models.Model):
         ban_perm = Permission.objects.get(codename='ban')
         leave_perm = Permission.objects.get(codename='leave')
         tournament_perm = Permission.objects.get(codename='create_tournament')
-        apply_tournament_perm = Permission.objects.get(codename="apply_tournament")
-        withdraw_tournament_perm = Permission.objects.get(codename="withdraw_tournament")
+        join_tournament_perm = Permission.objects.get(codename="join_tournament")
         edit_club_info_perm = Permission.objects.get(codename="edit_club_info")
 
         # Create the club-specific permissions using the ClubPermission Model
@@ -324,10 +323,8 @@ class Club(models.Model):
                                                               base_permission=leave_perm)
         create_tournament, created = ClubPermission.objects.get_or_create(club=self,
                                                                           base_permission=tournament_perm)
-        apply_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                         base_permission=apply_tournament_perm)
-        withdraw_tournament, created = ClubPermission.objects.get_or_create(club=self,
-                                                                           base_permission=withdraw_tournament_perm)
+        join_tournament, created = ClubPermission.objects.get_or_create(club=self,
+                                                                         base_permission=join_tournament_perm)
         edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
                                                                            base_permission=edit_club_info_perm)
 
@@ -342,8 +339,7 @@ class Club(models.Model):
         groups = [self.__denied_applicants_group(), self.__accepted_applicants_group()]
         acknowledge_response.set_groups(groups)
         groups = [self.__officers_group(), self.__members_group(), self.__owner_group()]
-        apply_tournament.set_groups(groups)
-        withdraw_tournament.set_groups(groups)
+        join_tournament.set_groups(groups)
         members_list.set_groups(groups)
         public.set_groups(groups)
         groups = [self.__officers_group(), self.__owner_group()]
@@ -380,8 +376,7 @@ class Club(models.Model):
             ("ban", "Can ban a user from the club"),
             ("leave", "Can leave a club"),
             ("create_tournament", "Can create a tournament"),
-            ("apply_tournament", "Can apply to a tournament"),
-            ("withdraw_tournament", "Can withdraw from a tournament"),
+            ("join_tournament", "Can apply to a tournament"),
             ("edit_club_info", "Can edit club information"),
         ]
 
@@ -505,23 +500,20 @@ class Tournament(models.Model):
         self.add_to_participants_group(member)
         return new_player
 
-    # Not gonna be kept in production
-    def set_deadline_now(self):
-        for member in self.club.members.all():
-            if member != self.organiser:
-                self.add_participant(member)
-        self.deadline = timezone.now() - timezone.timedelta(days=1)
-        self.save()
-
     def get_participant_count(self):
-        self.players.count()
+        return self.players.count()
 
     def get_min_capacity(self):
         return TOURNAMENT_MIN_CAPACITY
 
-
     def _set_deadline_now(self):
+        """Method only used for testing purposes"""
         self.deadline = timezone.now() - timezone.timedelta(days=1)
+        self.save()
+
+    def _set_deadline_future(self):
+        """Method only used for testing purposes"""
+        self.deadline = timezone.now() + timezone.timedelta(days=1)
         self.save()
 
     def is_published(self):
@@ -530,6 +522,11 @@ class Tournament(models.Model):
     def has_finished(self):
         return self._finished
 
+    def _set_finished(self):
+        """Method created for tests"""
+        self._finished = True
+        self.save()
+
     def enter_result(self, match, result=True, winner=None):
         pool_phase = self.get_current_pool_phase()
         if pool_phase:
@@ -537,7 +534,6 @@ class Tournament(models.Model):
             pool_phase.enter_result(match=pool_match, result=result, winner=winner)
         else:
             elimination_match = EliminationMatch.objects.get(id=match.id)
-            print(self.elimination_round.phase)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
 
     def get_winner(self):
@@ -611,6 +607,11 @@ class Tournament(models.Model):
         player.delete()
         self.remove_from_participants_group(member)
 
+    def _remove_all_participants(self):
+        for player in self.participants_list():
+            player.delete()
+            self.remove_from_participants_group(player.user)
+
     def get_current_pool_phase(self):
         for pool_phase in self.pool_phases.all():
             if pool_phase.is_open():
@@ -630,7 +631,7 @@ class Tournament(models.Model):
         elif self.__player_instance_of_user(user):
             return "participant"
         else:
-            return "non_participant"
+            return "non-participant"
 
     def __set_start_phase(self):
         if 2 <= self.players.count() <= 16:
@@ -641,7 +642,6 @@ class Tournament(models.Model):
             self._start_phase = "Large-Pool-Phase"
         else:
             raise ValueError("Invalid number of players")
-        self.save()
 
     def remove_co_organiser(self, member):
         # Checks should be done beforehand in the views
@@ -649,16 +649,10 @@ class Tournament(models.Model):
         self.remove_from_organisers_group(member)
 
     def start_tournament(self):
-        if not self._started:
-            if timezone.now() >= self.deadline:
-                self._started = True
-                self.save()
-                if not self._schedule_published:
-                    self.publish_schedule()
-            else:
-                raise ValidationError("The deadline is not yet passed")
-        else:
-            raise ValidationError("The tournament has already started")
+        self._started = True
+        if not self._schedule_published:
+            self.publish_schedule()
+        self.save()
 
     def publish_schedule(self):
         self._schedule_published = True
@@ -684,8 +678,7 @@ class Tournament(models.Model):
     def __announce_winner(self, winner):
         if winner:
             self._winner = winner.user
-            self._finished = True
-            self.save()
+            self._set_finished()
 
     def participants_list(self):
         return self.players.all()
@@ -740,6 +733,9 @@ class Tournament(models.Model):
         enter_match_results_perm = Permission.objects.get(codename="enter_match_results")
         see_tournament_private_info_perm = Permission.objects.get(codename="see_tournament_private_info")
         withdraw_perm = Permission.objects.get(codename="withdraw")
+        add_co_organiser_perm = Permission.objects.get(codename="add_co_organiser")
+        start_tournament_perm = Permission.objects.get(codename="start_tournament")
+        publish_schedule_perm = Permission.objects.get(codename="publish_schedule")
 
         # Create the club-specific permissions using the TournamentPermission Model
         play_matches, created = TournamentPermission.objects.get_or_create(tournament=self,
@@ -750,6 +746,12 @@ class Tournament(models.Model):
                                                                                           base_permission=see_tournament_private_info_perm)
         withdraw, created = TournamentPermission.objects.get_or_create(tournament=self,
                                                                        base_permission=withdraw_perm)
+        add_co_organiser, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                       base_permission=add_co_organiser_perm)
+        start, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                       base_permission=start_tournament_perm)
+        publish, created = TournamentPermission.objects.get_or_create(tournament=self,
+                                                                               base_permission=publish_schedule_perm)
 
         # Assign the appropriate groups to the the tournament-specific permissions (according to requirements)
         groups = [self.__participants_group(), self.__co_organisers_group()]
@@ -763,6 +765,9 @@ class Tournament(models.Model):
         # Permissions specific to the organiser of the tournament
         enter_match_results.add_user(self.organiser)
         see_tournament_private_info.add_user(self.organiser)
+        add_co_organiser.add_user(self.organiser)
+        start.add_user(self.organiser)
+        publish.add_user(self.organiser)
 
     class Meta:
         """Set of base permissions associated with tournaments"""
@@ -771,6 +776,9 @@ class Tournament(models.Model):
             ("enter_match_results", "Can enter match results"),
             ("see_tournament_private_info", "Can see tournament private info"),
             ("withdraw", "Can withdraw"),
+            ("add_co_organiser", "Can add co-organiser"),
+            ("start_tournament", "Can start tournament"),
+            ("publish_schedule", "Can publish schedule"),
         ]
 
 
@@ -851,12 +859,6 @@ class EliminationRounds(models.Model):
     def remove_player(self, player):
         self.EL_players.remove(player)
         self.save()
-
-    def __are_all_matches_played(self):
-        for match in self.schedule.all():
-            if match.is_open():
-                return False
-        return True
 
     def enter_winner(self, winner, match):
         # The checks will be done at views level
@@ -1234,8 +1236,6 @@ class Pool(models.Model):
             self.__are_all_matches_played()
             if self.all_matches_played:
                 self.__set_qualified_players()
-        else:
-            print("All matches are played")
 
     def enter_winner(self, winner, match):
         match.enter_winner(winner)
@@ -1336,12 +1336,6 @@ class Match(models.Model):
     def is_open(self):
         return self._open
 
-    def return_winner(self):
-        if not self._open and self._winner:
-            return self._winner.user.full_name()
-        else:
-            raise ValidationError("Match still open or winner not yet determined")
-
 
 class PoolMatchManager(MatchManager):
 
@@ -1364,6 +1358,7 @@ class PoolMatch(Match):
     def __enter_winner(self, winner):
         true_winner = super(PoolMatch, self).enter_winner(winner)
         self.__set_win_points(true_winner)
+        self.save()
 
     def __enter_draw_result(self):
         super(PoolMatch, self).enter_draw()

@@ -145,5 +145,35 @@
       "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
       "is_active": true
     }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 12,
+    "fields": {
+      "first_name": "M",
+      "last_name": "N",
+      "email": "mn@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
+  },
+
+  {
+    "model": "chessclubs.user",
+    "pk": 13,
+    "fields": {
+      "first_name": "O",
+      "last_name": "P",
+      "email": "op@example.org",
+      "bio": "The quick brown fox jumps over the lazy dog.",
+      "chess_experience": "Beginner",
+      "personal_statement": "I'm OK",
+      "password": "pbkdf2_sha256$260000$4BNvFuAWoTT1XVU8D6hCay$KqDCG+bHl8TwYcvA60SGhOMluAheVOnF1PMz0wClilc=",
+      "is_active": true
+    }
   }
 ]
