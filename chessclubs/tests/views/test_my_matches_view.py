@@ -3,7 +3,8 @@
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import User, Club, Tournament
-from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next, TournamentGroupTester, _create_test_players
+from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next, TournamentGroupTester, _create_test_players, \
+    enter_results_to_all_matches
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from django.contrib import messages
 from with_asserts.mixin import AssertHTMLMixin
@@ -27,7 +28,7 @@ class MyMatchesViewTestCase(TestCase, AssertHTMLMixin):
         cls.group_tester.make_member(cls.participant)
         cls.url = reverse('my_matches')
         cls.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
-        _create_test_players(5, cls.club, cls.tournament)
+        _create_test_players(3, cls.club, cls.tournament)
 
     def setUp(self):
         self.client.login(email=self.participant.email, password='Password123')
@@ -48,7 +49,7 @@ class MyMatchesViewTestCase(TestCase, AssertHTMLMixin):
         with self.assertHTML(response) as html:
             no_match = html.find('.//i[@id="no_matches"]')
             self.assertIsNotNone(no_match)
-            self.assertEqual(no_match.text, "You currently have no matches undergoing.")
+            self.assertEqual(no_match.text, "You are currently not playing in any tournament.")
 
     def test_matches_in_unpublished_tournament(self):
         self.tournament_tester.make_participant(self.participant)
@@ -56,16 +57,20 @@ class MyMatchesViewTestCase(TestCase, AssertHTMLMixin):
         response = self.client.get(self.url)
         with self.assertHTML(response, element_id="not_published") as no_match:
             self.assertIsNotNone(no_match)
-            self.assertEqual(no_match.text, "The schedule hasn't been published yet.")
+            self.assertEqual(no_match.text, "The schedule has not been published yet.")
 
     def test_matches_in_published_tournament(self):
         self.tournament_tester.make_participant(self.participant)
         self.tournament._set_deadline_now()
         self.tournament.publish_schedule()
         response = self.client.get(self.url)
-        with self.assertHTML(response, '.matches') as no_match:
-            self.assertIsNotNone(no_match)
-            self.assertEqual(no_match.text, "The schedule hasn't been published yet.")
+        with self.assertHTML(response, '.matches') as matches:
+            self.assertEqual(len(matches), 1)
+            for match in matches:
+                text = match.find('.//p').text
+                self.assertTrue("You" in text)
+
+
 
 
 

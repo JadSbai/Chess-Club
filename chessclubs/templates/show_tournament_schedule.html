@@ -40,12 +40,11 @@
                         <p class="p-2">{{ match.get_player1.user.full_name }}
                             <strong>vs</strong> {{ match.get_player2.user.full_name }}</p><br>
                         <ul class="enter_match_result">
-                            <li id="player2_winner">
+                            <li id="player1_winner">
                                 <a class="dropdown-item"
                                    href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id  result="player1" %}"> {{ match.get_player1.user.full_name }} </a>
                             </li>
-                            <li id="player1_winner">
-
+                            <li id="player2_winner">
                                 <a class="dropdown-item"
                                    href="{% url 'enter_result' club_name=tournament.club.name tournament_name=tournament.name match_id=match.id  result="player2" %}"> {{ match.get_player2.user.full_name }} </a>
                             </li>

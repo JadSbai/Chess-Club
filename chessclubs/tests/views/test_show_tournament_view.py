@@ -41,9 +41,13 @@ class ShowTournamentViewTestCase(TestCase, AssertHTMLMixin):
         cls.start_tournament_url = reverse('start_tournament',
                                            kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
         cls.create_tournament_url = reverse('create_tournament', kwargs={'club_name': cls.club.name})
+        cls.join_tournament_url = reverse('join_tournament',
+                                      kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
+        cls.withdraw_url = reverse('withdraw_tournament',
+                               kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
 
-    def test_view_show_tournament_url(self):
-        self.assertEqual(self.url, f'/{self.club.name}/tournament/{self.tournament.name}/')
+    def test_show_tournament_url(self):
+        self.assertEqual(self.url, f'/{self.club.name}/tournament/{self.tournament.name}')
 
     def test_see_wrong_tournament(self):
         self.client.login(email=self.organiser.email, password='Password123')
@@ -250,6 +254,18 @@ class ShowTournamentViewTestCase(TestCase, AssertHTMLMixin):
         response = self.client.get(self.url)
         self._assert_winner_is_showed(response)
         self._assert_no_button_appears(response)
+
+    def test_non_participant_can_see_apply_button(self):
+        self.client.login(email=self.non_participant.email, password='Password123')
+        response = self.client.get(self.url)
+        self.assertContains(response, f"{self.join_tournament_url}")
+        self.assertNotContains(response, f"{self.withdraw_url}")
+
+    def test_participant_can_see_withdraw_button(self):
+        self.client.login(email=self.participant.email, password='Password123')
+        response = self.client.get(self.url)
+        self.assertNotContains(response, f"{self.join_tournament_url}")
+        self.assertContains(response, f"{self.withdraw_url}")
 
     def test_non_logged_in_redirects(self):
         self.client.logout()
