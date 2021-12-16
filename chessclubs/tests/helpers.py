@@ -126,7 +126,6 @@ def remove_all_players(PP):
     for player in PP.PP_players.all():
         PP.PP_players.remove(player)
 
-
 def generate_elimination_matches_schedule(players, ER):
     ER.add_players(players)
     ER.set_phase()
@@ -175,3 +174,4 @@ def get_right_phase():
            8: "Quarter-Final", 9: "Eighth-Final", 10: "Eighth-Final", 11: "Eighth-Final", 12: "Eighth-Final",
            13: "Eighth-Final", 14: "Eighth-Final", 15: "Eighth-Final", 16: "Eighth-Final"}
     return dic
+

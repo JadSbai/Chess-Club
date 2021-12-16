@@ -30,3 +30,31 @@ def decrement(i):
 @register.simple_tag
 def increment(i):
     return i + 1
+
+@register.simple_tag
+def past_tournaments(tournaments):
+    past = []
+    for tournament in tournaments:
+        if tournament.has_finished():
+            past.append(tournament)
+    return past
+
+@register.simple_tag
+def current_tournaments(tournaments):
+    current = []
+    for tournament in tournaments:
+        if tournament.has_started() and not tournament.has_finished():
+            current.append(tournament)
+    return current
+
+@register.simple_tag
+def future_tournaments(tournaments):
+    future = []
+    for tournament in tournaments:
+        if not tournament.has_started():
+            future.append(tournament)
+    return future
+
+@register.simple_tag
+def lengthof(some_list):
+    return len(some_list)
