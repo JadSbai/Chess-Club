@@ -3,11 +3,12 @@
 <body>
 <ul class="navbar-nav mb-2 mb-lg-0">
     <li class="nav-item dropdown">
-      <a class="nav-link" href="#" id="user-notifications-dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <a class="nav-link dropdown-toggle" href="#" id="user-notifications-dropdown" role="button" aria-expanded="false">
         <span class="bi-bell">{% live_notify_badge badge_class="badge" %}</span>
       </a>
     {% if user.notifications.unread.count != 0 %}
-      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
+      <ul class="dropdown-menu" aria-labelledby="user-notifications-dropdown" style="    right: 4px;
+    left: auto;" >
         {% for notification in  user.notifications.unread%}
 	  <li>
 	    <a class="dropdown-item" href="{% url 'mark_as_read' notification.slug%}" type="button">{{ notification.description}}</a>
@@ -16,7 +17,7 @@
 	{% endfor %}
       </ul>
     {% else %}
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
+        <ul class="dropdown-menu dropdown-menu-end left-aligned-tab" aria-labelledby="user-notifications-dropdown" >
         <li >
 	    <p class="dropdown-item disabled">You currently have no notification</p>
 		</li>

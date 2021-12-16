@@ -1,45 +1,85 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
     <link href="{% static 'app_style.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+          integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+
     <title>Chessy</title>
-  </head>
-  <body>
-    {% block body %}
-    {% endblock %}
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js" integrity="sha384-PsUw7Xwds7x08Ew3exXhqzbhuEYmA2xnwc8BuD6SEr+UmEHlX8/MCltYEodzWA4u" crossorigin="anonymous"></script>
-   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-  <script>
-        function banConfirmation() {
+</head>
+<body>
+{% block body %}
+{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
+        integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.min.js"
+        integrity="sha384-PsUw7Xwds7x08Ew3exXhqzbhuEYmA2xnwc8BuD6SEr+UmEHlX8/MCltYEodzWA4u"
+        crossorigin="anonymous"></script>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js" crossorigin="anonymous"></script>
+
+<script>
+    function banConfirmation() {
         return confirm("Are you sure you want to ban this user?");
-        }
-        function leaveConfirmation() {
+    }
+
+    function leaveConfirmation() {
         return confirm("Are you sure that you want to leave this club");
-        }
-        function promoteConfirmation() {
+    }
+
+    function promoteConfirmation() {
         return confirm("Are you sure that you want to promote this member?");
-        }
-        function transferConfirmation() {
+    }
+
+    function transferConfirmation() {
         return confirm("Are you sure that you want to give up your ownership and transfer it to this user?");
-        }
-        function demoteConfirmation() {
+    }
+
+    function demoteConfirmation() {
         return confirm("Are you sure that you want demote this officer?");
-        }
-        function acceptConfirmation() {
+    }
+
+    function acceptConfirmation() {
         return confirm("Are you sure that you want to accept this application?");
-        }
-        function denyConfirmation() {
+    }
+
+    function denyConfirmation() {
         return confirm("Are you sure that you want to deny this application?");
-        }
-        function co_organiser_Confirmation() {
+    }
+
+    function co_organiser_Confirmation() {
         return confirm("Are you sure that you want to add this user as co-organiser?");
-        }
-    </script>
-  </body>
+    }
+
+    $(document).ready(function () {
+        $('#userListTable').dataTable({
+            "columnDefs": [
+                {"orderable": false, "targets": 0}
+            ],
+            "order": [[2, 'asc']],
+        });
+        $('#applicantsTable').dataTable({
+            "columnDefs": [
+                {"orderable": false, "targets": [0]}
+            ],
+            "order": [[1, 'asc']],
+        });
+    });
+</script>
+</body>
 </html>

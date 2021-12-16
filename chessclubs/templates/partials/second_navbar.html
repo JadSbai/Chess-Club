@@ -1,12 +1,16 @@
 {% load custom_template_tags %}
-<nav class="navbar navbar-expand-lg navbar-dark" style="font-size: 80%; background-color: #1150b9;">
-  <div class="container">
+<nav class="navbar navbar-expand-lg navbar-dark mb-4" style=" background-color: 	#0088cc;">
+  <div class="container" style="padding-left: 40px;">
     <a class="navbar-brand" href="{% url 'show_club' club_name=club.name%}">
       &nbsp;{{ club.name }}
     </a>
+      <button class="navbar-toggler" type="button" data-bs-target="#second_navbar" aria-controls="second_navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  <div class="collapse navbar-collapse" id="second_navbar">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           {% if club|user_status:user == "member" or club|user_status:user == "officer" or club|user_status:user == "owner"%}
-        <li class="nav-item">
+        <li class="nav-item ">
             <a class="nav-link" href="{% url 'user_list'  club_name=club.name%}">Members</a>
         </li>
           {% endif %}
@@ -16,9 +20,8 @@
         </li>
       {% endif %}
     </ul>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+  </div>
+
 
   </div>
 </nav>
