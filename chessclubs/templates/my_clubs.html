@@ -1,8 +1,9 @@
-
+{% load custom_template_tags %}
+{% lengthof clubs as num_clubs%}
+{% if num_clubs != 0 %}
 <ul class="navbar-nav mb-2 mb-lg-0">
   <li class="nav-item dropdown">
     <a class="nav-link" href="#" id="my-clubs-dropdown" role="button" aria-expanded="false"> My Clubs </a>
-  {% if clubs.count != 0 %}
       <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-account-dropdown">
         {% for club in clubs %}
             <li>
@@ -10,12 +11,6 @@
             </li>
         {% endfor%}
       </ul>
-      {% else %}
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="user-notifications-dropdown" >
-        <li >
-	    <p class="dropdown-item disabled">You are currently part of no club</p>
-		</li>
-        </ul>
-    {% endif %}
     </li>
 </ul>
+{% endif %}

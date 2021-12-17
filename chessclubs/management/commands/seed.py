@@ -102,7 +102,7 @@ class Command(BaseCommand):
             deadline3 = timezone.now() - timezone.timedelta(days=3)
             deadline4 = timezone.now() - timezone.timedelta(days=4)
             deadline5 = timezone.now() - timezone.timedelta(days=5)
-            tournament1 = Tournament.objects.create(name="Kerbal_Cup_1", description="First tournament",
+            tournament1 = Tournament.objects.create(name="Kerbal Cup 1", description="First tournament",
                                                     location="London",
                                                     max_capacity=96, deadline=deadline1, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
@@ -111,7 +111,7 @@ class Command(BaseCommand):
             tournament1.start_tournament()
             self.enter_results_until_finished(tournament1)
 
-            tournament2 = Tournament.objects.create(name="Kerbal_Cup_2", description="Second tournament",
+            tournament2 = Tournament.objects.create(name="Kerbal Cup 2", description="Second tournament",
                                                     location="London",
                                                     max_capacity=32, deadline=deadline2, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
@@ -119,7 +119,7 @@ class Command(BaseCommand):
             tournament2.add_participant(Command.JEB)
             self.assign_random_members_to_tournament(tournament2, forbidden=Command.JEB)
 
-            tournament3 = Tournament.objects.create(name="Kerbal_Cup_3", description="Third tournament",
+            tournament3 = Tournament.objects.create(name="Kerbal Cup 3", description="Third tournament",
                                                     location="London",
                                                     max_capacity=16, deadline=deadline3, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
@@ -127,7 +127,7 @@ class Command(BaseCommand):
             self.assign_random_members_to_tournament(tournament3)
             tournament3.start_tournament()
 
-            tournament4 = Tournament.objects.create(name="Kerbal_Cup_4", description="Fourth tournament",
+            tournament4 = Tournament.objects.create(name="Kerbal Cup 4", description="Fourth tournament",
                                                     location="London",
                                                     max_capacity=55, deadline=deadline4, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)
@@ -135,7 +135,7 @@ class Command(BaseCommand):
             self.assign_random_members_to_tournament(tournament4)
             tournament4.start_tournament()
 
-            tournament5 = Tournament.objects.create(name="Kerbal_Cup_5", description="Fifth tournament",
+            tournament5 = Tournament.objects.create(name="Kerbal Cup 5", description="Fifth tournament",
                                                     location="London",
                                                     max_capacity=38, deadline=deadline5, organiser=Command.VALENTINA,
                                                     club=Command.KERBAL)

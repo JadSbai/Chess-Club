@@ -52,7 +52,7 @@
                                 </p>
                             </div>
 
-                            {% if tournament|tournament_user_status:user == "organiser" %}
+                            {% if tournament|tournament_user_status:user == "organiser" and not tournament.has_finished%}
                                 {% include 'allowed_co_organisers.html' with user=user tournament=tournament allowed_co_organisers=allowed_co_organisers %}
                             {% endif %}
 
@@ -114,7 +114,7 @@
                                                 {% if status == "organiser" %}
                                                     <p>Unfortunately, you don't have enough participants to start the
                                                         tournament.</p>
-                                                    <a class="text-white blue-apple"
+                                                    <a class="btn text-white blue-apple"
                                                        href="{% url 'create_tournament' club_name=tournament.club.name %}">Exit
                                                         this page and create a new tournament.</a>
                                                 {% else %}

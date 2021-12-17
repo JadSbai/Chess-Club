@@ -59,7 +59,7 @@ def club_permissions_required(perms_list):
                             return redirect('show_club', club_name=club_name)
                         elif perm == 'chessclubs.leave':
                             messages.add_message(request, messages.WARNING,
-                                                 "Only a member can leave the club")
+                                                 "Only members and officers can leave the club")
                             return redirect('show_club', club_name=club_name)
                         elif perm == 'chessclubs.create_tournament':
                             messages.add_message(request, messages.WARNING,
@@ -72,6 +72,10 @@ def club_permissions_required(perms_list):
                         elif perm == 'chessclubs.edit_club_info':
                             messages.add_message(request, messages.WARNING,
                                                  "Only the owner can modify the club's information")
+                            return redirect('show_club', club_name=club_name)
+                        elif perm == 'chessclubs.access_club_tournaments':
+                            messages.add_message(request, messages.WARNING,
+                                                 "You can see only see a club's tournaments if you are part of it!")
                             return redirect('show_club', club_name=club_name)
                         else:
                             messages.add_message(request, messages.WARNING,

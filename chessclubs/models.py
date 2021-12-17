@@ -1,15 +1,14 @@
 """Models in the chessclubs app."""
 
-from django.contrib import auth
 import random
+from django.contrib import auth
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import models, IntegrityError
-from libgravatar import Gravatar
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.utils import timezone
-
+from libgravatar import Gravatar
 
 TOURNAMENT_MAX_CAPACITY = 96
 TOURNAMENT_MIN_CAPACITY = 2
@@ -298,6 +297,7 @@ class Club(models.Model):
         tournament_perm = Permission.objects.get(codename='create_tournament')
         join_tournament_perm = Permission.objects.get(codename="join_tournament")
         edit_club_info_perm = Permission.objects.get(codename="edit_club_info")
+        access_club_tournaments_perm = Permission.objects.get(codename="access_club_tournaments")
 
         # Create the club-specific permissions using the ClubPermission Model
         access_club_info, created = ClubPermission.objects.get_or_create(club=self,
@@ -328,6 +328,8 @@ class Club(models.Model):
                                                                         base_permission=join_tournament_perm)
         edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
                                                                        base_permission=edit_club_info_perm)
+        access_club_tournaments, created = ClubPermission.objects.get_or_create(club=self,
+                                                                       base_permission=access_club_tournaments_perm)
 
         # Assign the appropriate groups to the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
@@ -343,6 +345,7 @@ class Club(models.Model):
         join_tournament.set_groups(groups)
         members_list.set_groups(groups)
         public.set_groups(groups)
+        access_club_tournaments.set_groups(groups)
         groups = [self.__officers_group(), self.__owner_group()]
         private.set_groups(groups)
         manage_applications.set_groups(groups)
@@ -380,6 +383,7 @@ class Club(models.Model):
             ("create_tournament", "Can create a tournament"),
             ("join_tournament", "Can apply to a tournament"),
             ("edit_club_info", "Can edit club information"),
+            ("access_club_tournaments", "Can access the club's tournaments"),
         ]
 
 
@@ -562,12 +566,8 @@ class Tournament(models.Model):
             elif 2 <= qualified_players.count() <= 16:
                 self.__go_to_elimination_round(qualified_players)
                 self.save()
-            else:
-                raise ValidationError("Invalid number of qualified players")
         elif winner:
             self.__announce_winner(winner)
-        else:
-            raise ValidationError("Invalid entry")
 
     def __go_to_elimination_round(self, qualified_players):
         self.__create_elimination_round(qualified_players)
@@ -599,15 +599,11 @@ class Tournament(models.Model):
         self.save()
 
     def __create_pool_phase(self, qualified_players, name):
-        try:
-            new_pool_phase = PoolPhase.objects.create(tournament=self, name=name)
-        except IntegrityError:
-            raise ValidationError("A pool phase with the same name already exists")
-        else:
-            new_pool_phase.add_players(qualified_players)
-            self.pool_phases.add(new_pool_phase)
-            self.save()
-            return PoolPhase.objects.get(name=name, tournament=self)
+        new_pool_phase = PoolPhase.objects.create(tournament=self, name=name)
+        new_pool_phase.add_players(qualified_players)
+        self.pool_phases.add(new_pool_phase)
+        self.save()
+        return PoolPhase.objects.get(name=name, tournament=self)
 
     def remove_participant(self, member):
         player = self.__player_instance_of_user(member)
@@ -648,8 +644,6 @@ class Tournament(models.Model):
             self._start_phase = "Small-Pool-Phase"
         elif 32 < self.players.count() <= 96:
             self._start_phase = "Large-Pool-Phase"
-        else:
-            raise ValueError("Invalid number of players")
 
     def remove_co_organiser(self, member):
         # Checks should be done beforehand in the views
@@ -879,8 +873,6 @@ class EliminationRounds(models.Model):
                 self._tournament.go_to_next_phase(winner=round_winner)
             elif self.__are_all_matches_played():
                 self.__check_new_phase()
-        else:
-            raise ValueError("All matches have already been played")
 
     def __check_new_phase(self):
         before_phase = self.phase
@@ -1206,8 +1198,6 @@ class PoolPhase(models.Model):
             return self.__generate_small_pool_schedule()
         elif 33 <= self.PP_players.count() <= 96:
             return self.__generate_large_pool_schedule()
-        else:
-            raise ValueError("The number of players is invalid")
 
 
 class Pool(models.Model):
@@ -1224,9 +1214,6 @@ class Pool(models.Model):
         return self.pool_matches.all()
 
     def add_players(self, players):
-        for player in players:
-            if player not in self.pool_phase.get_players():
-                raise ValidationError("One of the players is not part of the tournament")
         for player in players:
             if player not in self.pool_players.all():
                 self.pool_players.add(player)
@@ -1314,24 +1301,17 @@ class Match(models.Model):
         return self._player2
 
     def enter_winner(self, player):
-        if not self._open:
-            raise ValidationError("This match is closed")
         if player == self._player1 or player == self._player2:
             self._winner = player
             self._player1.add_encountered_player(self._player2)
             self.__close_match()
             self.save()
             return self._winner
-        else:
-            raise ValueError("This player is not a player of this match")
 
     def enter_draw(self):
-        if not self._open:
-            raise ValidationError("This match is closed")
-        else:
-            self._player1.add_encountered_player(self._player2)
-            self.__close_match()
-            self.save()
+        self._player1.add_encountered_player(self._player2)
+        self.__close_match()
+        self.save()
 
     def __close_match(self):
         self._open = False

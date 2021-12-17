@@ -451,7 +451,7 @@ def leave(request, club_name):
 
 
 @login_required
-@club_permissions_required(perms_list=['chessclubs.access_club_info'])
+@club_permissions_required(perms_list=['chessclubs.access_club_tournaments'])
 def show_tournament(request, club_name, tournament_name):
     """ shows a specific tournament page """
     try:
@@ -516,6 +516,10 @@ def my_matches(request):
     tournaments = {}
     my_tournaments = request.user.get_all_tournaments()
     count = len(my_tournaments)
+    if count == 0:
+        messages.add_message(request, messages.WARNING,
+                             "You are currently part of no tournament")
+        return redirect('landing_page')
     for tournament in my_tournaments:
         if not tournament.has_finished():
             tournaments[tournament] = tournament.get_matches_of_player(request.user)
