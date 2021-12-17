@@ -55,9 +55,19 @@ class MyMatchesViewTestCase(TestCase, AssertHTMLMixin):
         self.tournament_tester.make_participant(self.participant)
         self.tournament._set_deadline_now()
         response = self.client.get(self.url)
-        with self.assertHTML(response, element_id="not_published") as no_match:
+        with self.assertHTML(response, element_id="not_published") as no_match_left:
+            self.assertIsNotNone(no_match_left)
+            self.assertEqual(no_match_left.text, "The schedule has not been published yet.")
+
+    def test_matches_in_no_matches_currently_left_to_play_tournament(self):
+        self.tournament_tester.make_participant(self.participant)
+        self.tournament._set_deadline_now()
+        self.tournament.publish_schedule()
+        enter_results_to_all_matches(self.tournament)
+        response = self.client.get(self.url)
+        with self.assertHTML(response, element_id="no_match_to_play_in_tournament") as no_match:
             self.assertIsNotNone(no_match)
-            self.assertEqual(no_match.text, "The schedule has not been published yet.")
+            self.assertEqual(no_match.text, "You have no more matches in this tournament for now.")
 
     def test_matches_in_published_tournament(self):
         self.tournament_tester.make_participant(self.participant)
