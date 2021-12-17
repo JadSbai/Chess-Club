@@ -1,4 +1,4 @@
-"""Unit tests for the o model."""
+"""Unit tests for the club group permissions model."""
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from chessclubs.models import User, Club

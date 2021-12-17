@@ -11,6 +11,7 @@ from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 class PromoteViewTestCase(TestCase):
     """Test suites for the Promote view"""
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -161,8 +162,3 @@ class PromoteViewTestCase(TestCase):
         response = self.client.get(self.url)
         redirect_url = reverse_with_next('log_in', reverse('promote', kwargs={'club_name': self.club.name, 'user_id': self.member.id}))
         self.assertRedirects(response, redirect_url, status_code=302, target_status_code=200)
-
-
-
-
-

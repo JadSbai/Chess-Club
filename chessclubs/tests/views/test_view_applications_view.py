@@ -1,9 +1,13 @@
+"""Tests of view application view """
+
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next
 from django.test import TestCase
 from django.urls import reverse
 
 class ApplicationViewTestCase(TestCase):
+    """Tests of view application view """
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json'

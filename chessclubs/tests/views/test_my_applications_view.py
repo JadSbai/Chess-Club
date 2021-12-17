@@ -10,6 +10,7 @@ from with_asserts.mixin import AssertHTMLMixin
 
 class MyApplicationsViewTestCase(TestCase, AssertHTMLMixin):
     """Test Suites of my applications view"""
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

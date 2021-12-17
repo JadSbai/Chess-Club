@@ -1,4 +1,4 @@
-"""Unit tests for the Elimination rounds model."""
+"""Unit tests for the pool phase model."""
 import random
 
 from django.core.exceptions import ValidationError
@@ -8,8 +8,8 @@ from chessclubs.tests.helpers import generate_pools_list, get_right_number_of_po
     remove_all_players, encounter_all, encounter_half
 
 
-class SmallPoolPhaseModelTestCase(TestCase):
-    """Unit tests for the tournament model at creation time."""
+class PoolPhaseModelTestCase(TestCase):
+    """Unit tests for the pool phase model."""
 
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',

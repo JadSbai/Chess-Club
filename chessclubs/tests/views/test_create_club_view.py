@@ -1,3 +1,4 @@
+"""Unit tests of Create clube view """
 from django.test import TestCase
 from django.urls import reverse
 from chessclubs.models import Club, User
@@ -5,7 +6,10 @@ from chessclubs.tests.helpers import reverse_with_next
 from django.contrib import messages
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
+
 class CreateClubTestCase(TestCase):
+    """Unit tests of Create clube view """
+    
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
         'chessclubs/tests/fixtures/other_users.json'

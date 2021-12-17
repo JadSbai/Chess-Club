@@ -1,3 +1,5 @@
+"""Unit tests for the club model """
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from chessclubs.models import User, Club, ClubPermission
@@ -7,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 class ClubPermissionModelTestCase(TestCase):
-    """Unit tests for the club model."""
+    """Unit tests for the club model """
 
     fixtures = [
         'chessclubs/tests/fixtures/default_user.json',
@@ -64,5 +66,3 @@ class ClubPermissionModelTestCase(TestCase):
     def _assert_creation_is_invalid(self, exception):
         with self.assertRaises(exception):
             ClubPermission.objects.create(club=self.club, base_permission=self.base_permission)
-
-

@@ -10,6 +10,7 @@ from django.contrib import messages
 
 class LeaveClubViewTestCase(TestCase):
     """Test Suites of leave club view"""
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -143,4 +144,3 @@ class LeaveClubViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.WARNING)
 
     # Thorough tests for template content
-

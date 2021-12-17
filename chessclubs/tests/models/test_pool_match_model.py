@@ -1,3 +1,4 @@
+"""Unit tests for the small pool match model """
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -6,6 +7,8 @@ from chessclubs.tests.helpers import ClubGroupTester
 
 
 class SmallPoolMatchModelTestCase(TestCase):
+    """Unit tests for the small pool match model """
+
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -99,4 +102,3 @@ class SmallPoolMatchModelTestCase(TestCase):
     def _assert_match_is_invalid(self):
         with self.assertRaises(ValidationError):
             self.pool_match.full_clean()
-

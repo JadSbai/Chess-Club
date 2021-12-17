@@ -1,4 +1,5 @@
-"""Tests for the password view."""
+"""Tests for the password view """
+
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
@@ -8,6 +9,7 @@ from chessclubs.models import User
 from chessclubs.tests.helpers import reverse_with_next
 
 class PasswordViewTest(TestCase):
+
     """Test suite for the password view."""
 
     fixtures = [

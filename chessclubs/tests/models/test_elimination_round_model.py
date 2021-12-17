@@ -1,3 +1,5 @@
+"""Unit tests for the elimination round model """
+
 import math
 import random
 
@@ -9,6 +11,8 @@ from chessclubs.tests.helpers import ClubGroupTester, generate_elimination_match
 
 
 class EliminationRoundTestCase(TestCase):
+    """Unit tests for the elimination round model """
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

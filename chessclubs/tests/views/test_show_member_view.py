@@ -1,3 +1,4 @@
+"""Tests of show Member view """
 
 from django.contrib import messages
 from django.test import TestCase

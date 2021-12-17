@@ -1,4 +1,4 @@
-"""Tests of my add_co_organiser view"""
+"""Unit tests of add co organiser view """
 
 from django.test import TestCase
 from django.urls import reverse
@@ -11,7 +11,7 @@ from with_asserts.mixin import AssertHTMLMixin
 
 
 class AddCoOrganiserViewTestCase(TestCase, AssertHTMLMixin):
-    """Test Suites of my matches view"""
+    """Unit tests of add co organiser view """
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -157,8 +157,3 @@ class AddCoOrganiserViewTestCase(TestCase, AssertHTMLMixin):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, level)
         self.assertEqual(messages_list[0].message, message)
-
-
-
-
-

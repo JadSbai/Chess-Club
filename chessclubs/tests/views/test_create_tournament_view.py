@@ -1,5 +1,6 @@
-from django.contrib import messages
+"""Unit tests of Create tournament view """
 
+from django.contrib import messages
 from chessclubs.models import User, Club, Tournament
 from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next
 from django.test import TestCase
@@ -9,7 +10,10 @@ from django.utils import timezone
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 
 
+
 class CreateTournamentViewTestCase(TestCase):
+    """Unit tests of Create tournament view """
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json'

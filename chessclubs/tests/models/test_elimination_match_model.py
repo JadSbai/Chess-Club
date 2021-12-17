@@ -1,3 +1,5 @@
+"""Unit tests for the elimination match model """
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from chessclubs.models import User, Club, Tournament, EliminationMatch, Player, EliminationRounds
@@ -5,6 +7,8 @@ from chessclubs.tests.helpers import ClubGroupTester
 
 
 class EliminationMatchModelTestCase(TestCase):
+    """Unit tests for the elimination match model """
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

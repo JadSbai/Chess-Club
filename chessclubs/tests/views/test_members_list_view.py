@@ -1,13 +1,15 @@
+"""Tests of Members list view """
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
-
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import reverse_with_next, ClubGroupTester
 
 
-class UserListTest(TestCase):
+
+class MembersListTest(TestCase):
+    """Tests of Members list view """
 
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
@@ -122,5 +124,3 @@ class UserListTest(TestCase):
                 personal_statement=f'My name is {user_id}',
             )
             self.club.add_member(user)
-
-

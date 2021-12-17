@@ -1,4 +1,4 @@
-"""Tests of acknowledged"""
+"""Unit tests of acknowledged view """
 
 from django.test import TestCase
 from django.urls import reverse
@@ -10,6 +10,8 @@ from django.contrib import messages
 
 
 class AcknowledgeViewTestCase(TestCase):
+    """Unit tests of acknowledged view """
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

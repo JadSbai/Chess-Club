@@ -1,4 +1,4 @@
-"""Tests of accept."""
+"""Unit Tests of accept view"""
 
 from django.test import TestCase
 from django.urls import reverse
@@ -9,6 +9,8 @@ from django.contrib import messages
 
 
 class AcceptViewTestCase(TestCase):
+    """Unit Tests of accept view"""
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

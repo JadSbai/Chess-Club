@@ -1,11 +1,13 @@
+"""Unit tests for the Pool model"""
+
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.test import TestCase
 from chessclubs.models import User, Club, Tournament, Player, Pool, PoolMatch
 from chessclubs.tests.helpers import ClubGroupTester
 
 
-class SmallPoolModelTestCase(TestCase):
-    """Test Suites for the Small Pool model"""
+class PoolModelTestCase(TestCase):
+    """Test Suites for the Pool model"""
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',

@@ -9,6 +9,7 @@ from django.contrib import messages
 
 
 class ApplyClubViewTestCase(TestCase):
+    """Unit tests of apply club view """
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -127,4 +128,3 @@ class ApplyClubViewTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         messages_list = list(response.context['messages'])
         self.assertEqual(len(messages_list), 0)
-

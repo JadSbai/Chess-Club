@@ -11,6 +11,7 @@ from with_asserts.mixin import AssertHTMLMixin
 
 class PublishScheduleViewTestCase(TestCase, AssertHTMLMixin):
     """Test Suites of publish_schedule view"""
+    
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
                 'chessclubs/tests/fixtures/default_club.json',
@@ -142,8 +143,3 @@ class PublishScheduleViewTestCase(TestCase, AssertHTMLMixin):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, level)
         self.assertEqual(messages_list[0].message, message)
-
-
-
-
-

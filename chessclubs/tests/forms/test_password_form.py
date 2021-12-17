@@ -1,9 +1,11 @@
+"""Unit tests of the Password form."""
 from django import forms
 from django.test import TestCase
 from chessclubs.models import User
 from chessclubs.forms import PasswordForm
 
 class PasswordFormTestCase(TestCase):
+    """Unit tests of the Password form."""
 
     fixtures = ['chessclubs/tests/fixtures/default_user.json']
 

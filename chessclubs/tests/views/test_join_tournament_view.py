@@ -1,4 +1,4 @@
-"""Tests of apply to the tournament view."""
+"""Tests of join to the tournament view."""
 from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
@@ -9,7 +9,7 @@ from chessclubs.tests.helpers import ClubGroupTester, reverse_with_next, Tournam
 
 
 class JoinTournamentViewTestCase(TestCase):
-    """Tests of apply to the tournament view."""
+    """Tests of join to the tournament view."""
 
     fixtures = ['chessclubs/tests/fixtures/default_user.json',
                 'chessclubs/tests/fixtures/other_users.json',
