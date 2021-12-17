@@ -1,13 +1,11 @@
 """ Unit test for page not found view """
 from django.contrib import messages
 from django.test import TestCase
-from django.urls import reverse
-from chessclubs.models import User, Club
 from chessclubs.tests.helpers import reverse_with_next
 
 class PageNotFoundView(TestCase):
     """ Unit test for page not found view """
-    
+
     def setUp(self):
         self.url='/club/blabla/'
 
