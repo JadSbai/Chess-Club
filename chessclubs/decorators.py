@@ -1,9 +1,10 @@
 from django.conf import settings
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
-from .models import Club, Tournament, User, Match
-from django.contrib import messages
 from django.utils import timezone
+
+from .models import Club, Tournament, User, Match
 
 
 def login_prohibited(view_function):
@@ -245,6 +246,7 @@ def target_user_must_be_officer_and_non_participant(view_function):
                 return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
             else:
                 return view_function(request, *args, **kwargs)
+
     return modified_view_function
 
 
@@ -311,6 +313,7 @@ def tournament_has_not_started(view_function):
 
     return modified_view_function
 
+
 def tournament_has_started(view_function):
     def modified_view_function(request, *args, **kwargs):
         club_name = kwargs.get('club_name')
@@ -321,4 +324,5 @@ def tournament_has_started(view_function):
             return redirect('show_tournament', tournament_name=tournament_name, club_name=club_name)
         else:
             return view_function(request, *args, **kwargs)
+
     return modified_view_function

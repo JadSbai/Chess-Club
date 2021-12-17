@@ -96,6 +96,11 @@ class ClubGroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Applicant should not be able to join a tournament')
 
+    def test_applicant_cannot_access_tournaments(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Applicant should not be able to access club tournaments')
+
     def test_member_can_access_club_info(self):
         self.group_tester.make_member(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
@@ -170,6 +175,11 @@ class ClubGroupPermissionsTestCase(TestCase):
         self.group_tester.make_member(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Member should be able to apply to a tournament')
+
+    def test_member_can_access_tournaments(self):
+        self.group_tester.make_member(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Member should be able to access club tournaments')
 
     def test_officer_can_access_club_info(self):
         self.group_tester.make_officer(self.other_user)
@@ -246,6 +256,13 @@ class ClubGroupPermissionsTestCase(TestCase):
         if not self.other_user.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Officer should be able to apply to a tournament')
 
+
+    def test_officer_can_access_tournaments(self):
+        self.group_tester.make_officer(self.other_user)
+        if not self.other_user.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Officer should be able to access club tournaments')
+
+
     def test_owner_can_access_club_info(self):
         if not self.owner.has_club_perm('chessclubs.access_club_info', self.club):
             self.fail('Owner should have access to club info')
@@ -305,6 +322,10 @@ class ClubGroupPermissionsTestCase(TestCase):
     def test_owner_can_apply_tournament(self):
         if not self.owner.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Owner should be able to apply to a tournament')
+
+    def test_owner_can_access_tournaments(self):
+        if not self.owner.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Owner should be able to access club tournaments')
 
     def test_denied_applicant_can_access_club_info(self):
         self.group_tester.make_denied_applicant(self.other_user)
@@ -381,6 +402,11 @@ class ClubGroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Denied Applicant should not be able to apply to a tournament')
 
+    def test_denied_applicant_cannot_access_tournaments(self):
+        self.group_tester.make_denied_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Denied applicant should not be able to access club tournaments')
+
     def test_accepted_applicant_can_access_club_info(self):
         self.group_tester.make_accepted_applicant(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
@@ -456,6 +482,11 @@ class ClubGroupPermissionsTestCase(TestCase):
         if self.other_user.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Accepted applicant should not be able to apply to a tournament')
 
+    def test_accepted_applicant_cannot_access_tournaments(self):
+        self.group_tester.make_applicant(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Accepted applicant should not be able to access club tournaments yet')
+
     def test_logged_in_non_member_can_access_club_info(self):
         self.group_tester.make_authenticated_non_member(self.other_user)
         if not self.other_user.has_club_perm('chessclubs.access_club_info', self.club):
@@ -530,3 +561,8 @@ class ClubGroupPermissionsTestCase(TestCase):
         self.group_tester.make_authenticated_non_member(self.other_user)
         if self.other_user.has_club_perm('chessclubs.join_tournament', self.club):
             self.fail('Logged-in non-member should not be able to apply to a tournament')
+
+    def test_logged_in_non_member_cannot_access_tournaments(self):
+        self.group_tester.make_authenticated_non_member(self.other_user)
+        if self.other_user.has_club_perm('chessclubs.access_club_tournaments', self.club):
+            self.fail('Logged in non member should not be able to access club tournaments')

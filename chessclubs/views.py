@@ -8,9 +8,11 @@ from django.shortcuts import redirect, render, get_object_or_404
 from notifications.models import Notification
 from notifications.signals import notify
 from notifications.utils import slug2id
+
 from Wildebeest.settings import REDIRECT_URL_WHEN_LOGGED_IN
 from .decorators import login_prohibited, club_permissions_required, tournament_permissions_required, \
-    must_be_non_participant, deadline_must_not_be_passed, tournament_must_be_published, target_user_must_be_officer_and_non_participant, \
+    must_be_non_participant, deadline_must_not_be_passed, tournament_must_be_published, \
+    target_user_must_be_officer_and_non_participant, \
     must_be_valid_result, match_must_be_in_tournament, deadline_must_be_passed, tournament_has_not_finished, \
     tournament_has_not_started, tournament_has_started
 from .forms import LogInForm, PasswordForm, UserForm, SignUpForm, ClubForm, NewOwnerForm, TournamentForm, \
@@ -550,6 +552,9 @@ def add_co_organiser(request, tournament_name, club_name, user_id):
 def enter_result(request, tournament_name, match_id, result, club_name):
     tournament = Tournament.objects.get(name=tournament_name)
     match = Match.objects.get(id=match_id)
+    if not match.is_open():
+        messages.add_message(request, messages.ERROR, "This match is already closed.")
+        return redirect('show_schedule', tournament_name=tournament_name, club_name=club_name)
     if result == "draw":
         if tournament.get_current_phase() != "Elimination Round":
             tournament.enter_result(match, result=False)

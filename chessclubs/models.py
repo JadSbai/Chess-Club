@@ -1,6 +1,7 @@
 """Models in the chessclubs app."""
 
 import random
+
 from django.contrib import auth
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -329,7 +330,7 @@ class Club(models.Model):
         edit_club_info, created = ClubPermission.objects.get_or_create(club=self,
                                                                        base_permission=edit_club_info_perm)
         access_club_tournaments, created = ClubPermission.objects.get_or_create(club=self,
-                                                                       base_permission=access_club_tournaments_perm)
+                                                                                base_permission=access_club_tournaments_perm)
 
         # Assign the appropriate groups to the club-specific permissions (according to requirements)
         groups = [self.__officers_group(), self.applicants_group(), self.__denied_applicants_group(),
