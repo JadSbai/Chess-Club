@@ -39,6 +39,9 @@ Further improvement: Using of ELO ratings to determine which player goes into th
 The participants can see all their upcoming matches in the tournaments they're participating in
 A user can also see all of their current, past, and upcoming tournaments. 
 
+When entering result to matches, the pool order changes (this is because players are ordered by points dynamically.)
+But the points are added correctly, and happened matches disappears correctly.
+
 
 Possible further improvements:
 
