@@ -173,16 +173,19 @@ class Club(models.Model):
     def add_member(self, user):
         self.members.add(user)
         self.add_to_members_group(user)
+        self.save()
 
     def remove_member(self, user):
         self.members.remove(user)
         self.add_to_logged_in_non_members_group(user)
+        self.save()
 
     def toggle_membership(self, user):
         if self.is_member(user):
             self.remove_member(user)
         else:
             self.add_member(user)
+        self.save()
 
     def __members_group(self):
         members, created = Group.objects.get_or_create(name=f"{self.name}_members")
@@ -214,39 +217,51 @@ class Club(models.Model):
 
     def add_to_members_group(self, user):
         self.__members_group().user_set.add(user)
+        self.save()
 
     def remove_from_members_group(self, user):
         self.__members_group().user_set.remove(user)
+        self.save()
 
     def add_to_accepted_applicants_group(self, user):
         self.__accepted_applicants_group().user_set.add(user)
+        self.save()
 
     def remove_from_accepted_applicants_group(self, user):
         self.__accepted_applicants_group().user_set.remove(user)
+        self.save()
 
     def add_to_applicants_group(self, user):
         self.applicants_group().user_set.add(user)
+        self.save()
 
     def remove_from_applicants_group(self, user):
         self.applicants_group().user_set.remove(user)
+        self.save()
 
     def add_to_denied_applicants_group(self, user):
         self.__denied_applicants_group().user_set.add(user)
+        self.save()
 
     def remove_from_denied_applicants_group(self, user):
         self.__denied_applicants_group().user_set.remove(user)
+        self.save()
 
     def add_to_officers_group(self, user):
         self.__officers_group().user_set.add(user)
+        self.save()
 
     def remove_from_officers_group(self, user):
         self.__officers_group().user_set.remove(user)
+        self.save()
 
     def add_to_logged_in_non_members_group(self, user):
         self.__authenticated_non_member_group().user_set.add(user)
+        self.save()
 
     def remove_from_logged_in_non_members_group(self, user):
         self.__authenticated_non_member_group().user_set.remove(user)
+        self.save()
 
     def owner_count(self):
         return self.__owner_group().user_set.all().count()
@@ -259,6 +274,7 @@ class Club(models.Model):
         self.__owner_group().user_set.remove(self.owner)
         self.__owner_group().user_set.add(user)
         self.add_to_officers_group(self.owner)
+        self.save()
 
     def user_status(self, user):
         """Returns the status of a given user in the club (assumes a user belongs to one and only one group of each club)"""
@@ -396,12 +412,15 @@ class ClubPermission(models.Model):
     def set_groups(self, groups):
         for group in groups:
             self.groups.add(group)
+        self.save()
 
     def add_user(self, user):
         self.users.add(user)
+        self.save()
 
     def remove_user(self, user):
         self.users.remove(user)
+        self.save()
 
     class Meta:
         indexes = [models.Index(fields=["club", "base_permission"])]
@@ -500,6 +519,7 @@ class Tournament(models.Model):
         new_player = Player.objects.create(user=member, tournament=self)
         self.players.add(new_player)
         self.add_to_participants_group(member)
+        self.save()
         return new_player
 
     def get_participant_count(self):
@@ -542,6 +562,8 @@ class Tournament(models.Model):
         else:
             elimination_match = EliminationMatch.objects.get(id=match.id)
             self.elimination_round.enter_winner(match=elimination_match, winner=winner)
+
+        self.save()
 
     def get_winner(self):
         if self._winner:
@@ -613,12 +635,14 @@ class Tournament(models.Model):
         player = self.__player_instance_of_user(member)
         player.delete()
         self.remove_from_participants_group(member)
+        self.save()
 
     def _remove_all_participants(self):
         """This method is used only for tests"""
         for player in self.participants_list():
             player.delete()
             self.remove_from_participants_group(player.user)
+        self.save()
 
     def get_current_pool_phase(self):
         for pool_phase in self.pool_phases.all():
@@ -655,6 +679,7 @@ class Tournament(models.Model):
         # Checks should be done beforehand in the views
         self.co_organisers.remove(member)
         self.remove_from_organisers_group(member)
+        self.save()
 
     def start_tournament(self):
         self._started = True
@@ -682,6 +707,7 @@ class Tournament(models.Model):
     def add_all_members_to_tournament(self):
         for member in self.club.members.all():
             self.add_participant(member)
+        self.save()
 
     def __announce_winner(self, winner):
         if winner:
@@ -725,15 +751,19 @@ class Tournament(models.Model):
 
     def add_to_participants_group(self, user):
         self.__participants_group().user_set.add(user)
+        self.save()
 
     def add_to_co_organisers_group(self, user):
         self.__co_organisers_group().user_set.add(user)
+        self.save()
 
     def remove_from_participants_group(self, user):
         self.__participants_group().user_set.remove(user)
+        self.save()
 
     def remove_from_organisers_group(self, user):
         self.__co_organisers_group().user_set.remove(user)
+        self.save()
 
     def assign_tournament_permissions_and_groups(self):
         # Get the base permissions from the Tournament model Meta class
@@ -802,12 +832,15 @@ class TournamentPermission(models.Model):
     def set_groups(self, groups):
         for group in groups:
             self.groups.add(group)
+        self.save()
 
     def add_user(self, user):
         self.users.add(user)
+        self.save()
 
     def remove_user(self, user):
         self.users.remove(user)
+        self.save()
 
     class Meta:
         indexes = [models.Index(fields=["tournament", "base_permission"])]
@@ -979,6 +1012,7 @@ class PoolPhase(models.Model):
     def add_players(self, players):
         for player in players:
             self.PP_players.add(player)
+        self.save()
 
     def add_qualified_players(self, qualified_players):
         if not self._closed:
@@ -986,6 +1020,7 @@ class PoolPhase(models.Model):
             all_pools_finished = self.__check_all_pools()
             if all_pools_finished:
                 self.__go_to_next_phase()
+            self.save()
 
     def get_pools(self):
         return self.pools.all()
@@ -1005,6 +1040,7 @@ class PoolPhase(models.Model):
     def enter_result(self, match, result, winner=None):
         pool = self.__get_pool_of_match(match)
         pool.enter_result(match=match, result=result, winner=winner)
+        self.save()
 
     def __go_to_next_phase(self):
         self._closed = True
@@ -1249,18 +1285,21 @@ class Pool(models.Model):
             self.__are_all_matches_played()
             if self.all_matches_played:
                 self.__set_qualified_players()
+            self.save()
 
     def enter_winner(self, winner, match):
         match.enter_winner(winner)
         self.__are_all_matches_played()
         if self.all_matches_played:
             self.__set_qualified_players()
+        self.save()
 
     def enter_draw(self, match):
         match.enter_draw()
         self.__are_all_matches_played()
         if self.all_matches_played:
             self.__set_qualified_players()
+        self.save()
 
     def __are_all_matches_played(self):
         self.all_matches_played = all(not m.is_open() for m in self.pool_matches.all())
@@ -1376,6 +1415,7 @@ class PoolMatch(Match):
     def __enter_draw_result(self):
         super(PoolMatch, self).enter_draw()
         self.__set_draw_points()
+        self.save()
 
     def __set_draw_points(self):
         self._player1.draw()
