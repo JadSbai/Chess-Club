@@ -171,11 +171,13 @@ class Club(models.Model):
         return self.__officers_group().user_set.all()
 
     def add_member(self, user):
+        """ adds a given member to members group """
         self.members.add(user)
         self.add_to_members_group(user)
         self.save()
 
     def remove_member(self, user):
+        """ removes a given member from members group """
         self.members.remove(user)
         self.add_to_logged_in_non_members_group(user)
         self.save()
@@ -264,12 +266,15 @@ class Club(models.Model):
         self.save()
 
     def owner_count(self):
+        """ returns the number of owners in a club """
         return self.__owner_group().user_set.all().count()
 
     def officer_count(self):
+        """ returns the number of officers in a club """
         return self.__officers_group().user_set.all().count()
 
     def change_owner(self, user):
+        """ changes the owner of the club to the chosen user """
         self.remove_from_officers_group(user)
         self.__owner_group().user_set.remove(self.owner)
         self.__owner_group().user_set.add(user)
@@ -460,12 +465,14 @@ class Player(models.Model):
     _encountered_players = models.ManyToManyField('self', related_name="encountered_players")
 
     def get_points(self):
+        """ returns the points the user has """
         return self._points
 
     def get_pools(self):
         return self._pools.all()
 
     def get_encountered_players(self):
+        """ returns the players the player has already encoutered """
         return self._encountered_players.all()
 
     def add_encountered_player(self, player):
@@ -516,6 +523,7 @@ class Tournament(models.Model):
     _schedule_published = models.BooleanField(default=False)
 
     def add_participant(self, member):
+        """ adds a member to participants group and returning it """
         new_player = Player.objects.create(user=member, tournament=self)
         self.players.add(new_player)
         self.add_to_participants_group(member)
@@ -523,9 +531,11 @@ class Tournament(models.Model):
         return new_player
 
     def get_participant_count(self):
+        """ returns the number of participant """
         return self.players.count()
 
     def get_min_capacity(self):
+        """ returns minimum capacity """
         return TOURNAMENT_MIN_CAPACITY
 
     def _set_deadline_now(self):
@@ -566,6 +576,7 @@ class Tournament(models.Model):
         self.save()
 
     def get_winner(self):
+        """ returns the full name of the winner """
         if self._winner:
             return self._winner.full_name()
 
@@ -632,6 +643,7 @@ class Tournament(models.Model):
             return PoolPhase.objects.get(name=name, tournament=self)
 
     def remove_participant(self, member):
+        """ removes a given participant from participants group """
         player = self.__player_instance_of_user(member)
         player.delete()
         self.remove_from_participants_group(member)
@@ -652,6 +664,7 @@ class Tournament(models.Model):
             return None
 
     def add_co_organiser(self, officer):
+        """ adds an officer to co organisers group """
         self.co_organisers.add(officer)
         self.add_to_co_organisers_group(officer)
 
@@ -715,6 +728,7 @@ class Tournament(models.Model):
             self._set_finished()
 
     def participants_list(self):
+        """ returns all the participant in a specifc tournament """
         return self.players.all()
 
     def is_participant(self, member):
@@ -739,6 +753,7 @@ class Tournament(models.Model):
         return self.players.count() == TOURNAMENT_MIN_CAPACITY
 
     def co_organisers_list(self):
+        """ returns all the co orginsers in a specifc tournament """
         return self.co_organisers.all()
 
     def __participants_group(self):
@@ -1314,7 +1329,7 @@ class Pool(models.Model):
 
 
 class MatchManager(models.Manager):
-    """Custom user manager used for creation of users and superusers"""
+    """Custom match manager"""
 
     def create_match(self, tournament, player1, player2):
         """Create a match according to User model"""
