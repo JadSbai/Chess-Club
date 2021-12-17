@@ -50,28 +50,10 @@ class MatchModelTestCase(TestCase):
         self.assertEqual(self.match.get_winner(), self.player1)
         self.assertFalse(self.match.is_open())
 
-    def test_enter_winner_while_closed(self):
-        self.match.enter_winner(self.player1)
-        with self.assertRaises(ValidationError):
-            new_winner = self.match.enter_winner(self.player2)
-            self.assertEqual(new_winner, None)
-            self.assertEqual(self.match.get_winner(), self.player1)
-
-    def test_enter_winner_with_wrong_player(self):
-        with self.assertRaises(ValueError):
-            winner = self.match.enter_winner(self.other_player)
-            self.assertEqual(winner, None)
-            self.assertEqual(self.match.get_winner(), None)
-
     def test_successful_enter_draw(self):
         self.match.enter_draw()
         self.assertFalse(self.match.is_open())
         self.assertEqual(self.match.get_winner(), None)
-
-    def test_enter_draw_while_closed(self):
-        self.match.enter_draw()
-        with self.assertRaises(ValidationError):
-            self.match.enter_draw()
 
     def test_forbidden_get_winner(self):
         winner = self.match.get_winner()

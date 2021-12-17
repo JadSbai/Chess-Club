@@ -33,7 +33,7 @@ class ShowTournamentViewTestCase(TestCase, AssertHTMLMixin):
         _create_test_players(10, cls.club, cls.tournament)
         cls.url = reverse('show_tournament',
                           kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
-        cls.redirect_url = reverse(REDIRECT_URL_WHEN_LOGGED_IN)
+        cls.redirect_url = reverse('show_club', kwargs={'club_name': cls.club.name})
         cls.show_schedule_url = reverse('show_schedule',
                                         kwargs={'club_name': cls.club.name, 'tournament_name': cls.tournament.name})
         cls.publish_schedule_url = reverse('publish_schedule',
@@ -291,29 +291,29 @@ class ShowTournamentViewTestCase(TestCase, AssertHTMLMixin):
         response = self.client.get(self.url, follow=True)
         self._assert_valid_response(response)
 
-    def test_applicant_can_see_tournament_page(self):
+    def test_applicant_cannot_see_tournament_page(self):
         self.client.login(email=self.any_user.email, password='Password123')
         self.club_tester.make_applicant(self.any_user)
         response = self.client.get(self.url, follow=True)
-        self._assert_valid_response(response)
+        self._assert_response_redirect(response)
 
-    def test_accepted_applicant_can_see_tournament_page(self):
+    def test_accepted_applicant_cannot_see_tournament_page(self):
         self.client.login(email=self.any_user.email, password='Password123')
         self.club_tester.make_accepted_applicant(self.any_user)
         response = self.client.get(self.url, follow=True)
-        self._assert_valid_response(response)
+        self._assert_response_redirect(response)
 
-    def test_denied_applicant_can_see_tournament_page(self):
+    def test_denied_applicant_cannot_see_tournament_page(self):
         self.client.login(email=self.any_user.email, password='Password123')
         self.club_tester.make_denied_applicant(self.any_user)
         response = self.client.get(self.url, follow=True)
-        self._assert_valid_response(response)
+        self._assert_response_redirect(response)
 
-    def test_logged_in_non_members_can_see_tournament_page(self):
+    def test_logged_in_non_members_cannot_see_tournament_page(self):
         self.client.login(email=self.any_user.email, password='Password123')
         self.club_tester.make_authenticated_non_member(self.any_user)
         response = self.client.get(self.url, follow=True)
-        self._assert_valid_response(response)
+        self._assert_response_redirect(response)
 
     def _assert_response_redirect(self, response):
         self.assertRedirects(response, self.redirect_url, status_code=302, target_status_code=200)

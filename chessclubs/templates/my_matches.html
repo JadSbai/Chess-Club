@@ -15,12 +15,10 @@
                             {% if not tournament.is_published %}
                                 <p><i id="not_published">The schedule has not been published yet.</i></p>
                             {% elif not list_matches %}
-                                <p><i id="no_match_to_play_in_tournament">You have no more matches in this tournament
-                                    for
-                                    now.</i></p>
+                                <p><i id="no_match_to_play_in_tournament">You have no more matches in this tournament for now.</i></p>
                             {% else %}
                                 {% for match in list_matches %}
-                                    <div class="mb-2 section text-center pt-3 pb-3 matches">
+                                  <a style="color: black" href="{% url 'show_schedule' tournament_name=tournament.name club_name=tournament.club.name %}"> <div class="mb-2 section text-center pt-3 pb-3 matches">
                                         {% if my_name == match.get_player1.user.full_name %}
                                             <p style="font-size: 24px; margin-bottom: 0"> You
                                                 <strong>vs</strong> {{ match.get_player2.user.full_name }}
@@ -30,12 +28,12 @@
                                                 <strong>vs</strong> {{ match.get_player1.user.full_name }}
                                             </p>
                                         {% endif %}
-                                    </div>
+                                    </div> </a>
                                 {% endfor %}
                             {% endif %}
                         </div>
                     {% endfor %}
-                {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>

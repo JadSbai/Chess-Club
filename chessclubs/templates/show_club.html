@@ -57,27 +57,27 @@
                                     {% else %}
                                         <div class="d-flex justify-content-center mb-2">
                                             <a href="{% url 'apply_club' club_name=club.name %}"
-                                               class="btn btn-outline-success">Apply to this club</a>
+                                               class="btn btn-success text-white">Apply to this club</a>
                                         </div>
                                     {% endif %}
-                                {% if user_status == 'officer' or user_status == 'owner' %}
+                                    {% if user_status == 'officer' or user_status == 'owner' %}
                                     <div class="d-flex justify-content-center mb-2">
                                         <a href="{% url 'create_tournament' club_name=club.name %}"
                                            class="btn text-white blue-apple">Create a new tournament</a>
                                     </div>
-                                {% endif %}
-                                {% if user_status == 'owner' %}
+                                    {% endif %}
+                                    {% if user_status == 'owner' %}
                                     <div class="d-flex justify-content-center mb-2">
                                         <a href="{% url 'edit_club' club_name=club.name %}"
                                            class="btn text-white blue-apple">Edit club info</a>
                                     </div>
-                                {% endif %}
-                                {#                                {% if user_status == 'officer' or user_status == 'member' %}#}
-                                <div class="d-flex justify-content-center mb-2">
-                                    <a href="{% url 'leave' club_name=club.name %}" class="btn btn-danger text-white"
-                                       onclick="return leaveConfirmation()">Leave this club</a>
-                                </div>
-                                {#                                {% endif %}#}
+                                    {% endif %}
+                                    {% if user_status == 'officer' or user_status == 'member' %}
+                                    <div class="d-flex justify-content-center mb-2">
+                                        <a href="{% url 'leave' club_name=club.name %}" class="btn btn-danger text-white"
+                                        onclick="return leaveConfirmation()">Leave this club</a>
+                                    </div>
+                                    {% endif %}
                                 </p>
                             </div>
                         </div>

@@ -1,3 +1,4 @@
+
 Team Wildebeest 
 
 The members of the team are:
@@ -20,6 +21,9 @@ Sources:
 2. In order to implement club_specific as well as tournament-specific permissions, we highly inspired ourselves from the following StackOverflow solution: https://stackoverflow.com/questions/69570682/how-to-setup-django-permissions-to-be-specific-to-a-certain-models-instances
 3. The packages used by this application are specified in requirements.txt
 
+Subjective interpretation of requirements:
+
+- We decided that co-organisers cannot participate in the tournament, as it would give them an unfair edge on other players. We reckon no player should be able to enter results in order to keep the system as fair as possible.
 Project structure:
 
 The project is a chess-club management system. It has clubs that can be created. Inside each club, the officers and owner can create tournaments for the rest of the club to participate in. 
@@ -44,6 +48,9 @@ Thirdly, improve encapsulations of model classes.
 Fourthly, refactor the views.py and models.py files into more concise and maintainable directories. Shortening some views by creating supplementary decorators would also improve maintainability
 Fifthly, the algorithm for scheduling the matches is not optimal as it randomly selects non-encountered players.
 Last but not least, adding sorting filters to users list and clubs list. (Sorting by status for example)
+Also, the code isn't perfectly commented and there might be some unused imports here and there.
+The home image is not displaying correctly on safari when using MacOS.
+
 
 Installation instructions:
 
@@ -64,5 +71,4 @@ $ python3 manage.py seed
 Run all tests with:
 $ python3 manage.py test
 
-
-
+PS: It was Jad Sbaï who pushed the Clucker code but takes no credit for it. The code activity related to this push belongs to the team as a whole.
