@@ -24,7 +24,6 @@ Sources:
 Subjective interpretation of requirements:
 
 - We decided that co-organisers cannot participate in the tournament, as it would give them an unfair edge on other players. We reckon no player should be able to enter results in order to keep the system as fair as possible.
-
 Project structure:
 
 The project is a chess-club management system. It has clubs that can be created. Inside each club, the officers and owner can create tournaments for the rest of the club to participate in. 

@@ -70,3 +70,5 @@ def get_appropriate_redirect(notification):
         return redirect('show_tournament', club_name=tournament.club.name, tournament_name=instance_name)
     else:
         raise BaseException
+
+#test
