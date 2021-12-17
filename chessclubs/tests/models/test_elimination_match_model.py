@@ -36,25 +36,6 @@ class EliminationMatchModelTestCase(TestCase):
             EliminationMatch.objects.create_match(tournament=self.tournament, player1=self.tournament.organiser,
                                                   player2=self.player1)
 
-    def test_enter_winner_while_closed(self):
-        self.elimination_match.enter_winner(self.player1)
-        before = self.elimination_match.elimination_round.number_of_players()
-        with self.assertRaises(ValidationError):
-            winner = self.elimination_match.enter_winner(self.player1)
-            after = self.elimination_match.elimination_round.number_of_players()
-            self.assertFalse(self.elimination_match.is_open())
-            self.assertEqual(winner, None)
-            self.assertEqual(before, after)
-
-    def test_enter_winner_with_non_player(self):
-        before = self.elimination_match.elimination_round.number_of_players()
-        with self.assertRaises(ValueError):
-            winner = self.elimination_match.enter_winner(self.organiser)
-            after = self.elimination_match.elimination_round.number_of_players()
-            self.assertEqual(winner, None)
-            self.assertTrue(self.elimination_match.is_open())
-            self.assertEqual(before, after)
-
     def test_successful_enter_winner(self):
         winner = self.elimination_match.enter_winner(self.player2)
         self.assertFalse(self.elimination_match.is_open())

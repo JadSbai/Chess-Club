@@ -63,7 +63,9 @@ class MyMatchesViewTestCase(TestCase, AssertHTMLMixin):
         self.tournament_tester.make_participant(self.participant)
         self.tournament._set_deadline_now()
         self.tournament.publish_schedule()
-        enter_results_to_all_matches(self.tournament)
+        my_matches = self.tournament.get_matches_of_player(self.participant)
+        for match in my_matches:
+            match.enter_winner(match.get_player1())
         response = self.client.get(self.url)
         with self.assertHTML(response, element_id="no_match_to_play_in_tournament") as no_match:
             self.assertIsNotNone(no_match)

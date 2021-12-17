@@ -51,7 +51,7 @@
                             {% with count=pools.count|pool_number:i %}
                                 <p style="font-size: 24px; margin-top: 52px;  text-decoration: underline;"><strong>Pool {{ count }}: </strong></p>
                             {% endwith %}
-                            {% for match in pool.get_pool_matches %}
+                            {% for match in pool.get_current_pool_matches %}
                                    <div class="mb-3 section" style="margin-left: 72px; margin-right: 72px">
                                     <h6 class="section-heading p-1 text-center"> Match {{ count }}</h6>
                                     <div class="text-center">

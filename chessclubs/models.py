@@ -577,6 +577,7 @@ class Tournament(models.Model):
     def get_current_schedule(self):
         schedule = []
         for match in self.tournament_schedule.all():
+            match.refresh_from_db()
             if match.is_open():
                 schedule.append(match)
         return schedule
@@ -1214,6 +1215,13 @@ class Pool(models.Model):
     def get_pool_matches(self):
         return self.pool_matches.all()
 
+    def get_current_pool_matches(self):
+        matches = []
+        for match in self.get_pool_matches():
+            if match.is_open():
+                matches.append(match)
+        return matches
+
     def add_players(self, players):
         for player in players:
             if player not in self.pool_players.all():
@@ -1316,6 +1324,7 @@ class Match(models.Model):
 
     def __close_match(self):
         self._open = False
+        self.save()
 
     def get_winner(self):
         return self._winner

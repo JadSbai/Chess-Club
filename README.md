@@ -48,6 +48,9 @@ Thirdly, improve encapsulations of model classes.
 Fourthly, refactor the views.py and models.py files into more concise and maintainable directories. Shortening some views by creating supplementary decorators would also improve maintainability
 Fifthly, the algorithm for scheduling the matches is not optimal as it randomly selects non-encountered players.
 Last but not least, adding sorting filters to users list and clubs list. (Sorting by status for example)
+Also, the code isn't perfectly commented and there might be some unused imports here and there.
+The home image is not displaying correctly on safari when using MacOS.
+
 
 Installation instructions:
 

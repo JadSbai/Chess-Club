@@ -1,5 +1,5 @@
 """Unit tests for the o model."""
-from django.core.exceptions import ValidationError
+
 from django.test import TestCase
 from chessclubs.models import User, Club
 from chessclubs.tests.helpers import ClubGroupTester

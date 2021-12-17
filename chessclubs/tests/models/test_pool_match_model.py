@@ -37,24 +37,6 @@ class SmallPoolMatchModelTestCase(TestCase):
             PoolMatch.objects.create_match(tournament=self.tournament, player1=self.tournament.organiser,
                                                   player2=self.player1)
 
-    def test_enter_result_while_closed(self):
-        self.pool_match.enter_result(True, winner=self.player1)
-        with self.assertRaises(ValidationError):
-            self.pool_match.enter_result(True, winner=self.player2)
-            self.assertFalse(self.pool_match.is_open())
-            self.assertEqual(self.pool_match.get_winner(), None)
-
-        with self.assertRaises(ValidationError):
-            self.pool_match.enter_result(False)
-            self.assertTrue(self.pool_match.is_open())
-            self.assertEqual(self.pool_match.get_winner(), None)
-
-    def test_enter_result_with_non_player(self):
-        with self.assertRaises(ValueError):
-            self.pool_match.enter_result(True, winner=self.other_player)
-            self.assertTrue(self.pool_match.is_open())
-            self.assertEqual(self.pool_match.get_winner(), None)
-
     def test_successful_enter_winner_result(self):
         before_points = self.player1.get_points()
         self.pool_match.enter_result(True, winner=self.player1)

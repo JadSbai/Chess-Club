@@ -4,6 +4,9 @@
         <div class="row">
             <div class="col-12 ">
                 <h1 class="mb-5 mt-3">My Matches</h1>
+                {% if count == 0 %}
+                    <p><i id="no_matches">You are currently not playing in any tournament.</i></p>
+                {% else %}
                     <div class="col-6 mx-auto">
                     {% for tournament, list_matches in tournaments.items %}
                         <div class="mb-5">
@@ -30,6 +33,7 @@
                             {% endif %}
                         </div>
                     {% endfor %}
+                    {% endif %}
                 </div>
             </div>
         </div>
