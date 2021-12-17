@@ -31,17 +31,18 @@ Members of the club can then apply and withdraw from tournaments until the deadl
 Once the deadline is reached, and it has enough participants, the organiser can publish the schedule and/or start the tournament. The schedule will automatically be published if the organiser chooses to start the tournament without publishing first. 
 The organiser or any co-organiser can enter results for matches. Once all the matches are completed in a phase, the next phase will automatically start and its schedule will be published as well.
 In case of a draw in the elimination system, the players will have to replay the match, until a winner is determined. In the group phase(s), if two or more players have the same amount of points, the advancing two will be chosen randomly. 
-Further improvement: Using of ELO ratings to determine which player goes into the next phase in a fair-and-square way.
+Further improvement: Using of ELO ratings to determine which player goes into the next phase in a fair-and-square way
 The participants can see all their upcoming matches in the tournaments they're participating in
 A user can also see all of their current, past, and upcoming tournaments. 
 
 
-Possible improvements:
+Possible further improvements:
 
-There are some things that could have been improved, for instance, class based views, which would allow us to structure the code and reuse code by harnessing inheritance and mixins. 
+There are some things that could have been improved, for instance, class based views, which would allow us to structure the code and reuse code by harnessing inheritance and mixins.
 Secondly, writing more thorough tests for template content. 
 Thirdly, improve encapsulations of model classes.
 Fourthly, refactor the views.py and models.py files into more concise and maintainable directories. Shortening some views by creating supplementary decorators would also improve maintainability
+Fifthly, the algorithm for scheduling the matches is not optimal as it randomly selects non-encountered players.
 Last but not least, adding sorting filters to users list and clubs list. (Sorting by status for example)
 
 Installation instructions:
